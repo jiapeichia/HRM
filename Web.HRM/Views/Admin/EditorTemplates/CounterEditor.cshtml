@@ -1,0 +1,24 @@
+﻿@model Meo.Web.ViewModels.CounterViewModels
+
+@{
+    ViewBag.Title = "Counter Editor";
+}
+
+<div>
+    @Html.LabelFor(model => model.count_name, new { @style = "width : 150px", @class = "control-label col-md-2" })
+
+    @Html.EditorFor(model => model.count_name)
+    @Html.ValidationMessageFor(model => model.count_name)
+</div>
+<div style="padding-top:10px">
+    @Html.LabelFor(model => model.count_no, new { @style = "width : 150px", @class = "control-label col-md-2" })
+
+    @Html.Kendo().TextBoxFor(model => model.count_no)
+    @Html.ValidationMessageFor(model => model.count_no)
+</div>
+<div style="padding-top:10px">
+    @Html.LabelFor(model => model.module, new { @style = "width : 150px", @class = "control-label col-md-2" })
+
+    @Html.Kendo().TextBoxFor(model => model.module)
+    @Html.ValidationMessageFor(model => model.module)
+</div>

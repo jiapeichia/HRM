@@ -1,0 +1,64 @@
+﻿@model Meo.Web.ViewModels.TopUp
+
+@{
+    ViewBag.Title = "TopUp Editor";
+}
+
+<table>
+    <tbody>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.ProductCode, new { @style = "width : 100px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @Html.EditorFor(model => model.ProductCode, new { @style = "width : 100%;", @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.ProductCode)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.ProductName, new { @style = "width : 100px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @Html.EditorFor(model => model.ProductName, new { @style = "width : 100%;", @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.ProductName)
+            </td>
+        </tr>
+        @*<tr>
+            <td>
+                @Html.LabelFor(model => model.Cost, new { @style = "width : 100px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @Html.EditorFor(model => model.Cost, new { htmlAttributes = new { @style = "width : 100%; height: 20px", @class = "form-control", @type = "number", @step = "0.01" } })
+                @Html.ValidationMessageFor(model => model.Cost)
+            </td>
+        </tr>*@
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.Price, new { @style = "width : 100px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @Html.EditorFor(model => model.Price, new { htmlAttributes = new { @style = "width : 100%; height: 20px", @class = "form-control", @type = "number", @step = "0.01" } })
+                @Html.ValidationMessageFor(model => model.Price)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.Credit, new { @style = "width : 100px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @Html.EditorFor(model => model.Credit, new { @style = "width : 100%;", @type = "number", @step = "1" })
+                @Html.ValidationMessageFor(model => model.Credit)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.Remarks, new { @style = "width : 100px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @Html.TextAreaFor(model => model.Remarks, new { @style = "width : 100%;", rows = 6 })
+                @Html.ValidationMessageFor(model => model.Remarks)
+            </td>
+        </tr>
+    </tbody>
+</table>

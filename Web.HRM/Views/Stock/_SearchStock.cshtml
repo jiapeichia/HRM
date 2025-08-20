@@ -1,0 +1,218 @@
+﻿@using Meo.Web.ViewModels
+
+<div>
+    @(Html.Kendo().Grid<StockReceives>()
+        .Name("GridForStock")
+        .HtmlAttributes(new { style = "100%" })
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.PODate).ClientTemplate("#= kendo.toString(PODate, 'd') #");
+            columns.Bound(c => c.PONo);
+            columns.ForeignKey(c => c.SupplierId, (System.Collections.IEnumerable)ViewData["Supplier"], "SupplierId", "Name");
+            columns.Bound(c => c.Qty);
+            columns.Bound(c => c.TotalAmount);
+            columns.Bound(c => c.Remarks);
+            columns.Bound(c => c.Id)
+                .Title("")
+                .ClientTemplate("<a href='" + @Url.Action("PreviewPO", "Stock", new { id = "#=Id#" }) + "'><span class='k-button k-button-icontext k-grid-edit'><span class='k-icon k-i-eye'></span>Preview</span></a>")
+                .Width(100);
+            columns.Command(command =>
+            {
+                command.Custom("Edit")
+                .Click("onEditClick")
+                .HtmlAttributes(new { @class = "k-button k-button-icontext k-grid-edit" })
+                .Text("<span class='k-icon k-i-edit'></span>Edit");
+                command.Destroy(); // Keep the delete functionality
+            }).Width(180);
+        })
+        .Pageable(pageable => pageable
+            .Refresh(true)
+            .Messages(m => m.Refresh(string.Empty)))
+        .Editable(editable => editable
+            .ConfirmDelete("Delete Confirmation")
+            .DisplayDeleteConfirmation("Are you sure to delete this record?"))
+        .ToolBar(toolbar => toolbar
+            .Template("<a id='Create' class='k-button k-button-icontext k-grid-add' href='#'> + Create New </a>"))
+        .Sortable()
+        .Pageable(pageable => pageable
+            .Refresh(true)
+            .Messages(m => m.Refresh(string.Empty))
+        )
+        .DataSource(source => source
+            .Ajax()
+            //.Aggregates(aggregates =>
+            //{
+            //    aggregates.Add(c => c.TotalAmount).Sum();
+            //})
+            .PageSize(10)
+            .Events(events => events.Error("error_handler").Sync("sync_handler").RequestEnd("onRequestEnd"))
+            .Sort(sort => sort.Add("PODate").Descending())
+            .Read(read => read.Action("Read_StockReceive", "Stock", new { action = "preview", pono = ViewBag.poNo/*, period = ViewBag.period*/ }))
+            .Destroy(update => update.Action("Destroy_StockReceive", "Stock"))//, new { pono = ViewBag.poNo/*, period = ViewBag.period*/ }))
+            .Model(model =>
+            {
+                model.Id(tc => tc.Id);
+            }))
+        //.Resizable(resize => resize.Columns(true))
+        .NoRecords("No Records Found")
+    )
+</div>
+<span id="notification" style="display:none;"></span>
+<script type="text/javascript">
+    $(function () {
+    $("#Create").click(function () {
+        window.open('@Url.Action("PurchaseOrder", "Stock", new { flag = "new" })', "_self");
+    });
+    });
+
+    function onEditClick(e) {
+        e.preventDefault(); // Prevent default behavior
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr")); // Get the data from the clicked row
+
+        window.open('@Url.Action("PurchaseOrder", "Stock")' + '?id=' + dataItem.Id + '&flag=edit', "_self");
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+
+    function sync_handler(e) {
+        this.read();
+    }
+
+    function onRequestEnd(e) {
+        var notificationWidget = $("#notification").kendoNotification(
+            {
+                position: {
+                    pinned: true,
+                    top: 100,
+                    right: 50
+                },
+            }).data("kendoNotification");
+
+        if (e.type == "create" && !e.response.Errors) {
+            notificationWidget.show("New Record created!", "success");
+        } else if (e.type == "update" && !e.response.Errors) {
+            notificationWidget.show("Update Successfully", "success");
+        } else if (e.response.Errors) {
+            notificationWidget.show("Fail to update", "warning");
+        }
+    }
+
+    var detailExportPromises = [];
+
+    function exportToExcel(e) {
+        //this.collapseRow(this.tbody.find("tr.k-master-row"));
+        this.expandRow(this.tbody.find("tr.k-master-row"));
+
+        // prevent saving the file because we will update the workbook
+        e.preventDefault();
+
+        var workbook = e.workbook;
+
+        // Export all detail grids
+        $("[data-role=grid]", this.element).each(function () {
+            $(this).data("kendoGrid").saveAsExcel();
+        });
+
+        // wait for all detail grids to finish exporting
+        $.when.apply(null, detailExportPromises)
+            .then(function () {
+                // get the export results
+                var detailExports = $.makeArray(arguments);
+
+                /*
+         need to recalculate the master row indexes of each export
+         everytime you click expand in the master grid, the master row indexes are recalculated by Kendo
+         e.g. you expand row 4 (which will display a grid with 6 rows), then you expand row 1 (which will display a grid with 12 rows)
+         when you do this, the index of "row 4" is updated with 4 + 12. So the new index of "row 4" is actually 16
+      */
+
+                // first we need to create a copy of the original values, otherwise every subsequent export will have the already updated rows and it will try to update again
+                for (var i = 0; i < detailExports.length; i++)
+                    detailExports[i].newMasterRowIndex = detailExports[i].masterRowIndex;
+
+                for (var i = 1; i < detailExports.length; i++) {
+                    if (!detailExports[i].isDetailGrid2) {
+
+                        for (var j = 0; j < i; j++) {
+                            if (detailExports[i].newMasterRowIndex <= detailExports[j].newMasterRowIndex) {
+                                detailExports[j].newMasterRowIndex = detailExports[j].newMasterRowIndex + detailExports[i].sheet.rows.length - 1; // -1 to discount header
+                                if (detailExports[i].sheet.rows[detailExports[i].sheet.rows.length - 1].type == "footer")
+                                    detailExports[j].newMasterRowIndex = detailExports[j].newMasterRowIndex - 1
+                            }
+                        }
+                    }
+                }
+
+                // sort by masterRowIndex
+                detailExports.sort(function (a, b) {
+                    return a.newMasterRowIndex - b.newMasterRowIndex;
+                });
+
+                // merge the detail export sheet rows with the master sheet rows
+                var rowCount = 0;
+                for (var i = 0; i < detailExports.length; i++) {
+                    // we need to recalculate the masterRowIndex everytime because the detailGrid2 should be inserted "in the middle" of the detailGrid
+                    // and not simply after it as you would normally do when you have only two grids
+                    var masterRowIndex = rowCount + detailExports[i].newMasterRowIndex + 1; // +1 to compensate for the header row
+
+                    var sheet = detailExports[i].sheet;
+
+                    if (sheet.rows[sheet.rows.length - 1].type == "footer")
+                        sheet.rows.splice(-1, 1); // don't export the footer
+
+                    if (detailExports[i].isDetailGrid2) {
+                        // prepend two empty cells to each row
+                        for (var ci = 0; ci < sheet.rows.length; ci++) {
+                            if (sheet.rows[ci].cells[0].value) {
+                                sheet.rows[ci].cells.unshift({});
+                                sheet.rows[ci].cells.unshift({});
+                            }
+                            for (var cellIndex = 2; cellIndex < sheet.rows[ci].cells.length; cellIndex++) {
+                                var colTitle = sheet.rows[ci].cells[cellIndex].value;
+                                sheet.rows[ci].cells[cellIndex].background = "#C7D4E9";
+                            }
+                        }
+                        rowCount = rowCount + sheet.rows.length;
+                    }
+                    else {
+
+                        // prepend an empty cell to each row
+                        for (var ci = 0; ci < sheet.rows.length; ci++) {
+                            if (sheet.rows[ci].cells[0].value) {
+                                sheet.rows[ci].cells.unshift({});
+                            }
+                            for (var cellIndex = 1; cellIndex < sheet.rows[ci].cells.length; cellIndex++) {
+                                var colTitle = sheet.rows[ci].cells[cellIndex].value;
+                                sheet.rows[ci].cells[cellIndex].background = "#CEE3F6";
+                            }
+                        }
+                        rowCount = rowCount + 1;
+                    }
+                    // insert the detail sheet rows in the correct place
+                    [].splice.apply(workbook.sheets[0].rows, [masterRowIndex + 1, 0].concat(sheet.rows));
+                }
+                // update the indexes of the rows so they are exported correctly
+                for (var i = 0; i < workbook.sheets[0].rows.length; i++) {
+                    workbook.sheets[0].rows[i].index = i;
+                }
+                // save the workbook
+                kendo.saveAs({
+                    dataURI: new kendo.ooxml.Workbook(workbook).toDataURL(),
+                    fileName: "Export.xlsx"
+                });
+            });
+        // this.collapseRow(this.tbody.find("tr.k-master-row"));
+    }
+</script>

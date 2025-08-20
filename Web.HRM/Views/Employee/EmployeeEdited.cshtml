@@ -1,0 +1,205 @@
+﻿@model Meo.Web.ViewModels.EmployeeDetailsViewModel
+
+@using Kendo.Mvc.UI;
+
+@{
+    ViewBag.Title = "Manage Employee List";
+}
+<head>
+    <script>
+    $(".close-button").click(function () {
+         window.open('@Url.Action("Index", "Employee")', "_self");
+        //window.close();
+        //window.onunload = refreshParent;
+        //function refreshParent() {
+        //    window.opener.location.reload();
+        //}
+    });
+
+    $(function () {
+            $("#close").click(function () {
+                window.open('@Url.Action("Index", "Employee")', "_self");
+            });
+    });
+
+    $("html, body").animate({
+        scrollTop: 0
+    }, 200);
+    </script>
+    <style>
+        legend {
+            padding: 0.2em 0.5em;
+            color: grey;
+            font-size: 130%;
+        }
+
+        fieldset {
+            border: 1px solid grey;
+            padding: 1em;
+            font: 100%/1 sans-serif;
+        }
+
+        label {
+            float: left;
+            width: 25%;
+            margin-right: 0.5em;
+            padding-top: 0.2em;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        td {
+            padding: 5px;
+        }
+
+        .k-upload .k-upload-button {
+            min-width: 7.167em;
+            margin-right: 0em;
+        }
+
+        .k-dropzone {
+            border-style: solid;
+            border-width: 0;
+            padding: .2em;
+            background-color: white;
+        }
+
+        .k-dropdown, .k-textbox {
+            /*width: 100%;*/
+            max-width: 100%;
+            width: 18.4em;
+        }
+
+        .btn {
+            padding:5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-content">
+        @using (Html.BeginForm("EmployeeEdited", "Employee", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+        {
+            // Button
+            <div align="right">
+                <span style="padding-right:5px"><button id="update" data-bind="click: update" class="btn btn-primary" style="width: 110px; padding: 5px">UPDATE</button> </span>
+                <input type="button" value="CANCEL" class="btn btn-default" id="close" style="width:100px" />
+            </div>
+            <br/>
+
+            @Html.HiddenFor(m => m.Emp_id)
+            // Employee Info
+            <div class="sub-content" style="margin-top:0px">
+                <div class="bar-title"><span>EMPLOYEE PROFILE</span></div>
+                <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
+                <br />
+                @Html.AntiForgeryToken()
+            <table style="width:80%" align="center">
+                <tr>
+                    <td rowspan="9" width="10%" align="center">
+                        <img src="@Url.Content("~/Images/Employee/" + Model.ImagePath)" padding="5px" width="110" @*height="130"*@ alt="" onerror="this.src='@Url.Content("~/Images/Employee/user.png")' " /><br>
+                        @*<img src="~/UserImage/${data.ImagePath}" padding="5px" width="100" height="100" alt="StaffImage" onerror="this.src='@Url.Content("~/UserImage/user.png")' " />*@<br>
+                        @(Html.Kendo().Upload()
+                            .Name("file")
+                            .HtmlAttributes(new { accept = "image/*" }) // accept all image type
+                            .Multiple(false)
+                            )
+                    </td>
+                    <td style="width:5%">@Html.LabelFor(model => model.EmpNo, new { @style = "width : 150px" })</td>
+                    <td style="width:30%">
+                        @*@Html.HiddenFor(m => m.EmpNo)*@
+                        @Html.EditorFor(model => model.EmpNo)
+                        @Html.ValidationMessageFor(model => model.EmpNo, "", new { @class = "text-danger" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>@Html.LabelFor(model => model.DisplayName, new { @style = "width : 150px" })</td>
+                    <td>
+                        @Html.EditorFor(model => model.DisplayName, new { @style = "width : 350px" })
+                        @Html.ValidationMessageFor(model => model.DisplayName, "", new { @class = "text-danger" })
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width:5%">
+                        @Html.LabelFor(model => model.FullName, new { @style = "width : 150px" })
+                    </td>
+                    <td style="width:30%">
+                        @Html.EditorFor(model => model.FullName, new { @style = "width : 350px" })
+                        @Html.ValidationMessageFor(model => model.FullName, "", new { @class = "text-danger" })
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width:5%">
+                        @Html.LabelFor(model => model.IcNo, new { @style = "width : 150px" })
+                    </td>
+                    <td style="width:30%">
+                        @Html.EditorFor(model => model.IcNo, new { @style = "width : 350px" })
+                        @Html.ValidationMessageFor(model => model.IcNo, "", new { @class = "text-danger" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>@Html.LabelFor(model => model.Gender, new { @style = "width : 150px" })</td>
+                    <td>
+                        Male @Html.RadioButtonFor(m => m.Gender, "Male", new { @style = "width : 40px" })
+                        Female @Html.RadioButtonFor(m => m.Gender, "Female", new { @style = "width : 40px" })
+                        @Html.ValidationMessageFor(model => model.Gender, "", new { @class = "text-danger" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.LabelFor(model => model.OEmail, new { @style = "width : 150px" })
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => model.OEmail, new { @style = "width : 350px" })
+                        <div style="display:none;">
+                            @Html.EditorFor(model => model.OEmail, new { @style = "width : 450px" })
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.LabelFor(model => model.BirthDate, new { @style = "width : 150px" })
+                    </td>
+                    <td>
+                        @(Html.Kendo().DatePickerFor(model => model.BirthDate)
+                        .Culture("en-IE")
+                        .Format("dd/MM/yyyy")
+                        .ParseFormats(new List<string>() { "dd-MMM-yyyy" })
+                        .HtmlAttributes(new { @class = "form-control", @style = "width : 250px" }))
+                        @*@Html.Kendo().DatePickerFor(model => model.HiredDate)*@<br />
+                        @Html.ValidationMessageFor(model => model.BirthDate, "", new { @class = "text-danger" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.LabelFor(model => model.HiredDate, new { @style = "width : 150px" })
+                    </td>
+                    <td>
+                        @(Html.Kendo().DatePickerFor(model => model.HiredDate)
+                        .Culture("en-IE")
+                        .Format("dd/MM/yyyy")
+                        .ParseFormats(new List<string>() { "dd-MMM-yyyy" })
+                        .HtmlAttributes(new { @class = "form-control", @style = "width : 250px" }))
+                        @Html.ValidationMessageFor(model => model.HiredDate, "", new { @class = "text-danger" })
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width:5%">
+                        @Html.LabelFor(model => model.ConfirmationDate, new { @style = "width : 150px" })
+                    </td>
+                    <td style="width:30%">
+                        @(Html.Kendo().DatePickerFor(model => model.ConfirmationDate)
+                        .Culture("en-IE")
+                        .Format("dd/MM/yyyy")
+                        .ParseFormats(new List<string>() { "dd-MMM-yyyy" })
+                        .HtmlAttributes(new { @class = "form-control" , @style = "width : 250px" }))
+                        @*@Html.Kendo().TextBoxFor(model => model.ConfirmationDate).Format("{0:dd/MM/yyyy}")*@
+                        @Html.ValidationMessageFor(model => model.ConfirmationDate, "", new { @class = "text-danger" })
+                    </td>
+                </tr>
+            </table>
+            </div>
+        }
+    </div>
+</body>
+
+

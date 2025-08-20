@@ -1,0 +1,194 @@
+﻿@model Meo.Web.ViewModels.ReportSearchContent
+
+@{
+    ViewBag.Title = "Employee Sales List";
+    var reportType = ViewBag.ReportType;
+}
+<head>
+    <style>
+        .customer-name {
+            display: inline-block;
+            vertical-align: middle;
+            line-height: 32px;
+            padding-left: 8px;
+        }
+
+        input.k-textbox {
+            width: 100%;
+            height: 2.45em;
+            text-indent: .33em;
+            line-height: 1.6em;
+        }
+
+        .k-textbox {
+            max-width: 100%;
+            width: 200px;
+        }
+    </style>
+
+    @section Scripts {
+        @Scripts.Render("~/bundles/jqueryval")
+
+<script>
+    $(function () {
+        @*$('#today').click(function () {
+            var empNo = $('#EmpNo').val();
+            var url = "@Html.Raw(Url.Action(reportType, "Report", new { empNo = "empno", period = "today" }))";
+            url = url.replace("empno", empNo.replace(" ", ""));
+            $('#saveDiv').load(url);
+        });
+
+        $('#week').click(function () {
+            var empNo = $('#EmpNo').val();
+            var url = "@Html.Raw(Url.Action(reportType, "Report", new { empNo = "empno", period = "week" }))";
+            url = url.replace("empno", empNo.replace(" ", ""));
+            $('#saveDiv').load(url);
+        });
+
+        $('#month').click(function () {
+            var empNo = $('#EmpNo').val();
+            var url = "@Html.Raw(Url.Action(reportType, "Report", new { empNo = "empno", period = "month" }))";
+            url = url.replace("empno", empNo.replace(" ", ""));
+            $('#saveDiv').load(url);
+        });*@
+
+        $('#search').click(function () {
+            var empNo = $('#EmpNo').val();
+            var startDate = $('#StartDate').val();
+            var endDate = $('#EndDate').val();
+            var searchPath = "_SearchReport";
+
+            if ('@reportType' === "service") {
+                searchPath = "_SearchServiceReport";
+            }
+             @*var url = "@Url.Action("Path", "Report", new { empNo = "empno", startDate = "startdate", endDate = "enddate" })";*@
+            var url = "@Html.Raw(Url.Action("Path", "Report", new { empNo = "empno", startDate = "startdate", endDate = "enddate" }))";
+            url = url.replace("empno", empNo);
+            url = url.replace("startdate", startDate);
+            url = url.replace("enddate", endDate);
+            url = url.replace("Path", searchPath);
+            $('#saveDiv').load(url);
+        });
+
+        $('#clear').click(function () {
+            $("#EmpNo").val('').trigger("change");
+            var url = "@Html.Raw(Url.Action(reportType, "Report", new { empNo = "" }))";
+            $('#saveDiv').load(url);
+        });
+
+        $("#close").click(function () {
+            window.open('@Url.Action("Index", "Home")', "_self");
+        });
+    });
+
+    function endChange() {
+        var startPicker = $("#StartDate").data("kendoDatePicker"),
+            endDate = this.value();
+
+        if (endDate) {
+            endDate = new Date(endDate);
+            endDate.setDate(endDate.getDate() - 1);
+            startPicker.max(endDate);
+        }
+    }
+
+    function startChange() {
+        var endPicker = $("#EndDate").data("kendoDatePicker"),
+            startDate = this.value();
+
+        if (startDate) {
+            startDate = new Date(startDate);
+            startDate.setDate(startDate.getDate() + 1);
+            endPicker.min(startDate);
+        }
+    }
+
+    function error_handler(e) {
+            if (e.errors) {
+                var message = "Errors:\n";
+                $.each(e.errors, function (key, value) {
+                    if ('errors' in value) {
+                        $.each(value.errors, function () {
+                            message += this + "\n";
+                        });
+                    }
+                });
+                alert(message);
+            }
+        }
+
+    function sync_handler(e) {
+            this.read();
+    }
+</script>
+    }
+</head>
+<div class="page-content">
+    <div class="col-md-12">
+        <table style="width:100%;">
+            <tr>
+                <td colspan="4">
+                    @if (reportType == "service")
+                    {
+                        <h2 class="pagetitle">Employee Service Report</h2>
+                    }
+                    else
+                    {
+                        <h2 class="pagetitle">Employee Sales Report</h2>
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align: right;">
+                    @(Html.Kendo().DropDownListFor(model => model.EmpNo)
+                        .Name("EmpNo")
+                        .BindTo((System.Collections.IEnumerable)ViewData["Employee"])
+                        .DataTextField("FullName").DataValueField("EmpNo")
+                        .OptionLabel(" -- Select Employee -- ")
+                        .Filter(FilterType.Contains)
+                        .HtmlAttributes(new { @class = "form-control", @style = "width: 200px; text-align: center" }))
+                </td>
+                <td style="text-align: right;width: 250px">
+                    @Html.HiddenFor(m => m.reportType)
+                    @Html.LabelFor(model => model.StartDate)
+
+                    @(Html.Kendo().DatePickerFor(m => m.StartDate)
+                    .Culture("en-IE")
+                    .Max(DateTime.Today)
+                    .ParseFormats(new string[] { "dd/MM/yyyy" })
+                    .Events(e => e.Change("startChange"))
+                    .HtmlAttributes(new { @class = "form-control", @style = "width: 150px;" }))
+                </td>
+                <td style="text-align: right; width: 200px">
+                    @Html.LabelFor(model => model.EndDate)
+
+                    @(Html.Kendo().DatePickerFor(m => m.EndDate)
+                    .Culture("en-IE")
+                    .Max(DateTime.Today)
+                    .ParseFormats(new string[] { "dd/MM/yyyy" })
+                    .Events(e => e.Change("endChange"))
+                    .HtmlAttributes(new { @class = "form-control", @style = "width : 150px" }))
+                </td>
+                <td align="right" style="width: 250px">
+                    <input type="button" value="SEARCH" class="btn btn-primary" id="search" style="width:100px" />
+                    @*<input type="button" value="TODAY" class="btn btn-primary" id="today" style="width:100px" />
+                        <input type="button" value="THIS WEEK" class="btn btn-primary" id="week" style="width:100px" />
+                        <input type="button" value="THIS MONTH" class="btn btn-primary" id="month" style="width:100px" />*@
+                    <input type="button" value="BACK" class="btn btn-default" id="close" style="width:100px" />
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <br />
+    <div class="col-md-12" id="saveDiv">
+        @if (ViewBag.ReportType == "service")
+        {
+            { Html.RenderAction("_SearchServiceReport", new { empNo = "", startDate = Model.StartDate.ToString("dd/MM/yyyy"), endDate = Model.EndDate.ToString("dd/MM/yyyy") }); }
+        }
+        else
+        {
+            { Html.RenderAction("_SearchReport", new { empNo = "", startDate = Model.StartDate.ToString("dd/MM/yyyy"), endDate = Model.EndDate.ToString("dd/MM/yyyy") }); }
+        }
+    </div>
+</div>

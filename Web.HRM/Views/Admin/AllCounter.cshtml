@@ -1,0 +1,109 @@
+﻿@using Meo.Web.ViewModels
+@using Kendo.Mvc.UI
+
+@{
+    ViewBag.Title = "All Counter";
+}
+
+<div class="page-content">
+    <h2 class="pagetitle">Counter List</h2><hr>
+    @(Html.Kendo().Grid<CounterViewModels>()
+        .Name("GridForCounter")
+        .HtmlAttributes(new { style = "100%" })
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.count_id).Title("#ID"); ;
+            columns.Bound(c => c.count_name);
+            columns.Bound(c => c.count_no);
+            //columns.Bound(c => c.Status);
+            //columns.ForeignKey(c => c.Mod_by, (System.Collections.IEnumerable)ViewData["Employee"], "Emp_id", "DisplayName").Title("Update By").Filterable(false);
+            //columns.Bound(c => c.Mod_date).ClientTemplate("#= kendo.toString(Mod_date, 'd') #");
+            columns.Command(command => { command.Edit(); command.Destroy(); }).Width(180);
+        })
+        .Events(e => e.Edit("onRequest"))
+        .Pageable(pageable => pageable
+        .Refresh(true).Messages(m => m.Refresh(string.Empty)))
+        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("CounterEditor"))
+        .ToolBar(toolbar => toolbar.Template("<a id='Create' class='k-button k-button-icontext k-grid-add' href='#'> + Create New </a>"))
+        .Sortable()
+        .Resizable(resize => resize.Columns(true))
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(10)
+        .Events(events => events.Error("error_handler").Sync("sync_handler").RequestEnd("onRequestEnd"))
+        .ServerOperation(true)
+        .Read(read => read.Action("Read_Counter", "Admin"))
+        .Create(update => update.Action("Create_Counter", "Admin"))
+        .Update(update => update.Action("Update_Counter", "Admin"))
+        .Destroy(update => update.Action("Destroy_Counter", "Admin"))
+        .Model(model =>
+        {
+            model.Id(e => e.count_id);
+            //model.Field(e => e.Mod_by).Editable(false);
+            //model.Field(e => e.Mod_date).Editable(false);
+        })
+        ).NoRecords("No Records Found"))
+</div>
+<span id="notification" style="display:none;"></span>
+@* Error msg to be shown & sync grid table automatically *@
+<script type="text/javascript">
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+
+    function sync_handler(e) {
+        this.read();
+    }
+
+    $(".close-button").click(function () {
+        window.open('@Url.Action("Index", "Home")', "_self");
+        //window.close();
+    });
+
+    @* Set window header *@
+    function onRequest(e) {
+    $(".k-window-title").text("Counter Editor");
+     $('.k-widget.k-window .k-window-titlebar').css({
+         'background-color': 'white'
+     });
+     $('.k-header').css({
+         'border-color': 'white'
+     });
+
+     @* Auto Focus on selected field *@
+     var arg = e;
+     arg.container.data('kendoWindow').bind('activate', function () {
+         arg.container.find("input[name='Table_id']").focus();
+     })
+    }
+
+    function onRequestEnd(e) {
+        var notificationWidget = $("#notification").kendoNotification(
+            {
+                position: {
+                    pinned: true,
+                    top: 100,
+                    right: 50
+                },
+            }).data("kendoNotification");
+
+        if (e.type == "create" && !e.response.Errors) {
+            notificationWidget.show("New Record created!", "success");
+        } else if (e.type == "update" && !e.response.Errors) {
+            notificationWidget.show("Update Successfully", "success");
+        } else if (e.response.Errors) {
+            notificationWidget.show("Fail to update", "warning");
+        }
+    }
+</script>
+

@@ -1,0 +1,200 @@
+﻿<!DOCTYPE html>
+<html style="background-color: #f4f2f2">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Be You - @ViewBag.Title</title>
+    @Styles.Render("~/Content/css")
+
+    @*@Scripts.Render("~/bundles/modernizr")*@
+    <link href="https://kendo.cdn.telerik.com/2017.3.1026/styles/kendo.common.min.css" rel="stylesheet" type="text/css" />
+    <link href="https://kendo.cdn.telerik.com/2017.3.1026/styles/kendo.mobile.all.min.css" rel="stylesheet" type="text/css" />  
+    <link href="https://kendo.cdn.telerik.com/2017.3.1026/styles/kendo.default.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://kendo.cdn.telerik.com/2017.3.1026/js/jquery.min.js"></script>
+    <script src="https://kendo.cdn.telerik.com/2017.3.1026/js/jszip.min.js"></script>
+    <script src="https://kendo.cdn.telerik.com/2017.3.1026/js/kendo.all.min.js"></script>
+    <script src="https://kendo.cdn.telerik.com/2017.3.1026/js/kendo.aspnetmvc.min.js"></script>
+
+    @*<link href="https://kendo.cdn.telerik.com/2018.3.1017/styles/kendo.common.min.css" rel="stylesheet" type="text/css" />
+        <link href="https://kendo.cdn.telerik.com/2018.3.1017/styles/kendo.default.min.css" rel="stylesheet" type="text/css" />
+        <script src="https://kendo.cdn.telerik.com/2018.3.1017/js/jszip.min.js"></script>
+        <script src="https://kendo.cdn.telerik.com/2018.3.1017/js/kendo.all.min.js"></script>
+        <script src="https://kendo.cdn.telerik.com/2018.3.1017/js/kendo.aspnetmvc.min.js"></script>*@
+
+    @*<script src="@Url.Content("~/Scripts/kendo.modernizr.custom.js")"></script>*@
+
+    @* --- top right button --- *@
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    @* sessions Timeout *@
+    @*<link href="~/Content/timeout-dialog.css" rel="stylesheet" />
+        <script src="~/Scripts/timeout-dialog.js"></script>*@
+    @*<link rel="stylesheet" href="styles.2f7701a62b1116c1224d.css">*@
+    <style>
+        #loading {
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            position: fixed;
+            display: block;
+            opacity: 0.7;
+            background-color: #fff;
+            z-index: 99;
+            text-align: center;
+        }
+
+        #loading-image {
+            /*position: absolute;
+            top: 100px;
+            left: 240px;
+            z-index: 100;*/
+            position: fixed;
+            top: 40%;
+            left: 40%;
+            margin-top: -50px;
+            margin-left: -50px;
+        }
+    </style>
+</head>
+
+@* --- Standard layout for every page --- *@
+<body style="width:100%; height:100%;margin:0" >
+    <div class="page-header">
+        @*<div class="page-container">*@ @*logo_meo.png*@
+        <a href="~/Home/Index#"><img width="130" height="45" src="~/Images/logo.png" alt=""></a>
+        @*  hire temporary due to page > index unable to resolved *@
+        @Html.Partial("_LoginPartial")
+
+    </div>
+    <div class="body-content" style="height:100%">
+        <div id="loading">
+           @* <img id="loading-image" @*class="loader" src="https://poseidon.meogroup.com/assets/favicon.png" alt="Loading..." />*@
+            <img id="loading-image" class="loader" src="~/Images/loading.gif" alt="Loading..." />
+        </div>
+        @*<div id="loading" class="loader">Loading...</div>*@
+        @*<hr />*@
+
+        @* Linked to Views > Home > Index *@
+        @RenderBody()
+
+        @*<footer>
+        <hr />
+            <p>&copy; @DateTime.Now.Year - MAHEDEE.NET</p>
+        </footer>*@
+    </div>
+
+    @*  @Scripts.Render("~/bundles/jquery")*@
+    @Scripts.Render("~/bundles/bootstrap")
+    @RenderSection("scripts", required: false)
+</body>
+</html>
+
+@* Set Datetime format *@
+<script>
+    kendo.culture("en-IE");
+    var culture = kendo.culture();
+    culture.calendar.patterns.d = "dd/MM/yyyy";
+    culture.calendar.patterns.D = "dd/MM/yyyy";
+    culture.calendar.patterns.t = "HH:mm";
+    culture.calendar.patterns.T = "HH:mm";
+    culture.calendar.patterns.g = "dd MMM yyyy HH:mm";
+    culture.calendar.patterns.G = "dd MMM yyyy HH:mm";
+</script>
+
+<div id="divPopupTimeOut" style="display:none; text-align: left; margin-top:15px; width:280px !important; position:fixed; top:35%; right:45%; z-index:9999; height:165px;" class="alert alert-warning">
+    <div class="row" style="margin-top:10px; margin-left:10px;">
+        Your session is about to expire!
+        <br />
+        <span id="CountDownHolder"></span>
+        <br />
+        Click OK to continue your session.
+    </div>
+    <div class="row">
+        <div class="text-center button-block" style="text-align:center; margin-top:22px;">
+            <button type="button" class="btn btn-default btn-sm" onclick="SessionTimeout.sendKeepAlive();">OK</button>
+            <button type="button" class="btn btn-default btn-sm" onclick="SessionTimeout.hidePopup();">Cancel</button>
+        </div>
+    </div>
+</div>
+
+@functions {
+    public int PopupShowDelay
+    {
+        get
+        {
+            return 1000 * (Convert.ToInt32(FormsAuthentication.Timeout.TotalSeconds) - 130);
+        }
+    }
+}
+
+<script type="text/javascript">
+    var loginUrl='@Url.Action("Login", "Account")';
+    var extendMethodUrl='@Url.Action("ExtendSession","Account")';
+    $(document).ready(function(){
+            SessionTimeout.schedulePopup();
+        });
+
+    window.SessionTimeout = (function() {
+            var _timeLeft, _popupTimer, _countDownTimer;
+            var stopTimers = function() {
+                window.clearTimeout(_popupTimer);
+                window.clearTimeout(_countDownTimer);
+            };
+            var updateCountDown = function() {
+                var min = Math.floor(_timeLeft / 60);
+                var sec = _timeLeft % 60;
+                if(sec < 10)
+                    sec = "0" + sec;
+
+                document.getElementById("CountDownHolder").innerHTML = min + ":" + sec;
+
+                if(_timeLeft > 0) {
+                    _timeLeft--;
+                    _countDownTimer = window.setTimeout(updateCountDown, 1000);
+                } else  {
+                    document.location = loginUrl;
+                }
+            };
+            var showPopup = function() {
+            $("#divPopupTimeOut").show();
+                _timeLeft = 120;
+                updateCountDown();
+            };
+            var schedulePopup = function() {
+            $("#divPopupTimeOut").hide();
+                stopTimers();
+                _popupTimer = window.setTimeout(showPopup, @PopupShowDelay);
+            };
+            var hidePopup=function(){
+            $("#divPopupTimeOut").hide();
+            };
+            var sendKeepAlive = function() {
+                stopTimers();
+                $("#divPopupTimeOut").hide();
+                $.ajax({
+                    type: "GET", 
+                    url: extendMethodUrl,
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function successFunc(response) {
+                        SessionTimeout.schedulePopup();
+                    },
+                    error:function(){
+                    }
+                });
+            };
+            return {
+                schedulePopup: schedulePopup,
+                sendKeepAlive: sendKeepAlive,
+                hidePopup:hidePopup,
+                stopTimers:stopTimers,
+            };
+
+    })();
+
+     $(window).load(function () {
+        $('#loading').hide();
+    });
+</script>

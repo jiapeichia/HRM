@@ -1,0 +1,498 @@
+﻿@model Meo.Web.ViewModels.SalesInvoiceViewModels
+@using Kendo.Mvc.UI;
+
+@{
+    ViewBag.Title = "Invoice";
+    var index = 1;
+    var Products = ViewBag.Products;
+    var productsJson = Newtonsoft.Json.JsonConvert.SerializeObject(Products);
+    var Employee = ViewBag.Employees;
+    var employeeJson = Newtonsoft.Json.JsonConvert.SerializeObject(Employee);
+}
+
+<head>
+    <style>
+        th, td {
+            border-top: 1px solid #ddd;
+            text-align: center;
+        }
+
+        legend {
+            padding: 0.2em 0.5em;
+            color: grey;
+            font-size: 130%;
+        }
+
+        fieldset {
+            border: 1px solid grey;
+            padding: 1em;
+            font: 100%/1 sans-serif;
+        }
+
+        label {
+            float: left;
+            width: 25%;
+            margin-right: 0.5em;
+            padding-top: 0.2em;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        td {
+            padding-left: 20px;
+        }
+
+        .k-upload .k-upload-button {
+            min-width: 7.167em;
+            margin-right: 0em;
+        }
+
+        .k-dropzone {
+            border-style: solid;
+            border-width: 0;
+            padding: .2em;
+            background-color: white;
+        }
+
+        .k-dropdown, .k-textbox {
+            /*width: 100%;*/
+            max-width: 100%;
+            width: 28.4em;
+        }
+
+        .fontsize {
+            font-size: 25px;
+        }
+    </style>
+
+    @section Scripts {
+        <script>
+            $(function () {
+                $("#gohistory").click(function () {
+                    window.open('@Url.Action("CusPurchaseHistory", "Sales", new { id = Model.CusId })', "_self");
+                });
+
+                $("#close").click(function () {
+                    window.history.back();
+                    @*window.open('@Url.Action("Index", "Customer", new { id = Model.CusId })', "_self");*@
+                });
+
+                $("#cusservice").click(function () {
+                    window.open('@Url.Action("SalesByCus", "Sales", new { id = Model.CusId })', "_self");
+                });
+
+                $("#PrintReceipt").click(function () {
+                    $.ajax({
+                        url: '@Url.Action("Index", "Receipt")', // '"/BeYou/Receipt/Index",
+                        type: "POST", // or "POST" depending on your server-side logic
+                        data: {
+                            salesId: "@Model.SalesId",
+                        },
+                        success: function (response) {
+                            // Handle the response if needed
+                        },
+                        error: function (error) {
+                            // Handle errors if the AJAX call fails
+                        }
+                    });
+                });
+            });
+
+            $("html, body").animate({
+                scrollTop: 0
+            }, 200);
+        </script>
+    }
+</head>
+<body>
+    <div class="page-content">
+        <div class="col-md-12 mx-0">
+            <div align="right" style="width:100%">
+                @*<input type="button" value="PRINT" class="btn btn-default" id="PrintReceipt" style="width:100px" />*@
+                    <input type="button" value="GO SERVICE" class="btn btn-default" id="cusservice" style="width:100px" />
+                    <input type="button" value="GO HISTORY" class="btn btn-default" id="gohistory" style="width:100px" />
+                    <input type="button" value="BACK" class="btn btn-default" id="close" style="width:100px" />
+            </div>
+            <br />
+
+            @*// Sales Info*@
+        <div class="sub-content" style="margin-top: 0px; padding-top: 20px">
+            <div class="card px-0 pt-4 pb-0 mt-3 mb-3" style="text-align: center">
+                <h2><strong>Sales Order By Credit</strong></h2>
+            </div>
+            <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
+            <br />
+            @Html.HiddenFor(m => m.SalesId)
+            @Html.AntiForgeryToken()
+            <!-- Header -->
+            <table>
+                <tr>
+                    <td style="border-top:none; text-align:left; padding:3px">
+                        <strong>Customer Name </strong>
+                    </td>
+                    <td style="border-top:none; text-align:left; padding:3px">
+                        :
+                        @ViewData["CustomerName"].ToString()
+                        <input id="CusId" type="text" value="@Model.CusId" style="display:none; width:100%" />
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border-top:none; text-align:left; padding:3px">
+                        <strong>Credit Balance </strong>
+                    </td>
+                    <td style="border-top:none; text-align:left; padding:3px">
+                        :
+                        @ViewData["CreaditBalance"].ToString()
+                        <input id="CusId" type="text" value="@Model.CreditBal" style="display:none; width:100%" />
+                    </td>
+                </tr>
+                @*<tr>
+                <td style="border-top: none; text-align: left; padding: 3px"><strong>Invoice No </strong></td>
+                <td style="border-top: none; text-align: left; padding: 3px">: @Model.SalesId</td>
+            </tr>*@
+                <tr>
+                    <td style="border-top: none; text-align: left; padding: 3px"><strong>Date </strong></td>
+                    <td style="border-top: none; text-align: left; padding: 3px">: @Model.OrderDate.ToShortDateString() </td>
+                </tr>
+            </table>
+            <br />
+            <!-- Body [Sales Item] -->
+            <table id="tblSalesItem" style="width:100%">
+                <tr>
+                    <th>
+                        No
+                    </th>
+                    <th>
+                        Item
+                    </th>
+                    <th>
+                        Qty
+                    </th>
+                    <th>
+                        Unit Price
+                    </th>
+                    <th>
+                        Total
+                    </th>
+                    <th>
+                        Sales By
+                    </th>
+                    @if (Model.PaidAmt == null)
+                    {
+                        <th>
+                            Action
+                        </th>
+                    }
+                </tr>
+                @if (Model.SalesDetails != null && Model.SalesDetails.Any())
+                {
+                    foreach (var item in Model.SalesDetails)
+                    {
+                        <tr>
+                            <td class="salesitemid" style="display:none"><span>@item.SalesItemId</span></td>
+                            <td style="width:5%">@index</td>
+                            <td style="width:20%; text-align:left">
+                                @Html.DisplayFor(modelItem => item.ProductName)
+                            </td>
+                            <td class="quantity" style="width:5%">
+                                @if (Model.PaidAmt == null)
+                                {
+                                    <span>@item.Quantity</span>
+                                    <input type="text" value="@item.Quantity" style="display:none; width:100%" />
+                                }
+                                else
+                                {
+                                    @Html.DisplayFor(modelItem => item.Quantity)
+                                }
+                            </td>
+                            <td class="unitprice" style="width:10%">
+                                <span>@item.UnitPrice</span>
+                            </td>
+                            <td class="linetotal" style="width:10%">
+                                <span>@item.LineTotal</span>
+                            </td>
+                            <td style="width:10%">
+                                <span>@item.EmpName</span>
+                            </td>
+                            @if (Model.PaidAmt == null)
+                            {
+                                <td style="text-align:center; width:10%">
+                                    <a class="Delete" href="javascript:;"><img src="~/Images/dustbin.png" style="width:25px" /></a>
+                                </td>
+                            }
+                        </tr>
+
+                        index++;
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="8">No sales details available.</td></tr>
+                }
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td><strong>@Model.totalQty</strong></td>
+                    <td></td>
+                    <td><strong>@Model.subtotal</strong></td>
+                    <td></td>
+                    @if (Model.PaidAmt == null)
+                    {
+                        <td></td>
+                    }
+                </tr>
+            </table>
+            <br />
+            <div style="float:right; padding-top:100px">
+                @if (Model.PaidAmt == null)
+                {
+                    <input type="button" value="PAYMENT" onclick="ShowModelPopUp();" class="btn btn-success fontsize" style="width:250px; height:100px; float:right" />
+                }
+            </div>
+            @if (Model.PaidAmt == null)
+            {
+                <table id="Addtable">
+                    <tr>
+                        <td style="text-align: left;">Product</td>
+                        <td class="Product" style="text-align: left;">
+                            @(Html.Kendo().DropDownList()
+                            .Name("Products")
+                            .HtmlAttributes(new { id = "ProductDropdown", @class = "form-control col-md-2", style = "width: 450px;" })
+                            .BindTo((System.Collections.IEnumerable)ViewData["Products"])
+                            .DataTextField("ProductName")
+                            .DataValueField("ProductId")
+                            .OptionLabel(" -- Select Products -- ")
+                            .Filter(FilterType.Contains))
+                            @*@Html.DropDownList("Products", new SelectList(Products, "ProductId", "ProductName"), "----- Select -----", new { @class = "form-control col-md-2", @style = "width : 100%;" })*@
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left;">Qty</td>
+                        <td>
+                            <input type="text" id="Qty" placeholder="0" style="width: 100%" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left;">Unit Price</td>
+                        <td>
+                            @if (Session["Discount"] != null)
+                            {
+                                <input type="number" id="UnitPrice" placeholder="0.00" style="width: 100%" />
+                            }
+                            else
+                            {
+                                <input type="number" id="UnitPrice" placeholder="0.00" style="width: 100%" disabled="disabled" />
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left;">Sales Person</td>
+                        <td>
+                            @Html.DropDownList("SalesPerson", new SelectList(Employee, "EmpNo", "DisplayName"), "----- Select -----", new { @class = "form-control col-md-2", @style = "width : 100%;" })
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                        <td style="text-align:right">
+                            <a class="Add" href="javascript:;"><img src="~/Images/cart.png" style="width: 30px" /></a>
+                        </td>
+                    </tr>
+                </table>
+            }
+        </div>
+        </div>
+    </div>
+</body>
+
+<script type="text/javascript">
+     $(document).ready(function () {
+        // Get a reference to the dropdown element
+        var productDropdown = $("#ProductDropdown").data("kendoDropDownList");//.dataSource.options.data;
+
+        if (productDropdown) {
+            productDropdown.bind("change", function (e) {
+
+                var selectedValue = this.value();
+                console.log("Selected value: " + selectedValue);
+
+                var products = @Html.Raw(Json.Encode(ViewData["Products"]));
+
+                var selectedProduct = products.find(function(product) {
+                    return product.ProductId == selectedValue;
+                });
+
+                var qtyInput = document.getElementById("Qty"); // Change to the correct ID of your Qty input
+                var unitPriceInput = document.getElementById("UnitPrice"); // Change to the correct ID of your UnitPrice input
+
+                if (qtyInput && unitPriceInput) {
+                    if (selectedProduct) {
+                        // Set the "Qty" input value to 1
+                        qtyInput.value = "1";
+
+                        // Set the "UnitPrice" input value to the unit price of the selected product
+                        unitPriceInput.value = selectedProduct.Price.toFixed(2);
+                    }
+                    else {
+                        unitPriceInput.value = "";
+                    }
+                }
+                else {
+                    console.error("Qty or UnitPrice element not found.");
+                }
+
+                console.log("Selected Product: " + selectedValue);
+            });
+        } else {
+            console.error("Kendo DropDownList not found on #ProductDropdown");
+        }
+    });
+
+    function ShowModelPopUp() {
+        var amt = @Model.subtotal;
+        var creditbal = @Model.CreditBal;
+
+        if (amt === 0) {
+            return alert("Nothing in the cart.");
+        }
+        else if (creditbal < amt) {
+            return alert("No enough credit balance.");
+        }
+
+        $.ajax({
+            url: '@Url.Action("PaymentByCredit", "Sales")',
+            type: "POST",
+            data: {
+                CusId: @Model.CusId,
+                SalesId: "@Model.SalesId",
+                TotalAmt: @Model.subtotal,
+            },
+            success: function (response) {
+                window.location.href = '@Url.Action("PreviewINV", "Sales", new { salesId = Model.SalesId })';
+
+                // Open a new tab for Receipt action
+                var url = '@Url.Action("Index", "Receipt", new { salesId = Model.SalesId })';
+                window.open(url, '_blank');
+
+                @*$.ajax({
+                    url: '@Url.Action("Index", "Receipt")',  //"/Receipt/PrintReceipt",
+                    type: "POST",
+                    data: {
+                        salesId: "@Model.SalesId",
+                    },
+                    success: function (response) {
+                        //debugger;
+                        alert("Pay by credit successfully.");
+                        //window.close();
+                        // Reload the parent window after closing the popup
+                        // window.opener.location.reload('Url.Action("Invoice", "Sales", new { salesId = Model.SalesId })');////, "_self");
+                        ////window.opener.location.href = '@Url.Action("Invoice", "Sales", new { salesId = Model.SalesId })';
+                        //window.opener.location.reload();
+                    }
+                });*@
+            }
+        });
+    }
+
+    function MyPopUpWin(url, width, height) {
+        var leftPosition, topPosition;
+        //Allow for borders.
+        leftPosition = (window.screen.width / 2) - ((width / 2) + 10);
+        //Allow for title and status bars.
+        topPosition = (window.screen.height / 2) - ((height / 2) + 50);
+        //Open the window.
+        window.open(url, "Window2",
+            "status=no,height=" + height + ",width=" + width + ",resizable=yes,left="
+            + leftPosition + ",top=" + topPosition + ",screenX=" + leftPosition + ",screenY="
+            + topPosition + ",toolbar=no,menubar=no,scrollbars=no,location=no,directories=no");
+    }
+
+    //Add event handler.
+     $("body").on("click", "#Addtable .Add", function () {
+        var productDropdown = $("#ProductDropdown").data("kendoDropDownList");
+
+            if (productDropdown.value === "") {
+                return alert("Product is required.");
+            }
+
+            // Get the selected value
+            var selectedValue = parseInt(productDropdown.value());
+            var products = @Html.Raw(Json.Encode(ViewData["Products"]));
+            var selectedProduct = products.find(function (product) {
+                return product.ProductId === selectedValue;
+            });
+
+            var qtyInput = document.getElementById("Qty");
+            var unitPriceInput = document.getElementById("UnitPrice");
+            var salesPerson = document.getElementById("SalesPerson"); // Assuming you have an element with ID 'SalesPerson'
+            var cusId = document.getElementById("CusId").value;
+
+            if (!qtyInput || !unitPriceInput) {
+                return alert("QtyInput or UnitPriceInput element not found.");
+            }
+
+            var unitprice = parseFloat(unitPriceInput.value).toFixed(2);
+            var qty = parseInt(qtyInput.value);
+            var orig_unitprice = parseFloat(selectedProduct.Price).toFixed(2);
+            var disc = orig_unitprice - unitprice;
+            var total = qty * unitprice;
+
+            if (selectedProduct.QtyAvailable < qty && selectedProduct.TypeName == "Product") {
+                return alert("\nFailed to Insert! \n" + selectedProduct.ProductName + " insufficient stock.");
+            }
+
+            $.ajax({
+                url: '@Url.Action("AddSalesItem", "Sales")',
+                type: "POST",
+                data: {
+                    path: "",
+                    salesid: "@Model.SalesId",
+                    pid: selectedValue,
+                    qty: qty,
+                    price: orig_unitprice,
+                    disc: disc,
+                    total: total,
+                    empno: salesPerson.value,
+                    cusid: cusId,
+                },
+                success: function (response) {
+                    var currentUrl = window.location.href;
+
+                    if (currentUrl.endsWith('new')) {
+                        var newUrl = currentUrl.split('?')[0];
+                        if (!newUrl.endsWith('#')) {
+                            newUrl += '#';
+                        }
+
+                        window.location.replace(newUrl).reload();
+                    } else (currentUrl.endsWith('#'))
+                        location.reload();
+
+                    // Reload the page with the new URL
+                    //},
+                    //error: function (xhr, status, error) {
+                    //    console.error("Error: " + error);
+                    //    alert("Failed to add item. Please try again.");
+                }
+            });
+        });
+
+    //Delete event handler.
+    $("body").on("click", "#tblSalesItem .Delete", function () {
+        if (confirm("Do you want to delete this item?")) {
+            var row = $(this).closest("tr");
+            var salesitemid = row.find(".salesitemid").find("span").html();
+            salesitemid = parseInt(salesitemid);
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("DeleteSales", "Sales")',
+                data: {
+                    SalesItemId: salesitemid,
+                },
+                success: function (response) {
+                    window.location.reload();
+                }
+            });
+        }
+    });
+</script>

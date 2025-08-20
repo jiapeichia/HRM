@@ -1,0 +1,31 @@
+﻿
+@{
+    ViewBag.Title = "User Access";
+}
+<div class="page-content">
+    <div style="padding-top:5px; padding-bottom:5px">
+        <table style="width:100%">
+            <tr>
+                <td>
+                    <h2 class="pagetitle">User Access</h2>
+                </td>
+                <td style="float:right">
+                    <input type="button" value="BACK" class="btn btn-default" id="close" style="width:100px" />
+                    @*<input type="button" value="BACK" class="btn btn-default" id="backHome" style="width:100px" onclick="goBack()" />*@
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div id="saveDiv">
+        @{ Html.RenderAction("_SearchAccess", new { displayName = "" }); }
+    </div>
+</div>
+
+<script>
+        //function goBack() {
+        //    window.history.back();
+        //}
+        $("#close").click(function () {
+            window.open('@Url.Action("Index", "Home")', "_self");
+        });
+</script>

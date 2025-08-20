@@ -1,0 +1,258 @@
+﻿@model Meo.Web.ViewModels.SalesInvoiceViewModels
+
+@{
+    ViewBag.Title = "Invoice";
+    var index = 1;
+}
+
+<head>
+    <style>
+        th, td {
+            border-top: 1px solid #ddd;
+            text-align: center;
+        }
+
+        legend {
+            padding: 0.2em 0.5em;
+            color: grey;
+            font-size: 130%;
+        }
+
+        fieldset {
+            border: 1px solid grey;
+            padding: 1em;
+            font: 100%/1 sans-serif;
+        }
+
+        label {
+            float: left;
+            width: 25%;
+            margin-right: 0.5em;
+            padding-top: 0.2em;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        td {
+            padding-left: 20px;
+        }
+
+        .k-upload .k-upload-button {
+            min-width: 7.167em;
+            margin-right: 0em;
+        }
+
+        .k-dropzone {
+            border-style: solid;
+            border-width: 0;
+            padding: .2em;
+            background-color: white;
+        }
+
+        .k-dropdown, .k-textbox {
+            /*width: 100%;*/
+            max-width: 100%;
+            width: 18.4em;
+        }
+
+        .fontsize {
+            font-size: 25px;
+        }
+
+        #loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: gray; /*rgba(255, 255, 255, 0.8);*/ /* semi-transparent white background */
+        }
+
+        #loading-spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 5px solid #3498db; /* blue border */
+            border-top: 5px solid gray; /*#ffffff;*/ /* white top border to create spinner effect */
+            animation: spin 1s linear infinite; /* CSS animation for spinning */
+        }
+    </style>
+  
+    @section Scripts {
+        <script>
+            $(function () {
+                $("#close").click(function () {
+                    window.open('@Url.Action("AllInvoice", "Report")', "_self");
+                });
+                $("#PrintReceipt").click(function () {
+                    var salesId = '@Model.SalesId';
+                    var url = '@Url.Action("Index", "Receipt")' + '?salesId=' + salesId;
+                    const printWindow = window.open(url, '_blank');
+                });
+                @*$("#PrintReceipt").click(function () {
+
+                    // Show loading icon
+                    $('#loading-overlay').show();
+
+                    $.ajax({
+                        url: '@Url.Action("Index", "Receipt")',
+                        type: "POST", // or "POST" depending on your server-side logic
+                        data: {
+                            salesId: "@Model.SalesId",
+                        },
+                        success: function (response) {
+                            // Handle the response if needed
+                            $('#loading-overlay').hide();
+                        },
+                        error: function (error) {
+                            // Handle errors if the AJAX call fails
+                        }
+                    });
+                });*@
+            });
+
+            $("html, body").animate({
+                scrollTop: 0
+            }, 200);
+
+        </script>
+}
+</head>
+<body>
+    <div id="loading-overlay">
+        <div id="loading-spinner"></div>
+    </div>
+    <div class="page-content">
+        <div class="col-md-12 mx-0">
+            <div align="right" style="width:100%">
+                <input type="button" value="PRINT" class="btn btn-default" id="PrintReceipt" style="width:100px" />
+                <input type="button" value="BACK" class="btn btn-default" id="close" style="width:100px" />
+            </div>
+            <br />
+
+            @*// Sales Info*@
+            <div class="sub-content" style="margin-top: 0px; padding-top: 20px">
+                <div class="card px-0 pt-4 pb-0 mt-3 mb-3" style="text-align: center">
+                    <h2><strong>Sales Order</strong></h2>
+                </div>
+                <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
+                <br />
+
+                @Html.AntiForgeryToken()
+                <!-- Header -->
+                <table>
+                    <tr>
+                        <td style="border-top:none; text-align:left; padding:3px">
+                            <strong>Customer Name </strong>
+                        </td>
+                        <td style="border-top:none; text-align:left; padding:3px">
+                            :
+                            @ViewData["CustomerName"].ToString()
+                            <input id="CusId" type="text" value="@Model.CusId" style="display:none; width:100%" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="border-top: none; text-align: left; padding: 3px"><strong>Invoice No </strong></td>
+                        <td style="border-top: none; text-align: left; padding: 3px">: @Model.SalesId</td>
+                    </tr>
+                    <tr>
+                        <td style="border-top: none; text-align: left; padding: 3px"><strong>Date </strong></td>
+                        <td style="border-top: none; text-align: left; padding: 3px">: @Model.OrderDate.ToShortDateString() </td>
+                    </tr>
+                </table>
+
+                <br />
+                <!-- Body [Sales Item] -->
+                <table id="tblSalesItem" style="width:100%">
+                    <tr>
+                        <th>
+                            No
+                        </th>
+                        <th>
+                            Item
+                        </th>
+                        <th>
+                            Qty
+                        </th>
+                        <th>
+                            Unit Price
+                        </th>
+                        <th>
+                            Discount
+                        </th>
+                        <th>
+                            Total
+                        </th>
+                        <th>
+                            Sales By
+                        </th>
+                    </tr>
+                    @if (Model.SalesDetails != null && Model.SalesDetails.Any())
+                    {
+                        foreach (var item in Model.SalesDetails)
+                        {
+                            <tr>
+                                <td class="salesitemid" style="display:none"><span>@item.SalesItemId</span></td>
+                                <td style="width:5%">@index</td>
+                                <td style="width:20%; text-align:left">
+                                    @Html.DisplayFor(modelItem => item.ProductName)
+                                </td>
+                                <td class="quantity" style="width:5%">
+                                    @if (Model.PaidAmt == null)
+                                    {
+                                        <span>@item.Quantity</span>
+                                        <input type="text" value="@item.Quantity" style="display:none; width:100%" />
+                                    }
+                                    else
+                                    {
+                                        @Html.DisplayFor(modelItem => item.Quantity)
+                                    }
+                                </td>
+                                <td class="unitprice" style="width:10%">
+                                    <span>@item.UnitPrice</span>
+                                </td>
+                                <td class="linediscount" style="width:10%">
+                                    @if (Model.PaidAmt == null)
+                                    {
+                                        <span>@item.LineDiscAmt</span>
+                                        <input type="text" value="@item.LineDiscAmt" style="display: none; width: 100%" />
+                                    }
+                                    else
+                                    {
+                                        @Html.DisplayFor(modelItem => item.LineDiscAmt)
+                                    }
+                                </td>
+                                <td class="linetotal" style="width:10%">
+                                    <span>@item.LineTotal</span>
+                                </td>
+                                <td style="width:10%">
+                                    <span>@item.EmpName</span>
+                                </td>
+                            </tr>
+                            index++;
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="8">No sales details available.</td></tr>
+                    }
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td><strong>@Model.totalQty</strong></td>
+                        <td></td>
+                        <td><strong>@Model.totalDisc</strong></td>
+                        <td><strong>@Model.subtotal</strong></td>
+                        <td></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+

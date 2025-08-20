@@ -1,0 +1,169 @@
+﻿@model Meo.Web.ViewModels.CustomerViewModels
+@using Kendo.Mvc.UI;
+
+@{
+    ViewBag.Title = "Customer List";
+}
+
+<head>
+<script>
+    function success(e) {
+        var imagePath = e.response.ImageUrl;
+        $("#ImageUrl").val(imagePath).trigger("change");
+        $("#ImagePath").val(imagePath).trigger("change");
+    }
+
+    $(function () {
+        $("#close").click(function () {
+            window.history.back();
+            @*window.open('@Url.Action("Index", "Customer")', "_self");*@
+        });
+    });
+
+    $("html, body").animate({
+        scrollTop: 0
+    }, 200);
+</script>
+
+<style>
+    legend {
+        padding: 0.2em 0.5em;
+        color: grey;
+        font-size: 130%;
+    }
+
+    fieldset {
+        border: 1px solid grey;
+        padding: 1em;
+        font: 100%/1 sans-serif;
+    }
+
+    label {
+        float: left;
+        width: 25%;
+        margin-right: 0.5em;
+        padding-top: 0.2em;
+        text-align: right;
+        font-weight: bold;
+    }
+
+    td {
+        padding: 5px;
+    }
+
+    .k-upload .k-upload-button {
+        min-width: 7.167em;
+        margin-right: 0em;
+    }
+
+    .k-dropzone {
+        border-style: solid;
+        border-width: 0;
+        padding: .2em;
+        background-color: white;
+    }
+
+    .k-dropdown, .k-textbox {
+        /*width: 100%;*/
+        max-width: 100%;
+        width: 18.4em;
+    }
+</style>
+</head>
+<body>
+    <a id="tops"></a>
+    <div class="page-content">
+        @using (Html.BeginForm("NewCustomer", "Customer", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+        {
+            // Button
+            <div align="right">
+                <span style="padding-right:5px"><button id="update" data-bind="click: update" class="btn btn-primary" style="width:110px;padding:5px">SAVE</button> </span>
+                <input type="button" value="CANCEL" class="btn btn-default" id="close" style="width:100px" />
+            </div>
+            <br />
+
+            @Html.HiddenFor(m => m.CusId)
+            // Customer Info
+            <div class="sub-content" style="margin-top:0px">
+                <div class="bar-title"><span>CUSTOMER PROFILE</span></div>
+                <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
+                <br />
+                @Html.AntiForgeryToken()
+
+                <table style="width:80%" align="center">
+                    <tr>
+                        <td rowspan="9" width="10%" align="center">
+                            <img src="@Url.Content("~/Images/Customer/" + Model.ImagePath)" padding="5px" width="110" @*height="130"*@ alt="" onerror="this.src='@Url.Content("~/Images/Employee/user.png")' " /><br>
+                            @(Html.Kendo().Upload()
+                            .Name("file")
+                            .HtmlAttributes(new { accept = "image/*" }) // accept all image type
+                            .Multiple(false)
+                            )
+                        </td>
+                        <td style="width:5%">@Html.LabelFor(model => model.CardNo, new { @style = "width : 150px" })<font color="red">*</font></td>
+                        <td style="width:30%">
+                            @Html.EditorFor(model => model.CardNo)
+                            @Html.ValidationMessageFor(model => model.CardNo, "", new { @class = "text-danger" })
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width:5%">
+                            @Html.LabelFor(model => model.FullName, new { @style = "width : 150px" })<font color="red">*</font>
+                        </td>
+                        <td style="width:30%">
+                            @Html.EditorFor(model => model.FullName, new { @style = "width : 350px" })
+                            @Html.ValidationMessageFor(model => model.FullName, "", new { @class = "text-danger" })
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width:5%">
+                            @Html.LabelFor(model => model.IcNo, new { @style = "width : 150px" })<font color="red">*</font>
+                        </td>
+                        <td style="width:30%">
+                            @Html.EditorFor(model => model.IcNo, new { @style = "width : 350px" })
+                            @Html.ValidationMessageFor(model => model.IcNo, "", new { @class = "text-danger" })
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.LabelFor(model => model.ContactNo, new { @style = "width : 150px" })<font color="red">*</font>
+                        </td>
+                        <td>
+                            @Html.EditorFor(model => model.ContactNo, new { @style = "width : 350px" })
+                            @Html.ValidationMessageFor(model => model.ContactNo, "", new { @class = "text-danger" })
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>@Html.LabelFor(model => model.Gender, new { @style = "width : 150px" })<font color="red">*</font></td>
+                        <td>
+                            Male @Html.RadioButtonFor(m => m.Gender, "Male", new { @style = "width : 40px" })
+                            Female @Html.RadioButtonFor(m => m.Gender, "Female", new { @style = "width : 40px" })
+                            @Html.ValidationMessageFor(model => model.Gender, "", new { @class = "text-danger" })
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.LabelFor(model => model.Remarks, new { @style = "width : 150px" })
+                        </td>
+                        <td>
+                            @Html.TextAreaFor(model => model.Remarks, new { @style = "width : 350px" })
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <br />
+
+            <!--// Button
+            <div style="float:right;padding-right:25px">
+                <span class="btn btn-default close-button" style="width:110px"><font color="black">CANCEL</font></span>-->
+            @*<span class="btn btn-danger" style="width:120px"><a href="#tops"><font color="white">BACK TO TOP</font></a></span>*@
+            <!--</div>
+            <div style="float:right;padding-right:5px"><button id="update" data-bind="click: update" class="btn btn-primary" style="width:110px">SAVE</button></div>-->
+        }
+        <br />
+        <br />
+    </div>
+</body>
+@*<span id="notification" style="display:none;"></span>*@
+
+

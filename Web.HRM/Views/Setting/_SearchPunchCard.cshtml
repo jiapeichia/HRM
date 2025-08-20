@@ -1,0 +1,79 @@
+﻿@model Meo.Web.ViewModels.PunchCardReportViewModels
+
+<head>
+    @section Scripts {
+        @Scripts.Render("~/bundles/jqueryval")
+
+        <script>
+        function error_handler(e) {
+            if (e.errors) {
+                var message = "Errors:\n";
+                $.each(e.errors, function (key, value) {
+                    if ('errors' in value) {
+                        $.each(value.errors, function () {
+                            message += this + "\n";
+                        });
+                    }
+                });
+                alert(message);
+            }
+        }
+
+        function sync_handler(e) {
+            this.read();
+        }
+
+        // --- collapse all group grid ---
+        var collapseAllGroups = function (grid) {
+            grid.table.find(".k-grouping-row").each(function () {
+                grid.collapseGroup(this);
+            });
+        }
+
+        //On the grid
+        function dataBound() {
+            collapseAllGroups(this);
+        }
+        </script>
+    }
+</head>
+<div>
+    @(Html.Kendo().Grid<Meo.Web.ViewModels.PunchCardReportViewModels>()
+        .Name("GridForPunchCardReport")
+        .HtmlAttributes(new { style = "100%" })
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.PunchCardId).Hidden();
+            columns.ForeignKey(c => c.EmpNo, (System.Collections.IEnumerable)ViewData["Employee"], "EmpNo", "DisplayName").Title("Employee Name");
+            //columns.Bound(c => c.Date).Format("{0:MM dd, yyyy}");
+            columns.Bound(c => c.ClockIn);
+            columns.Bound(c => c.ClockOut);
+            columns.Bound(c => c.ClockIn2);
+            columns.Bound(c => c.ClockOut2);
+            columns.Bound(c => c.ClockIn3);
+            columns.Bound(c => c.ClockOut3);
+            //if (Session["RoleName"].Equals("Administrator"))
+            //{
+            //    columns.Command(command => command.Destroy()).Width(100);
+            //}
+        })
+        .Sortable()
+        .Pageable(pageable => pageable
+        .Refresh(true).Messages(m => m.Refresh(string.Empty)))
+        .DataSource(source => source
+        .Ajax()
+        .PageSize(10)
+        .Events(events => events.Error("error_handler").Sync("sync_handler"))
+        .Sort(sort => sort.Add("ClockIn").Descending())
+        .Model(model =>
+        {
+            model.Id(tc => tc.PunchCardId);
+            model.Field(item => item.PunchCardId).Editable(false);
+        })
+        .Read(read => read.Action("GetSearchData", "Setting", new { searchContent = ViewBag.searchContent, dateContent = ViewBag.dateContent }))
+        //.Destroy(update => update.Action("Destroy", "Setting"))
+        )
+        .Resizable(resize => resize.Columns(true))
+        .NoRecords("No Records Found")
+    )
+</div>

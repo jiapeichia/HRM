@@ -1,0 +1,98 @@
+﻿
+@{
+    ViewBag.Title = "Clock In/Out Report";
+    var dateContent = DateTime.Now.Date;
+    var EmpList = ViewBag.EmpList;
+}
+
+<head>
+    @section Scripts {
+        @Scripts.Render("~/bundles/jqueryval")
+
+    <script>
+        $(function () {
+        $('#search').click(function () {
+            var searchContent = $('#SearchContent').val();
+            var date = $('#DateContent').val();
+            var dateContent = "";
+            if (date != "") {
+                var date1 = new Date(kendo.parseDate(date, 'dd/MM/yyyy'));
+                var day = date1.getUTCDate() + 1;
+                var month = date1.getUTCMonth() + 1;
+                var year = date1.getUTCFullYear();
+                dateContent = (month + '/' + day + '/' + year);
+            }
+
+            var url = "@Html.Raw(Url.Action("_SearchPunchCard", "Setting", new { searchContent = "searchcontent" , dateContent = "datecontent" }))";
+            url = url.replace("searchcontent", searchContent);
+            url = url.replace("datecontent", dateContent);
+            $('#saveDiv').load(url);
+        });
+
+        $('#clear').click(function () {
+            $("#SearchContent").val('').trigger("change");
+            
+            var nowDate = new Date();
+            var day = nowDate.getUTCDate();
+            var month = nowDate.getUTCMonth() + 1;
+            var year = nowDate.getUTCFullYear();
+            var today = day + '/' + month + '/' + year;
+
+            $("#DateContent").val(today).trigger("change");
+            var url = "@Html.Raw(Url.Action("_SearchPunchCard", "Setting", new { searchContent = "", dateContent = DateTime.Now.Date.ToString("yyyy-MM-dd") }))";
+            $('#saveDiv').load(url);
+        });
+
+        $("#close").click(function () {
+            window.open('@Url.Action("Index", "Home")', "_self");
+        });
+    });
+        function error_handler(e) {
+            if (e.errors) {
+                var message = "Errors:\n";
+                $.each(e.errors, function (key, value) {
+                    if ('errors' in value) {
+                        $.each(value.errors, function () {
+                            message += this + "\n";
+                        });
+                    }
+                });
+                alert(message);
+            }
+        }
+
+        function sync_handler(e) {
+            this.read();
+        }
+    </script>
+}
+</head>
+<div class="page-content">
+    <table style="width:100%">
+        <tr>
+            <td>
+                <h2 class="pagetitle">Employee Clock In / Out Report</h2>
+            </td>
+           <td align="right">
+                @Html.DropDownList("SearchContent", new SelectList(EmpList, "EmpNo", "DisplayName"), "--- Select Employee ---", new { @class = "form-control", @style = "width : 200px" })
+            </td>
+            <td align="right">
+                @(Html.Kendo().DatePicker().Value(dateContent)
+                .Name("DateContent")
+                .Culture("en-IE")
+                //.Format("dd/MM/yyyy")
+                //.ParseFormats(new List<string>() { "dd-MMM-yyyy" })
+                .HtmlAttributes(new { @class = "form-control", @style = "width : 150px" }))
+            </td>
+            <td align="right" style="width:350px">
+                <input type="button" value="SEARCH" class="btn btn-primary" id="search" style="width:100px" />
+                <input type="button" value="CLEAR" class="btn btn-primary" id="clear" style="width:100px" />
+                <input type="button" value="BACK" class="btn btn-default" id="close" style="width:110px" />
+            </td>
+        </tr>
+    </table>
+    <hr />
+    <div id="saveDiv">
+        @{ Html.RenderAction("_SearchPunchCard", new { searchContent = "", dateContent = DateTime.Now.Date }); }
+    </div>
+</div>

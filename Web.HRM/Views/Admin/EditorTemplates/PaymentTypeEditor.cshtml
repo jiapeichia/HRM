@@ -1,0 +1,40 @@
+﻿@model Meo.Web.ViewModels.TypeViewModels
+
+@{
+    ViewBag.Title = "Payment Type Editor";
+}
+
+<table>
+    <tbody>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.TypeName, new { @style = "width : 150px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @Html.EditorFor(model => model.TypeName)
+                @Html.ValidationMessageFor(model => model.TypeName)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.Remarks, new { @style = "width : 150px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @Html.EditorFor(model => model.Remarks)
+                @Html.ValidationMessageFor(model => model.Remarks)
+            </td>
+        </tr>
+        @*<tr>
+            <td>
+                @Html.LabelFor(model => model.InvFormat, new { @style = "width : 150px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @Html.EditorFor(model => model.InvFormat)
+                @Html.ValidationMessageFor(model => model.InvFormat)
+            </td>
+        </tr>*@
+    </tbody>
+</table>
+
+
+

@@ -1,0 +1,454 @@
+﻿@{
+    ViewBag.Title = "Home";
+}
+
+<style>
+    .btn-silver {
+        color: #ffffff;
+        background-color: #C0C0C0;
+        border-color: #C0C0C0;
+        box-shadow: 10px 10px 5px #aaaaaa;
+    }
+
+        .btn-silver:hover,
+        .btn-silver:focus,
+        .btn-silver:active,
+        .btn-silver.active,
+        .open .dropdown-toggle.btn-silver {
+            color: #ffffff;
+            background-color: #646464;
+            border-color: #646464;
+        }
+
+        .btn-silver:active,
+        .btn-silver.active,
+        .open .dropdown-toggle.btn-silver {
+            background-image: none;
+        }
+
+        .btn-silver.disabled,
+        .btn-silver[disabled],
+        fieldset[disabled] .btn-silver,
+        .btn-silver.disabled:hover,
+        .btn-silver[disabled]:hover,
+        fieldset[disabled] .btn-silver:hover,
+        .btn-silver.disabled:focus,
+        .btn-silver[disabled]:focus,
+        fieldset[disabled] .btn-silver:focus,
+        .btn-silver.disabled:active,
+        .btn-silver[disabled]:active,
+        fieldset[disabled] .btn-silver:active,
+        .btn-silver.disabled.active,
+        .btn-silver[disabled].active,
+        fieldset[disabled] .btn-silver.active {
+            background-color: #428bca;
+            border-color: #646464;
+        }
+</style>
+
+<div class="page-content">
+    <div class="col-md-12">
+        @if (Session["CustomerList"] != null || Session["SalesOrder"] != null || Session["Invoice"] != null || Session["PackageSold"] != null)
+        {
+            <div class="sub-content">
+                <div class="bar-title"><span>CUSTOMER SERVICE</span></div>
+                <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
+                <br />
+                <table>
+                    <tbody>
+                        <tr>
+                            @if (Session["CustomerList"] != null)
+                            {
+                                <td>
+                                    <a class="btn btn-silver btn-admin" href="~/Customer/Index#">
+                                        <img style="width:50px;" src="@Url.Content("~/Images/employee.png")" alt="" />
+                                        <br /><strong>Customer List</strong>
+                                    </a>
+                                </td>
+                            }
+                            @if (Session["SalesOrder"] != null)
+                            {
+                                <td>
+                                    <a class="btn btn-silver btn-admin" href="~/Sales/Invoice?flag=new#">
+                                        <img style="width:50px;" src="@Url.Content("~/Images/salesorder.png")" alt="" />
+                                        <br /><strong>Sales Order</strong>
+                                    </a>
+                                </td>
+                            }
+                            @if (Session["Invoice"] != null)
+                            {
+                                <td>
+                                    <a class="btn btn-silver btn-admin" href="~/Report/AllInvoice#">
+                                        <img style="width:50px;" src="@Url.Content("~/Images/invoice.png")" alt="" />
+                                        <br /><strong>All Invoice</strong>
+                                    </a>
+                                </td>
+                            }
+                            @if (Session["Exchange"] != null)
+                            {
+                                <td>
+                                    <a class="btn btn-silver btn-admin" href="~/Exchange/Exchange#">
+                                        <img style="width:50px;" src="@Url.Content("~/Images/product.png")" alt="" />
+                                        <br /><strong>Exchange</strong>
+                                    </a>
+                                </td>
+                            }
+                        </tr>
+                        <tr>
+                            @if (Session["PackageSold"] != null)
+                            {
+                                <td>
+                                    <a class="btn btn-silver btn-admin" href="~/Package/AllPackageSold#">
+                                        <img style="width:50px;" src="@Url.Content("~/Images/product.png")" alt="" />
+                                        <br /><strong>Package Sold</strong>
+                                    </a>
+                                </td>
+                            }
+                            @if (Session["GIROSales"] != null)
+                            {
+                                <td>
+                                    <a class="btn btn-silver btn-admin" href="~/Sales/GIROSales?flag=new#">
+                                        <img style="width:50px;" src="@Url.Content("~/Images/salesorder.png")" alt="" />
+                                        <br /><strong>GIRO Sales</strong>
+                                    </a>
+                                </td>
+                            }
+                        <td>
+                            <a class="btn btn-silver btn-admin" href="~/BackOrder/Index#">
+                                <img style="width:50px;" src="@Url.Content("~/Images/salesorder.png")" alt="" />
+                                <br /><strong>Back Order Sales</strong>
+                            </a>
+                        </td>    
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        }
+        <br />
+        @if (Session["Product"] != null || Session["Service"] != null || Session["TopUp"] != null || Session["Package"] != null
+            || Session["ProductReceive"] != null || Session["ProductReturn"] != null || Session["SupplierList"] != null)
+        {
+            <div class="sub-content">
+                <div class="bar-title"><span>MASTER DATA</span></div>
+                <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
+                <br />
+                <table>
+                    <tbody>
+                        <tr>
+                            @if (Session["Product"] != null)
+                            {
+                                <td>
+                                    <a class="btn btn-silver btn-admin" href="~/Setting/ProductIndex#">
+                                        <img style="width:50px;" src="@Url.Content("~/Images/product.png")" alt="" />
+                                        <br /><strong>Product</strong>
+                                    </a>
+                                </td>
+                            }
+                            @if (Session["Service"] != null)
+                            {
+                                <td>
+                                    <a class="btn btn-silver btn-admin" href="~/Setting/ServiceIndex#">
+                                        <img style="width:50px;" src="@Url.Content("~/Images/service.png")" alt="" />
+                                        <br /><strong>Service</strong>
+                                    </a>
+                                </td>
+                            }
+                            @if (Session["TopUp"] != null)
+                            {
+                                <td>
+                                    <a class="btn btn-silver btn-admin" href="~/Setting/TopupIndex#">
+                                        <img style="width:50px;" src="@Url.Content("~/Images/topup.png")" alt="" />
+                                        <br /><strong>Top Up</strong>
+                                    </a>
+                                </td>
+                            }
+                            @if (Session["Package"] != null)
+                            {
+                                <td>
+                                    <a class="btn btn-silver btn-admin" href="~/Package/AllPackageIndex#">
+                                        <img style="width:50px;" src="@Url.Content("~/Images/product.png")" alt="" />
+                                        <br /><strong>Package</strong>
+                                    </a>
+                                </td>
+                            }
+                            @*<td>
+                                    <a class="btn btn-silver btn-admin" href="#" onclick="ShowModelPopUp();">
+                                        <img style="width:50px;" src="@Url.Content("~/Images/clock.png")" alt="" />
+                                        <br /><strong>Clock In/Out</strong>
+                                    </a>
+                                </td>*@
+                        </tr>
+                        <tr>
+                            @if (Session["ProductReceive"] != null)
+                            {
+                                <td>
+                                    <a class="btn btn-silver btn-admin" href="~/Stock/Receive#">
+                                        <img style="width:50px;" src="@Url.Content("~/Images/receive.png")" alt="" />
+                                        <br /><strong>Product Receive</strong>
+                                    </a>
+                                </td>
+                            }
+                            @if (Session["ProductReturn"] != null)
+                            {
+                                <td>
+                                    <a class="btn btn-silver btn-admin" href="~/Stock/Return#">
+                                        <img style="width:50px;" src="@Url.Content("~/Images/return.png")" alt="" />
+                                        <br /><strong>Product Return</strong>
+                                    </a>
+                                </td>
+                            }
+                            @if (Session["SupplierList"] != null)
+                            {
+                                <td>
+                                    <a class="btn btn-silver btn-admin" href="~/Supplier/Index#">
+                                        <img style="width:50px;" src="@Url.Content("~/Images/employee.png")" alt="" />
+                                        <br /><strong>Supplier List</strong>
+                                    </a>
+                                </td>
+                            }
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        }
+        @if (Session["EmployeeList"] != null || Session["SalesReport"] != null || Session["ServiceReport"] != null || Session["DailySalesReport"] != null)
+        {
+            <br />
+            <div class="sub-content">
+                <div class="bar-title"><span>REPORTING</span></div>
+                <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
+                <br />
+                <table>
+                    <tbody>
+                        <tr>
+                            @if (Session["EmployeeList"] != null)
+                            {
+                                <td style="padding:10px">
+                                    <a class="btn btn-silver btn-admin" href="~/Employee/Index#">
+                                        <img style="width:50px;" src="@Url.Content("~/Images/employee.png")" alt="" />
+                                        <br /><strong>Employee List</strong>
+                                    </a>
+                                </td>
+                            }
+                            @if (Session["SalesReport"] != null)
+                            {
+                                <td>
+                                    <a class="btn btn-silver btn-admin" href='@Url.Action("Search", "Report")'>
+                                        <img style="width:50px;" src="@Url.Content("~/Images/report.png")" alt="" />
+                                        <br /><strong>Emp Sales Report</strong>
+                                    </a>
+                                </td>
+                            }
+                            @if (Session["ServiceReport"] != null)
+                            {
+                                <td>
+                                    <a class="btn btn-silver btn-admin" href='@Url.Action("Search", "Report", new { reportType = "service" })'>
+                                        <img style="width:50px;" src="@Url.Content("~/Images/report.png")" alt="" />
+                                        <br /><strong>Emp Service Report</strong>
+                                    </a>
+                                </td>
+                            }
+                            @if (Session["DailySalesReport"] != null)
+                            {
+                                <td>
+                                    <a class="btn btn-silver btn-admin" href='@Url.Action("SearchSales", "Report")'>
+                                        <img style="width:50px;" src="@Url.Content("~/Images/report.png")" alt="" />
+                                        <br /><strong>Daily Sales Report</strong>
+                                    </a>
+                                </td>
+                            }
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        }
+        @if (Session["CompanyProfile"] != null || Session["DBBackUpPath"] != null || Session["DatabaseBackUp"] != null || Session["PaymentType"] != null)
+        {
+            <br />
+            <div class="sub-content">
+                <div class="bar-title"><span>SETTINGS</span></div>
+                <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
+                <br />
+                <table>
+                    <tbody>
+                        <tr>
+                            @if (Session["CompanyProfile"] != null)
+                            {
+                                <td>
+                                    <a class="btn btn-silver btn-admin" href="~/CompanyProfile/Preview#">
+                                        <img style="width:50px;" src="@Url.Content("~/Images/company.png")" alt="" />
+                                        <br /><strong>Company Profile</strong>
+                                    </a>
+                                </td>
+                            }
+                            @if (Session["DBBackUpPath"] != null)
+                            {
+                                <td>
+                                    <a class="btn btn-silver btn-admin" href="~/Setting/DBBackup#">
+                                        <img style="width:50px;" src="@Url.Content("~/Images/dbbackup.png")" alt="" />
+                                        <br /><strong>DB BackUp Path</strong>
+                                    </a>
+                                </td>
+                            }
+                            @if (Session["DatabaseBackUp"] != null)
+                            {
+                                <td>
+                                    @*<input type="button" src="~/Images/dbbackup.png" value="Backup Database" id="backupup" class="btn btn-silver btn-admin" />*@
+                                    <a id="backupup" class="btn btn-silver btn-admin">
+                                        <img style="width:50px;" src="~/Images/dbbackup.png" alt="Backup Database">
+                                        <br /><strong>Database Backup</strong>
+                                    </a>
+                                </td>
+                            }
+                            @if (Session["PaymentType"] != null)
+                            {
+                                <td>
+                                    <a class="btn btn-silver btn-admin" href="~/Admin/AllPaymentType#">
+                                        <img style="width:50px;" src="@Url.Content("~/Images/paymenttype.png")" alt="" />
+                                        <br /><strong>Payment Type</strong>
+                                    </a>
+                                </td>
+                            }
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        }
+        @if (Session["Role"] != null || Session["PageControl"] != null || Session["UserAccess"] != null || Session["Type"] != null)
+        {
+            <br />
+            <div class="sub-content">
+                <div class="bar-title"><span>ACCESS SETTING</span></div>
+                <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
+                <br />
+                <table>
+                    <tbody>
+                        <tr>
+                            @if (Session["Role"] != null)
+                            {
+                                <td>
+                                    <a class="btn btn-silver btn-admin" href="~/Admin/AllRole#">
+                                        <img style="width:50px;" src="@Url.Content("~/Images/roleicon.png")" alt="" />
+                                        <br />Role
+                                    </a>
+                                </td>
+                            }
+                            @if (Session["PageControl"] != null)
+                            {
+                                <td>
+                                    <a class="btn btn-silver btn-admin" href="~/Admin/AllPage#">
+                                        <img style="width:50px;" src="@Url.Content("~/Images/pageicon.png")" alt="" />
+                                        <br />Page Control
+                                    </a>
+                                </td>
+                            }
+                            @if (Session["UserAccess"] != null)
+                            {
+                                <td>
+                                    <a class="btn btn-silver btn-admin" href="~/Admin/AllAccess#">
+                                        <img style="width:50px;" src="@Url.Content("~/Images/useraccess.png")" alt="" />
+                                        <br />User Access
+                                    </a>
+                                </td>
+                            }
+                            @if (Session["Type"] != null)
+                            {
+                                <td>
+                                    <a class="btn btn-silver btn-admin" href="~/Admin/AllType#">
+                                        <img style="width:50px;" src="@Url.Content("~/Images/roleicon.png")" alt="" />
+                                        <br /><strong>Type</strong>
+                                    </a>
+                                </td>
+                            }
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<script type="text/javascript">
+    function printInNewTab() {
+        var url = '@Url.Action("Index", "Receipt")';
+        const printWindow = window.open(url, '_blank');
+    }
+
+    function openSelection(id) {
+        var dialog = $("#employeeSelection").kendoWindow({
+            title: "Service Information",
+            modal: true,
+            width: 450
+        }).data("kendoWindow");
+
+        dialog.center();
+        dialog.open();
+
+        // Create a closure to capture the 'id'
+        (function () {
+            var capturedId = id;
+
+        // Attach a click event to the "PROCEED" button in the dialog
+        $("#updateServicePIC").on("click", function () {
+            var picid = $("#EmployeeDropdown").data("kendoDropDownList").value();
+            var picName = $("#EmployeeDropdown").data("kendoDropDownList").text();
+            var remarks = $("#Remarks").val();
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("Update_Service", "Sales")', //"/Sales/Update_Service",
+                data: {
+                    id: capturedId,
+                    picid: picid,
+                    picname: picName,
+                    remarks: remarks,
+                },
+                success: function (response) {
+                    window.location.reload();
+                }
+            });
+
+            // Close the dialog
+            dialog.close();
+        });
+        })();
+    }
+
+    // Start -- Punch Card
+    function MyPopUpWin(url, width, height) {
+        var leftPosition, topPosition;
+        //Allow for borders.
+        leftPosition = (window.screen.width / 2) - ((width / 2) + 10);
+        //Allow for title and status bars.
+        topPosition = (window.screen.height / 2) - ((height / 2) + 50);
+        //Open the window.
+        window.open(url, "Window2",
+            "status=no,height=" + height + ",width=" + width + ",resizable=yes,left="
+            + leftPosition + ",top=" + topPosition + ",screenX=" + leftPosition + ",screenY="
+            + topPosition + ",toolbar=no,menubar=no,scrollbars=no,location=no,directories=no");
+    }
+
+    function ShowModelPopUp() {
+        var url = window.location.pathname.includes('/BeYou') ? '/BeYou/Setting/PunchCardPopUp' : '/Setting/PunchCardPopUp';
+        MyPopUpWin(url, 500, 450);
+
+        //MyPopUpWin('/BeYou/Setting/PunchCardPopUp', 500, 200);
+       // MyPopUpWin('/Setting/PunchCardPopUp', 500,200);
+    }
+    // End - Punch Card
+
+    $(document).ready(function () {
+        $("#backupup").bind("click", function () {
+            $.ajax({
+                url: '@Url.Action("BackupDatabase", "DBBackup")',
+                type: "POST",
+                data: {
+                },
+                success: function (response) {
+                    alert("Database has been backup successfully.");
+                }
+            });
+        });
+    });
+</script>
+

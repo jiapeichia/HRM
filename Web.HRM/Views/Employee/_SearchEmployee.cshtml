@@ -1,0 +1,87 @@
+﻿@model Meo.Web.ViewModels.EmployeeDetailsViewModel
+
+<head>
+    @section Scripts {
+        @Scripts.Render("~/bundles/jqueryval")
+
+        <script>
+        function error_handler(e) {
+            if (e.errors) {
+                var message = "Errors:\n";
+                $.each(e.errors, function (key, value) {
+                    if ('errors' in value) {
+                        $.each(value.errors, function () {
+                            message += this + "\n";
+                        });
+                    }
+                });
+                alert(message);
+            }
+        }
+
+        function sync_handler(e) {
+            this.read();
+        }
+
+        // --- collapse all group grid ---
+        var collapseAllGroups = function (grid) {
+            grid.table.find(".k-grouping-row").each(function () {
+                grid.collapseGroup(this);
+            });
+        }
+
+        //On the grid
+        function dataBound() {
+            collapseAllGroups(this);
+        }
+        </script>
+    }
+</head>
+<div>
+    @(Html.Kendo().Grid<Meo.Web.ViewModels.EmployeeDetailsViewModel>()
+        .Name("GridForEmployee")
+        .HtmlAttributes(new { style = "100%" })
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.EmpNo).ClientTemplate(
+           "# if (data.ImagePath != null) { #"
+           + "<div class='small-photo' style='background-image: url(" + @Url.Content("~/Images/Employee/#:data.ImagePath#") + ");'></div>"
+           + "# } else { #"
+           + "<div class='small-photo' style='background-image: url(" + @Url.Content("~/Images/Employee/user.png") + ");'></div>"
+           + "# } #"
+           + "<div class='customer-name'>#: EmpNo #</div>").Width("150px");
+            columns.Bound(c => c.DisplayName).Title("Employee Name");
+            //columns.Bound(c => c.Active).ClientTemplate("# if (Active == false) { #" +
+            //    "Active" +
+            //"# } else if (Active == true) { #" +
+            //    "Inactive" +
+            //"# } else { #" +
+            //"# } #"
+            //).Width("80px");
+            columns.Bound(c => c.Emp_id).Title("").ClientTemplate("<a href='" + @Url.Action("Preview", "Employee", new { id = "#=Emp_id#" }) + "' ><span class='k-button k-button-icontext k-grid-edit'>Preview</span></a>").Width(100);
+            if (Session["RoleName"].Equals("Administrator"))
+            {
+                columns.Command(command => command.Destroy()).Width(100);
+            }
+        })
+        .Sortable()
+        .Pageable(pageable => pageable
+        .Refresh(true).Messages(m => m.Refresh(string.Empty)))
+        .ToolBar(toolbar => toolbar.Template("<a id='Create' class='k-button k-button-icontext k-add' href='" + @Url.Action("NewEmployee", "Employee") + "'style='float:right'> + Create New </a>"))
+        .DataSource(source => source
+        .Ajax()
+        .PageSize(10)
+        .Events(events => events.Error("error_handler").Sync("sync_handler"))
+        .Sort(sort => sort.Add("DisplayName").Ascending())
+        .Model(model =>
+        {
+            model.Id(tc => tc.Emp_id);
+            model.Field(item => item.Emp_id).Editable(false);
+        })
+        .Read(read => read.Action("GetSearchData", "Employee", new { searchContent = ViewBag.searchContent }))
+        .Destroy(update => update.Action("Destroy", "Employee"))
+        )
+        .Resizable(resize => resize.Columns(true))
+        .NoRecords("No Records Found")
+    )
+</div>

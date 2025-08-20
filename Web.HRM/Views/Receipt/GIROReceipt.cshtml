@@ -1,0 +1,170 @@
+﻿@model Meo.Web.ViewModels.ReceiptModel
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th {
+        border-top: 1px solid darkgrey;
+        border-bottom: 1px solid darkgrey;
+        text-align: left;
+        font-size: 11px;
+    }
+
+    td {
+        font-size: 11px;
+        /*border-bottom: 1px solid black;*/
+    }
+</style>
+
+@* header *@
+<div style="text-align: center; padding-bottom: 5px;">
+    <span style="font-size: 13px;"><strong>@Model.StoreName</strong></span><br />
+    <span style="font-size: 11px;">@Model.RegNo</span><br />
+    <span style="font-size: 11px;">@Model.Address1</span><br />
+    <span style="font-size: 11px;">@Model.Address2</span><br />
+    @if (Model.Address3 != null)
+    {
+        <span style="font-size: 11px;">@Model.Address3</span><br />
+    }
+    <span style="font-size: 11px;">TEL: @Model.Tel</span>
+</div>
+<div style="text-align: center; padding-bottom: 5px; "><span style="font-size: 13px;"><strong>@Model.ReceiptHeader</strong></span></div>
+
+@* body *@
+<table>
+    <tr>
+        <td>
+            Invoice No.
+        </td>
+        <td>
+            : @Model.SalesId
+        </td>
+        <td>
+            Paid By
+        </td>
+        <td>
+            : @Model.PaymentMethod
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Date
+        </td>
+        <td>
+            : @Model.Date
+        </td>
+        <td>
+            Card No.
+        </td>
+        <td>
+            : @Model.CardNo
+        </td>
+    </tr>
+</table>
+<table>
+    <tr>
+        <th>
+            Code/Desc
+        </th>
+        <th style="text-align: right">
+            Price(RM)
+        </th>
+        <th style="text-align: right; padding-left: 2px;">
+            Qty
+        </th>
+        <th style="text-align: right; padding-left: 2px;">
+            Amt(RM)
+        </th>
+    </tr>
+    @foreach (var item in Model.ReceiptItems)
+    {
+        <tr>
+            <td>
+                @item.ProductCode
+            </td>
+            <td style="text-align: right">
+                @item.UnitPrice
+            </td>
+            <td style="text-align: right">
+                *@item.Quantity
+            </td>
+            <td style="text-align: right">
+                @item.LineTotal
+            </td>
+        </tr>
+        <tr>
+            <td colspan="4">
+                @item.ProductName
+            </td>
+        </tr>
+    }
+</table>
+<br />
+<br />
+<table style="font-size: 11px; border-top: 1px darkgrey dotted; border-bottom: 1px darkgrey dotted; ">
+    <tr>
+        <td colspan="3" style="font-size: 11px;">
+            TOTAL (RM)
+        </td>
+        <td style="font-size: 11px; text-align:right">
+            @Model.TotalAmount
+        </td>
+    </tr>
+    @foreach (var item in Model.GIROPaymentCounts)
+    {
+        <tr>
+            <td colspan="3" style="font-size: 11px">
+                @item.PaidCount TIME PAID (RM)
+            </td>
+            <td style="font-size: 11px; text-align: right">
+                @item.TotalPaid
+            </td>
+        </tr>
+    }
+    <tr>
+        <td colspan="3" style="font-size: 11px">
+            PAID AMOUNT (RM)
+        </td>
+        <td style="font-size: 11px; text-align: right ">
+            @Model.TotalPaid
+        </td>
+    </tr>
+    <tr>
+        @if (string.IsNullOrEmpty(Model.TotalBalanceString) && Model.IsGIRO)
+        {
+            <td colspan="3" style="font-size: 11px">
+                BALANCE (RM)
+            </td>
+            <td style="font-size: 11px; text-align: right ">
+                @Model.TotalBalance
+            </td>
+        }
+        else
+        {
+            <td colspan="3" style="font-size: 11px">
+                OUTSTANDING AMOUNT (RM)
+            </td>
+            <td style="font-size: 11px; text-align: right ">
+                @Model.TotalBalanceString
+            </td>
+        }
+    </tr>
+</table>
+<div style="text-align:center">
+    <br />
+    <span style="font-size: 11px;">Thank you for choosing <strong>BeYou</strong></span>
+    <br />
+</div>
+
+<script>
+    function printReceipt() {
+        window.print();
+    }
+
+    // Call the printReceipt function after redirect
+    window.onload = function () {
+        printReceipt();
+    };
+</script>

@@ -1,0 +1,219 @@
+﻿@model Meo.Web.ViewModels.ReportSearchContent
+
+@{
+    ViewBag.Title = "Daily Sales Report";
+}
+
+<head>
+    <style>
+        .profile-header {
+            background: white;
+            /*padding: 20px;*/
+            border-bottom: 2px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            align-items: center;
+            border-radius: 10px;
+        }
+
+        .customer-name {
+            display: inline-block;
+            vertical-align: middle;
+            line-height: 32px;
+            padding-left: 8px;
+        }
+
+        input.k-textbox {
+            width: 100%;
+            height: 2.45em;
+            text-indent: .33em;
+            line-height: 1.6em;
+        }
+
+        .k-textbox {
+            max-width: 100%;
+            width: 200px;
+        }
+    </style>
+
+    @section Scripts {
+        @Scripts.Render("~/bundles/jqueryval")
+
+        <script>
+    $(function () {
+        $('#search').click(function () {
+            var startDate = $('#StartDate').val();
+            var endDate = $('#EndDate').val();
+
+            var url = "@Html.Raw(Url.Action("_SearchSalesReport", "Report", new { startDate = "startdate", endDate = "enddate" }))";
+            url = url.replace("startdate", startDate);
+            url = url.replace("enddate", endDate);
+            $('#saveDiv').load(url);
+        });
+
+        $('#clear').click(function () {
+            var nowDate = new Date();
+            var today = nowDate.toLocaleDateString('en-GB'); // 'en-GB' gives you the 'dd/MM/yyyy' format
+
+            $("#StartDate, #EndDate").val(today).trigger("change");
+
+            var url = "@Html.Raw(Url.Action("_SearchSalesReport", "Report", new { startDate = "startdate", endDate = "enddate" }))";
+            url = url.replace("startdate", today);
+            url = url.replace("enddate", today);
+            $('#saveDiv').load(url);
+        });
+
+        $("#close").click(function () {
+            window.open('@Url.Action("Index", "Home")', "_self");
+        });
+    });
+
+    function endChange() {
+        var startPicker = $("#StartDate").data("kendoDatePicker"),
+            endDate = this.value();
+
+        if (endDate) {
+            endDate = new Date(endDate);
+            endDate.setDate(endDate.getDate() - 1);
+            startPicker.max(endDate);
+        }
+    }
+
+    function startChange() {
+        var endPicker = $("#EndDate").data("kendoDatePicker"),
+            startDate = this.value();
+
+        if (startDate) {
+            startDate = new Date(startDate);
+            startDate.setDate(startDate.getDate() + 1);
+            endPicker.min(startDate);
+        }
+    }
+        function error_handler(e) {
+            if (e.errors) {
+                var message = "Errors:\n";
+                $.each(e.errors, function (key, value) {
+                    if ('errors' in value) {
+                        $.each(value.errors, function () {
+                            message += this + "\n";
+                        });
+                    }
+                });
+                alert(message);
+            }
+        }
+
+        function sync_handler(e) {
+            this.read();
+    }
+        </script>
+    }
+</head>
+<div class="page-content">
+    <div class="row">
+        <div class="col-md-8">
+            <table>
+                <tr>
+                    <td>
+                        <h2 class="pagetitle">Daily Sales Report</h2>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right">
+                        @Html.HiddenFor(m => m.reportType)
+                        @Html.LabelFor(model => model.StartDate) :
+
+                        @(Html.Kendo().DatePickerFor(m => m.StartDate)
+                    .Culture("en-IE")
+                    .Max(DateTime.Today)
+                    .ParseFormats(new string[] { "dd/MM/yyyy" })
+                    .Events(e => e.Change("startChange"))
+                    .HtmlAttributes(new { @class = "form-control", @style = "width: 150px;" }))
+                    </td>
+                    <td align="right">
+                        @Html.LabelFor(model => model.EndDate) :
+
+                        @(Html.Kendo().DatePickerFor(m => m.EndDate)
+                    .Culture("en-IE")
+                    .Max(DateTime.Today)
+                    .ParseFormats(new string[] { "dd/MM/yyyy" })
+                    .Events(e => e.Change("endChange"))
+                    .HtmlAttributes(new { @class = "form-control", @style = "width : 150px" }))
+                    </td>
+                    <td align="right" style="width: 350px">
+                        <input type="button" value="SEARCH" class="btn btn-primary" id="search" style="width:100px" />
+                        <input type="button" value="CLEAR" class="btn btn-primary" id="clear" style="width:100px" />
+                        <input type="button" value="BACK" class="btn btn-default" id="close" style="width:100px" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="col-md-4">
+            <div class="profile-header">
+                <div class="sub-content">
+                    <table>
+                        <tr>
+                            <td style="font-size: 20px; width: 200px"><strong>Date</strong></td>
+                            <td style="font-size: 20px; width: 130px">: @DateTime.Now.ToShortDateString()</td>
+                        </tr>
+                        <tr>
+                            <td style="font-size: 20px"><strong>Daily Sales Amount</strong></td>
+                            <td style="font-size:20px" id="totalamt">: RM @ViewBag.TotalAmount</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class="col-md-12" id="saveDiv">
+        @{ Html.RenderAction("_SearchSalesReport", "Report", new { startDate = Model.StartDate.ToString("dd/MM/yyyy"), endDate = Model.EndDate.ToString("dd/MM/yyyy") }); }
+    </div>
+</div>
+
+@*<div class="col-md-12">
+        <table style="width:100%;">
+            <tr>
+                <td colspan="4">
+                    <h2 class="pagetitle">Daily Sales Report</h2>
+                </td>
+            </tr>
+            <tr>
+                <td style="font-size: 20px; width: 200px"><strong>Date</strong></td>
+                <td style="font-size: 20px; width: 130px">: @DateTime.Now.ToShortDateString()</td>
+                <td align="right">
+                    @Html.HiddenFor(m => m.reportType)
+                    @Html.LabelFor(model => model.StartDate) :
+
+                    @(Html.Kendo().DatePickerFor(m => m.StartDate)
+                                .Culture("en-IE")
+                                .Max(DateTime.Today)
+                                .ParseFormats(new string[] { "dd/MM/yyyy" })
+                                .Events(e => e.Change("startChange"))
+                                .HtmlAttributes(new { @class = "form-control", @style = "width: 150px;" }))
+                </td>
+                <td align="right">
+                </td>
+            </tr>
+            <tr>
+                <td style="font-size: 20px"><strong>Daily Sales Amount</strong></td>
+                <td style="font-size:20px" id="totalamt">: RM @ViewBag.TotalAmount</td>
+                <td align="right">
+                    @Html.LabelFor(model => model.EndDate) :
+
+                    @(Html.Kendo().DatePickerFor(m => m.EndDate)
+                                .Culture("en-IE")
+                                .Max(DateTime.Today)
+                                .ParseFormats(new string[] { "dd/MM/yyyy" })
+                                .Events(e => e.Change("endChange"))
+                                .HtmlAttributes(new { @class = "form-control", @style = "width : 150px" }))
+                </td>
+                <td align="right" style="width: 330px">
+                    <input type="button" value="SEARCH" class="btn btn-primary" id="search" style="width:100px" />
+                    <input type="button" value="CLEAR" class="btn btn-primary" id="clear" style="width:100px" />
+                    <input type="button" value="BACK" class="btn btn-default" id="close" style="width:100px" />
+                </td>
+            </tr>
+        </table>
+    </div>*@

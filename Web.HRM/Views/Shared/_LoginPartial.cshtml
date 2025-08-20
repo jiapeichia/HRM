@@ -1,0 +1,114 @@
+﻿
+@{
+    var pageid = "AdminSettings";
+    @*if (Session["PageLoad"].ToString() != "Loaded")
+    {
+        @Html.Action("PageValid", "Page", new { @empid = Session["EmpNo"].ToString(), @pageid = pageid })
+    }*@
+}
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        .dropbtn {
+            background-color: white;
+            color: #646464;
+            padding: 16px;
+            border: none;
+            cursor: pointer;
+        }
+
+            .dropbtn:hover, .dropbtn:focus {
+                background-color: #ddd;
+            }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #ffffff;
+            min-width: 165px;
+            overflow: auto;
+            overflow: auto;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+
+            .dropdown-content a {
+                color: #646464;
+                padding: 12px 16px;
+                text-decoration: none;
+                display: block;
+            }
+
+        .dropdown a:hover {
+            background-color: #ddd;
+        }
+
+        .show {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="nav navbar-nav navbar-right">
+        @*@if (Session["RoleName"].ToString().Equals("SuperAdmin"))
+        {*@
+        @*<a href="~/Home/Index#"><img style="padding:8px" src="~/Images/home30x30.png" alt=""></a>*@
+        @*<div class="dropdown">
+            <button onclick="myFunction2()" class="dropbtn">Customer &#x25bc;</button>
+            <div id="myCustomer" class="dropdown-content">
+                <a href="~/Customer/Index">Customer List</a>
+                <a href="~/Sales/Invoice">New Sales</a>
+            </div>
+        </div>
+
+        <div class="dropdown">
+            <button onclick="myFunction()" class="dropbtn">User Admin &#x25bc;</button>
+            <div id="myDropdown" class="dropdown-content">
+                <a href="~/Admin/AllAccess">User Access</a>
+                <a href="~/Admin/AllRole">Role</a>
+                <a href="~/Admin/AllPage">Page</a>
+            </div>
+        </div>*@
+        @*  }*@
+        <ul class="nav navbar-nav navbar-right">
+            @*<li> @Html.ActionLink("Welcome, " + Session["DisplayName"].ToString(), "ResetPassword", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" })</li>*@
+            <li> @Html.ActionLink("Log Out", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" })</li>
+        </ul>
+    </div>
+
+    <script>
+        /* When the user clicks on the button,
+        toggle between hiding and showing the dropdown content */
+        function myFunction() {
+            document.getElementById("myCustomer").classList.remove("show");
+            document.getElementById("myDropdown").classList.toggle("show");
+        }
+
+        function myFunction2() {
+            if (document.getElementById("myDropdown"))
+                document.getElementById("myDropdown").classList.remove("show");
+            document.getElementById("myCustomer").classList.toggle("show");
+        }
+
+        // Close the dropdown if the user clicks outside of it
+        window.onclick = function (event) {
+            if (!event.target.matches('.dropbtn')) {
+                var dropdowns = document.getElementsByClassName("dropdown-content");
+                var i;
+                for (i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+    </script>
+</body>

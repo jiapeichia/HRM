@@ -1,0 +1,126 @@
+﻿@using Kendo.Mvc.UI
+
+@{
+    ViewBag.Title = "DB Back Up Data";
+}
+<style>
+    .input.k-textbox {
+        height: 2.13em;
+        width: 350px;
+        text-indent: 0.33em;
+        line-height: 1.6em;
+    }
+</style>
+<div class="page-content">
+    <table style="width:100%">
+        <tr>
+            <td>
+                <h2 class="pagetitle">DB Back Up Data</h2>
+            </td>
+            <td align="right" style="width:350px">
+                <input type="button" value="BACK" class="btn btn-default" id="close" style="width:110px" />
+            </td>
+        </tr>
+    </table>
+
+    @(Html.Kendo().Grid<Meo.Web.ViewModels.DBBackupViewModels>()
+        .Name("GridForDBBackup")
+        .HtmlAttributes(new { style = "100%" })
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.Path);
+            columns.Bound(c => c.Status);
+            columns.Command(command => { command.Edit(); command.Destroy(); }).Width(200);
+        })
+        .Pageable(pageable => pageable
+        .Refresh(true).Messages(m => m.Refresh(string.Empty)))
+        .Events(e => e.Edit("onRequest"))
+        .Editable(editable => editable
+        .Mode(GridEditMode.PopUp)
+        .TemplateName("DBBackupEditor")
+        .Window(window => window
+        .Title("Bakc Up Path Editor")
+        .Width(550)  // Set the desired width for the popup editor
+        ))
+        .ToolBar(toolbar => toolbar.Template("<a id='Create' class='k-button k-button-icontext k-grid-add' href='#'> + Create New </a>"))
+        .Resizable(resize => resize.Columns(true))
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(10)
+        .Events(events => events.Error("error_handler").Sync("sync_handler").RequestEnd("onRequestEnd"))
+        .ServerOperation(true)
+        .Read(read => read.Action("Read_BackupPath", "Setting"))
+        .Create(update => update.Action("Create_BackupPath", "Setting"))
+        .Update(update => update.Action("Update_BackupPath", "Setting"))
+        .Destroy(update => update.Action("Destroy_BackupPath", "Setting"))
+        .Model(modelItem =>
+        {
+            modelItem.Id(e => e.Id);
+            modelItem.Field(e => e.Id).Editable(false);
+        })
+        ).NoRecords("No Records Found"))
+</div>
+
+<span id="notification" style="display:none;"></span>
+
+@* Error msg to be shown & sync grid table automatically *@
+<script type="text/javascript">
+        function error_handler(e) {
+            if (e.errors) {
+                var message = "Errors:\n";
+                $.each(e.errors, function (key, value) {
+                    if ('errors' in value) {
+                        $.each(value.errors, function () {
+                            message += this + "\n";
+                        });
+                    }
+                });
+                alert(message);
+            }
+        }
+
+        function sync_handler(e) {
+            this.read();
+        }
+
+        $(function () {
+            $("#close").click(function () {
+                window.open('@Url.Action("Index", "Home")', "_self");
+            });
+        });
+
+        @* Set window header *@
+        function onRequest(e) {
+            $('.k-widget.k-window .k-window-titlebar').css({
+                'background-color': 'white'
+            });
+            $('.k-header').css({
+                'border-color': 'white'
+            });
+
+            @* Auto Focus on selected field *@
+            //var arg = e;
+            //arg.container.data('kendoWindow').bind('activate', function () {
+            //    arg.container.find("input[name='ProductCode']").focus();
+            //})
+        }
+
+        function onRequestEnd(e) {
+            var notificationWidget = $("#notification").kendoNotification(
+                {
+                    position: {
+                        pinned: true,
+                        top: 100,
+                        right: 50
+                    },
+                }).data("kendoNotification");
+
+            if (e.type == "create" && !e.response.Errors) {
+                notificationWidget.show("New Record created!", "success");
+            } else if (e.type == "update" && !e.response.Errors) {
+                notificationWidget.show("Update Successfully", "success");
+            } else if (e.response.Errors) {
+                notificationWidget.show("Fail to update", "warning");
+            }
+        }
+</script>

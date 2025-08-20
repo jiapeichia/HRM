@@ -1,0 +1,18 @@
+﻿@model Meo.Web.ViewModels.PageViewModels
+
+@{
+    ViewBag.Title = "Page Editor";
+}
+<table>
+    <tbody>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.Name, new { @style = "width : 150px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @Html.EditorFor(model => model.Name)
+                @Html.ValidationMessageFor(model => model.Name)
+            </td>
+        </tr>
+    </tbody>
+</table>

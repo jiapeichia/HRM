@@ -1,0 +1,263 @@
+﻿@model Meo.Web.ViewModels.CustomerDetailsViewModel
+<head>
+    @section Scripts {
+        @Scripts.Render("~/bundles/jqueryval")
+
+        <script>
+        function error_handler(e) {
+            if (e.errors) {
+                var message = "Errors:\n";
+                $.each(e.errors, function (key, value) {
+                    if ('errors' in value) {
+                        $.each(value.errors, function () {
+                            message += this + "\n";
+                        });
+                    }
+                });
+                alert(message);
+            }
+        }
+
+        function sync_handler(e) {
+            this.read();
+        }
+
+        $(".close-button").click(function () {
+            window.open('@Url.Action("Index", "Home")', "_self");
+            //window.close();
+        });
+
+        // --- collapse all group grid ---
+        var collapseAllGroups = function (grid) {
+            grid.table.find(".k-grouping-row").each(function () {
+                grid.collapseGroup(this);
+            });
+        }
+
+        //On the grid
+        function dataBound() {
+            collapseAllGroups(this);
+        }
+        </script>
+    }
+
+    <style>
+        .payment-required {
+            display: inline-block;
+            background-color: #f44336; /* Softer red for warning */
+            color: white; /* Text color for contrast */
+            font-size: 13px; /* Smaller and neat font */
+            font-weight: bold; /* Make it stand out */
+            padding: 5px 10px; /* Add spacing inside the box */
+            border-radius: 5px; /* Rounded corners */
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+            text-transform: uppercase; /* Optional: Make text uppercase */
+            cursor: pointer;
+        }
+
+        .green {
+            display: inline-block;
+            background-color: green; /* Softer red for warning */
+            color: white; /* Text color for contrast */
+            font-size: 13px; /* Smaller and neat font */
+            font-weight: bold; /* Make it stand out */
+            padding: 5px 10px; /* Add spacing inside the box */
+            border-radius: 5px; /* Rounded corners */
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+            text-transform: uppercase; /* Optional: Make text uppercase */
+            cursor: pointer;
+        }
+    </style>
+</head>
+<div>
+    @(Html.Kendo().Grid<Meo.Web.ViewModels.CustomerDetailsViewModel>()
+        .Name("GridForCustomer")
+        .HtmlAttributes(new { style = "100%" })
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.CardNo).ClientTemplate(
+           "# if (data.ImagePath != null) { #"
+           + "<div class='small-photo' style='background-image: url(" + @Url.Content("~/Images/Customer/#:data.ImagePath#") + ");'></div>"
+           + "# } else { #"
+           + "<div class='small-photo' style='background-image: url(" + @Url.Content("~/Images/Employee/user.png") + ");'></div>"
+           + "# } #"
+           + "<div class='customer-name'>#: CardNo #</div>").Width("120px");
+            columns.Bound(c => c.FullName);
+            columns.Bound(c => c.SVDueAmt).Width("110px")
+                .ClientTemplate(
+                "# if (SVDueAmt < 0) { #" +
+                "<span class='payment-required' title='Outstanding'>#= kendo.toString(SVDueAmt, 'n2') #</span>" +
+                "# } else { #" +
+                "#= kendo.toString(SVDueAmt, 'n2') #" +
+                "# } #"
+            );
+            columns.Bound(c => c.TPDueAmt).Width("110px")
+                .ClientTemplate(
+                    "# if (TPDueAmt < 0) { #" +
+                    "<a href='" + @Url.Action("ReturnGIROsTopUp", "GIROs", new { cusId = "#=CusId#", dueAmt = "#=TPDueAmt#" }) + "' ><span class='payment-required' title='Outstanding'>#= kendo.toString(TPDueAmt, 'n2') #</span>" +
+                    "# } else { #" +
+                    "#= kendo.toString(TPDueAmt, 'n2') #" +
+                    "# } #"
+                );
+            columns.Bound(c => c.CreditBal).ClientTemplate(
+                "# if (CreditBal > 0) { #"
+                + "<a href='" + @Url.Action("InvoiceByCredit", "Sales", new { id = "#=CusId#", flag = "new" }) + "' ><span class='green'>#=CreditBal#</span></a>" ///*class='k-button k-button-icontext k-grid-edit'*/
+                + "# } else { #"
+                + "#=CreditBal#"
+                + "# } #"
+            ).Width(90);
+            //columns.Bound(c => c.CreditBal).ClientTemplate("<a href='" + @Url.Action("InvoiceByCredit", "Sales", new { id = "#=CusId#" }) + "' ><span class='k-button k-button-icontext k-grid-edit'>#=CreditBal#</span></a>").Width(90);
+            columns.Bound(c => c.IcNo);
+            columns.Bound(c => c.ContactNo);
+            columns.Bound(c => c.CusId).Title("Treatment").ClientTemplate("<a href='" + @Url.Action("SalesByCus", "Sales", new { id = "#=CusId#" }) + "' ><span class='k-button k-button-icontext k-grid-edit'>Treatment</span></a>").Width(90);
+            columns.Bound(c => c.CusId).Title("History").ClientTemplate("<a href='" + @Url.Action("CusPurchaseHistory", "Sales", new { id = "#=CusId#" }) + "' ><span class='k-button k-button-icontext k-grid-edit'>History</span></a>").Width(90);
+            columns.Bound(c => c.CusId).Title("Profile").ClientTemplate("<a href='" + @Url.Action("Preview", "Customer", new { id = "#=CusId#" }) + "' ><span class='k-button k-button-icontext k-grid-edit'>Preview</span></a>").Width(90);
+            if (Session["RoleName"].Equals("Administrator") || Session["RoleName"].Equals("SuperAdmin"))
+            {
+                columns.Command(command => command.Destroy()).Width(90);
+            }
+        })
+        .Sortable()
+        //.Events(events => events.ExcelExport("exportToExcel"))
+        //.ToolBar(t => t.Excel().HtmlAttributes(new { style = "float: left" }))
+        //.Excel(excel => excel
+        //.AllPages(true)
+        //.FileName("CustomerList" + ".xlsx")
+        //)
+        .ToolBar(toolbar =>
+        {
+            //toolbar.Excel();//.HtmlAttributes(new { style = "float: left" });
+            toolbar.Template("<a id='Create' class='k-button k-button-icontext k-add' href='" + @Url.Action("NewCustomer", "Customer") + "'style='float:right'> + Create New </a>");
+        })
+        .Excel(excel => excel
+        .AllPages(true)
+        .FileName("CustomerList.xlsx")
+        )
+        .Pageable(pageable => pageable
+        .Refresh(true).Messages(m => m.Refresh(string.Empty)))
+        .DataSource(source => source
+        .Ajax()
+        .PageSize(10)
+        .Events(events => events.Error("error_handler").Sync("sync_handler"))
+        .Sort(sort => sort.Add("FullName").Ascending())
+        .Model(model =>
+        {
+            model.Id(tc => tc.CusId);
+            model.Field(item => item.CusId).Editable(false);
+        })
+        .Read(read => read.Action("GetSearchData", "Customer", new { searchContent = ViewBag.searchContent }))
+        .Destroy(update => update.Action("Destroy", "Customer"))
+        )
+        .Resizable(resize => resize.Columns(true))
+        .NoRecords("No Records Found")
+    )
+</div>
+
+<script>
+    var detailExportPromises = [];
+
+    function exportToExcel(e) {
+        //this.collapseRow(this.tbody.find("tr.k-master-row"));
+        this.expandRow(this.tbody.find("tr.k-master-row"));
+
+        // prevent saving the file because we will update the workbook
+        e.preventDefault();
+
+        var workbook = e.workbook;
+
+        // Export all detail grids
+        $("[data-role=grid]", this.element).each(function () {
+            $(this).data("kendoGrid").saveAsExcel();
+        });
+
+        // wait for all detail grids to finish exporting
+        $.when.apply(null, detailExportPromises)
+            .then(function () {
+                // get the export results
+                var detailExports = $.makeArray(arguments);
+
+                /*
+         need to recalculate the master row indexes of each export
+         everytime you click expand in the master grid, the master row indexes are recalculated by Kendo
+         e.g. you expand row 4 (which will display a grid with 6 rows), then you expand row 1 (which will display a grid with 12 rows)
+         when you do this, the index of "row 4" is updated with 4 + 12. So the new index of "row 4" is actually 16
+      */
+
+                // first we need to create a copy of the original values, otherwise every subsequent export will have the already updated rows and it will try to update again
+                for (var i = 0; i < detailExports.length; i++)
+                    detailExports[i].newMasterRowIndex = detailExports[i].masterRowIndex;
+
+                for (var i = 1; i < detailExports.length; i++) {
+                    if (!detailExports[i].isDetailGrid2) {
+
+                        for (var j = 0; j < i; j++) {
+                            if (detailExports[i].newMasterRowIndex <= detailExports[j].newMasterRowIndex) {
+                                detailExports[j].newMasterRowIndex = detailExports[j].newMasterRowIndex + detailExports[i].sheet.rows.length - 1; // -1 to discount header
+                                if (detailExports[i].sheet.rows[detailExports[i].sheet.rows.length - 1].type == "footer")
+                                    detailExports[j].newMasterRowIndex = detailExports[j].newMasterRowIndex - 1
+                            }
+                        }
+                    }
+                }
+
+                // sort by masterRowIndex
+                detailExports.sort(function (a, b) {
+                    return a.newMasterRowIndex - b.newMasterRowIndex;
+                });
+
+                // merge the detail export sheet rows with the master sheet rows
+                var rowCount = 0;
+                for (var i = 0; i < detailExports.length; i++) {
+                    // we need to recalculate the masterRowIndex everytime because the detailGrid2 should be inserted "in the middle" of the detailGrid
+                    // and not simply after it as you would normally do when you have only two grids
+                    var masterRowIndex = rowCount + detailExports[i].newMasterRowIndex + 1; // +1 to compensate for the header row
+
+                    var sheet = detailExports[i].sheet;
+
+                    if (sheet.rows[sheet.rows.length - 1].type == "footer")
+                        sheet.rows.splice(-1, 1); // don't export the footer
+
+                    if (detailExports[i].isDetailGrid2) {
+                        // prepend two empty cells to each row
+                        for (var ci = 0; ci < sheet.rows.length; ci++) {
+                            if (sheet.rows[ci].cells[0].value) {
+                                sheet.rows[ci].cells.unshift({});
+                                sheet.rows[ci].cells.unshift({});
+                            }
+                            for (var cellIndex = 2; cellIndex < sheet.rows[ci].cells.length; cellIndex++) {
+                                var colTitle = sheet.rows[ci].cells[cellIndex].value;
+                                sheet.rows[ci].cells[cellIndex].background = "#C7D4E9";
+                            }
+                        }
+                        rowCount = rowCount + sheet.rows.length;
+                    }
+                    else {
+
+                        // prepend an empty cell to each row
+                        for (var ci = 0; ci < sheet.rows.length; ci++) {
+                            if (sheet.rows[ci].cells[0].value) {
+                                sheet.rows[ci].cells.unshift({});
+                            }
+                            for (var cellIndex = 1; cellIndex < sheet.rows[ci].cells.length; cellIndex++) {
+                                var colTitle = sheet.rows[ci].cells[cellIndex].value;
+                                sheet.rows[ci].cells[cellIndex].background = "#CEE3F6";
+                            }
+                        }
+                        rowCount = rowCount + 1;
+                    }
+                    // insert the detail sheet rows in the correct place
+                    [].splice.apply(workbook.sheets[0].rows, [masterRowIndex + 1, 0].concat(sheet.rows));
+                }
+                // update the indexes of the rows so they are exported correctly
+                for (var i = 0; i < workbook.sheets[0].rows.length; i++) {
+                    workbook.sheets[0].rows[i].index = i;
+                }
+                // save the workbook
+                kendo.saveAs({
+                    dataURI: new kendo.ooxml.Workbook(workbook).toDataURL(),
+                    fileName: "Export.xlsx"
+                });
+            });
+        // this.collapseRow(this.tbody.find("tr.k-master-row"));
+    }
+</script>

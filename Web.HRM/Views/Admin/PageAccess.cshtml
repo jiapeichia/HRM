@@ -1,0 +1,153 @@
+﻿@model Meo.Web.ViewModels.EmployeeViewModels
+
+@{
+    ViewBag.Title = "Page Access";
+}
+
+<html>
+<head>
+    <title>Page Access Management</title>
+    @*<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>*@
+</head>
+<body>
+    <div class="page-content">
+        <table style="width: 100%">
+            <tr>
+                <td>
+                    <h2 class="mt-4">Access Given to: @Session["EmpName_pageaccess"].ToString()</h2>
+                </td>
+                <td align="right">
+                    <button id="update" class="btn btn-default" style="width: 100px; height:30px">UPDATE</button>
+                    <input type="button" value="BACK" class="btn btn-default" id="close" style="width:110px" />
+                    @*<input type="button" value="BACK" class="btn btn-default" id="backHome" style="width: 100px;" onclick="goBack()" />*@
+                </td>
+            </tr>
+        </table>
+        <div style="width:50%" class="sub-content">
+            <table style="width: 100%;">
+                <tr>
+                    <td style="vertical-align: middle; padding-right: 10px; width: 100px">
+                        <strong><font size="4">Role:</font></strong>
+                    </td>
+                    <td>
+                        @(Html.Kendo().DropDownListFor(model => model.RoleId)
+                        .Name("Roles")
+                        .HtmlAttributes(new { id = "RoleDropdown", @class = "form-control col-md-2", style = "width: 100%;" })
+                        .BindTo((System.Collections.IEnumerable)ViewData["Roles"])
+                        .DataTextField("RoleName")
+                        .DataValueField("RoleId")
+                        .OptionLabel(" -- Select Role -- ")
+                        .Filter(FilterType.Contains))
+                    </td>
+                </tr>
+            </table>
+
+            <table style="width:100%" class="table table-bordered" id="pageAccessTable">
+                <thead>
+                    <tr>
+                        <th><font size="4">Button Name</font></th>
+                        <th class="text-center">
+                            <input type="checkbox" id="selectAll" />
+                            <label for="selectAll"></label>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows will be appended here by jQuery -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            // Load data into the table on page load
+            loadPageAccessData();
+
+            // Handle "Select All" checkbox
+            $('#selectAll').change(function () {
+                var checked = $(this).is(':checked');
+                $('#pageAccessTable tbody input[type="checkbox"]').prop('checked', checked);
+            });
+
+            // Handle update button click
+            $('#update').click(function () {
+                var pageAccessData = [];
+                var roleDropdown = $("#RoleDropdown").data("kendoDropDownList");
+
+                // Get the selected role value
+                var selectedValue = parseInt(roleDropdown.value());
+                if (isNaN(selectedValue) || selectedValue <= 0) {
+                    return alert("Role is required.");
+                }
+
+                $('#pageAccessTable tbody tr').each(function () {
+                    var pageId = $(this).data('pageid');
+                    var isActive = $(this).find('input[type="checkbox"]').is(':checked');
+
+                    pageAccessData.push({
+                        PageId: pageId,
+                        Active: isActive
+                    });
+                });
+
+                // Prepare data to send to the controller
+                var dataToSend = {
+                    PageAccess: pageAccessData,
+                    SelectedRoleId: selectedValue
+                };
+
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("Update_PageAccess", "Admin")', //'/Admin/Update_PageAccess',
+                    data: JSON.stringify(dataToSend),
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (response) {
+                        if (response.error) {
+                            alert(response.message);
+                        }
+                        else {
+                            alert('Page accesses updated successfully.');
+                        }
+                    },
+                    error: function () {
+                        alert('There was an error updating the page accesses.');
+                    }
+                });
+            });
+        });
+
+        function loadPageAccessData() {
+            $.ajax({
+                type: 'GET',//'POST',
+                url: '@Url.Action("Read_PageAccess", "Admin")', //'/Admin/Read_PageAccess',
+                data: { id: '@Session["Emp_id_pageaccess"].ToString()' },
+                success: function (data) {
+                    var tableBody = $('#pageAccessTable tbody');
+                    tableBody.empty();
+
+                    $.each(data, function (index, item) {
+                        var checked = item.Active ? 'checked' : '';
+                        var row = `<tr data-pageId="${item.PageId}">
+                                    <td><font size="4px">${item.PageName}</font></td>
+                                    <td class="text-center"><input type="checkbox" ${checked}></td>
+                                   </tr>`;
+                        tableBody.append(row);
+                    });
+                },
+                error: function () {
+                    alert('There was an error loading the page access data.');
+                }
+            });
+        }
+
+        //function goBack() {
+        //    window.history.back();
+        //}
+
+         $("#close").click(function () {
+            window.open('@Url.Action("AllAccess", "Admin")', "_self");
+        });
+    </script>
+</body>
+</html>

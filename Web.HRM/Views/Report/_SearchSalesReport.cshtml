@@ -1,0 +1,180 @@
+﻿<head>
+    @section Scripts {
+        @Scripts.Render("~/bundles/jqueryval")
+
+        <script>
+            function error_handler(e) {
+                if (e.errors) {
+                    var message = "Errors:\n";
+                    $.each(e.errors, function (key, value) {
+                        if ('errors' in value) {
+                            $.each(value.errors, function () {
+                                message += this + "\n";
+                            });
+                        }
+                    });
+                    alert(message);
+                }
+            }
+
+            function sync_handler(e) {
+                this.read();
+            }
+
+            // --- collapse all group grid ---
+            var collapseAllGroups = function (grid) {
+                grid.table.find(".k-grouping-row").each(function () {
+                    grid.collapseGroup(this);
+                });
+            }
+
+            //On the grid
+            function dataBound() {
+                collapseAllGroups(this);
+            }
+        </script>
+    }
+</head>
+<div>
+    @(Html.Kendo().Grid<Meo.Web.ViewModels.DailySalesReport>()
+        .Name("GridForDailySales")
+        .HtmlAttributes(new { style = "100%" })
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.SalesDate).Title("Sales Date").ClientTemplate("#= kendo.toString(kendo.parseDate(SalesDate), 'dd/MM/yyyy') #");
+            columns.Bound(c => c.CashTotal);
+            columns.Bound(c => c.CardTotal);
+            columns.Bound(c => c.BankTotal);
+            columns.Bound(c => c.EWalletTotal);
+            columns.Bound(c => c.OthersTotal);
+            columns.Bound(c => c.Total);
+        })
+        .ToolBar(t => t.Excel().HtmlAttributes(new { style = "float: right" }))
+        .Excel(excel => excel
+        .AllPages(true)
+        .FileName("DailySalesReport" + ".xlsx")
+        )
+        .Sortable()
+        .Pageable(pageable => pageable
+        .Refresh(true).Messages(m => m.Refresh(string.Empty)))
+        .DataSource(source => source
+        .Ajax()
+        .PageSize(31)
+        .Events(events => events.Error("error_handler").Sync("sync_handler"))
+        .Sort(sort => sort.Add("SalesDate").Ascending())
+        .Read(read => read.Action("GetSalesReportData", "Report", new { startDate = ViewBag.StartDate, endDate = ViewBag.EndDate }))
+        )
+        //.Resizable(resize => resize.Columns(true))
+        .NoRecords("No Records Found")
+    //.Events(events => events.ExcelExport("exportToExcel"))
+    )
+</div>
+
+<script>
+    var detailExportPromises = [];
+
+    function exportToExcel(e) {
+        //this.collapseRow(this.tbody.find("tr.k-master-row"));
+        this.expandRow(this.tbody.find("tr.k-master-row"));
+
+        // prevent saving the file because we will update the workbook
+        e.preventDefault();
+
+        var workbook = e.workbook;
+
+        // Export all detail grids
+        $("[data-role=grid]", this.element).each(function () {
+            $(this).data("kendoGrid").saveAsExcel();
+        });
+
+        // wait for all detail grids to finish exporting
+        $.when.apply(null, detailExportPromises)
+            .then(function () {
+                // get the export results
+                var detailExports = $.makeArray(arguments);
+
+                /*
+         need to recalculate the master row indexes of each export
+         everytime you click expand in the master grid, the master row indexes are recalculated by Kendo
+         e.g. you expand row 4 (which will display a grid with 6 rows), then you expand row 1 (which will display a grid with 12 rows)
+         when you do this, the index of "row 4" is updated with 4 + 12. So the new index of "row 4" is actually 16
+      */
+
+                // first we need to create a copy of the original values, otherwise every subsequent export will have the already updated rows and it will try to update again
+                for (var i = 0; i < detailExports.length; i++)
+                    detailExports[i].newMasterRowIndex = detailExports[i].masterRowIndex;
+
+                for (var i = 1; i < detailExports.length; i++) {
+                    if (!detailExports[i].isDetailGrid2) {
+
+                        for (var j = 0; j < i; j++) {
+                            if (detailExports[i].newMasterRowIndex <= detailExports[j].newMasterRowIndex) {
+                                detailExports[j].newMasterRowIndex = detailExports[j].newMasterRowIndex + detailExports[i].sheet.rows.length - 1; // -1 to discount header
+                                if (detailExports[i].sheet.rows[detailExports[i].sheet.rows.length - 1].type == "footer")
+                                    detailExports[j].newMasterRowIndex = detailExports[j].newMasterRowIndex - 1
+                            }
+                        }
+                    }
+                }
+
+                // sort by masterRowIndex
+                detailExports.sort(function (a, b) {
+                    return a.newMasterRowIndex - b.newMasterRowIndex;
+                });
+
+                // merge the detail export sheet rows with the master sheet rows
+                var rowCount = 0;
+                for (var i = 0; i < detailExports.length; i++) {
+                    // we need to recalculate the masterRowIndex everytime because the detailGrid2 should be inserted "in the middle" of the detailGrid
+                    // and not simply after it as you would normally do when you have only two grids
+                    var masterRowIndex = rowCount + detailExports[i].newMasterRowIndex + 1; // +1 to compensate for the header row
+
+                    var sheet = detailExports[i].sheet;
+
+                    if (sheet.rows[sheet.rows.length - 1].type == "footer")
+                        sheet.rows.splice(-1, 1); // don't export the footer
+
+                    if (detailExports[i].isDetailGrid2) {
+                        // prepend two empty cells to each row
+                        for (var ci = 0; ci < sheet.rows.length; ci++) {
+                            if (sheet.rows[ci].cells[0].value) {
+                                sheet.rows[ci].cells.unshift({});
+                                sheet.rows[ci].cells.unshift({});
+                            }
+                            for (var cellIndex = 2; cellIndex < sheet.rows[ci].cells.length; cellIndex++) {
+                                var colTitle = sheet.rows[ci].cells[cellIndex].value;
+                                sheet.rows[ci].cells[cellIndex].background = "#C7D4E9";
+                            }
+                        }
+                        rowCount = rowCount + sheet.rows.length;
+                    }
+                    else {
+
+                        // prepend an empty cell to each row
+                        for (var ci = 0; ci < sheet.rows.length; ci++) {
+                            if (sheet.rows[ci].cells[0].value) {
+                                sheet.rows[ci].cells.unshift({});
+                            }
+                            for (var cellIndex = 1; cellIndex < sheet.rows[ci].cells.length; cellIndex++) {
+                                var colTitle = sheet.rows[ci].cells[cellIndex].value;
+                                sheet.rows[ci].cells[cellIndex].background = "#CEE3F6";
+                            }
+                        }
+                        rowCount = rowCount + 1;
+                    }
+                    // insert the detail sheet rows in the correct place
+                    [].splice.apply(workbook.sheets[0].rows, [masterRowIndex + 1, 0].concat(sheet.rows));
+                }
+                // update the indexes of the rows so they are exported correctly
+                for (var i = 0; i < workbook.sheets[0].rows.length; i++) {
+                    workbook.sheets[0].rows[i].index = i;
+                }
+                // save the workbook
+                kendo.saveAs({
+                    dataURI: new kendo.ooxml.Workbook(workbook).toDataURL(),
+                    fileName: "Export.xlsx"
+                });
+            });
+        // this.collapseRow(this.tbody.find("tr.k-master-row"));
+    }
+</script>

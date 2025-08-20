@@ -1,0 +1,696 @@
+﻿@model Meo.Web.ViewModels.SalesInvoiceViewModels
+
+@{
+    ViewBag.Title = "Exchange";
+    var index = 1;
+    //var Products = ViewBag.Products;
+    //var productsJson = Newtonsoft.Json.JsonConvert.SerializeObject(Products);
+    //var Employee = ViewBag.Employees;
+    //var employeeJson = Newtonsoft.Json.JsonConvert.SerializeObject(Employee);
+    //if (ViewBag.CusId != null)
+    //{
+    //    Model.CusId = ViewBag.CusId;
+    //}
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .disabled-section {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+            .disabled-section input,
+            .disabled-section select,
+            .disabled-section button {
+                pointer-events: none;
+                opacity: 0.5;
+            }
+
+        .table-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        /*  table {
+            border-collapse: collapse;
+            width: 48%;
+        }*/
+
+        table th, table td {
+            /*  border: 1px solid #000;
+            padding: 8px;
+            text-align: left;*/
+            border-top: 1px solid #ddd;
+            text-align: center;
+        }
+
+        label {
+            float: left;
+            width: 25%;
+            margin-right: 0.5em;
+            padding-top: 0.2em;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        td {
+            padding: 10px 10px 10px 10px;
+        }
+
+        .k-dropdown, .k-textbox {
+            /*width: 100%;*/
+            max-width: 100%;
+            width: 28.4em;
+        }
+
+        .fontsize {
+            font-size: 25px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-content">
+        <div class="col-md-12 mx-0">
+            <div align="right" style="width:100%">
+                <input type="button" value="GO HISTORY" class="btn btn-default" id="gohistory" style="width:100px" />
+                <input type="button" value="BACK" class="btn btn-default" id="backHome" style="width:100px" onclick="goBack()" />
+            </div>
+            <br />
+
+            <!-- Sales Info -->
+            <div class="sub-content" style="margin-top: 0px; padding-top: 20px">
+                <div class="card px-0 pt-4 pb-0 mt-3 mb-3" style="text-align: center">
+                    <h2><strong>Exchange</strong></h2>
+                </div>
+                <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
+                <br />
+                @*@Html.HiddenFor(m => m.SalesId)*@
+                @Html.AntiForgeryToken()
+
+                <!-- Customer dropdown -->
+                <div class="table-container">
+                    <table style="width:45%">
+                        <tr>
+                            <td style="border-top:none; text-align:left; padding:3px">
+                                <strong>Customer Name </strong>
+                            </td>
+                            <td style="border-top:none; text-align:left; padding:3px">
+                                :
+                                @(Html.Kendo().DropDownListFor(model => model.CusId)
+                                .BindTo((System.Collections.IEnumerable)ViewData["Customer"])
+                                .DataTextField("FullName").DataValueField("CusId")
+                                .OptionLabel(" -- Select Customer -- ")
+                                .Filter(FilterType.Contains)
+                                .HtmlAttributes(new { id = "customerDropdown", @class = "form-control" }))
+                                @Html.ValidationMessageFor(model => model.CusId, "", new { @class = "text-danger" })
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="border-top: none; text-align: left; padding: 3px"><strong>Date </strong></td>
+                            <td style="border-top: none; text-align: left; padding: 3px">: @Model.OrderDate.ToShortDateString() </td>
+                        </tr>
+                    </table>
+                    <table style=" width: 48%;">
+                        <tr>
+                            <td rowspan="3" style="border-top: none; float: right">
+                                <span><input type="button" value="CONFIRM" onclick="ShowModelPopUp();" class="btn btn-success fontsize" style="width:180px; height:80px;" /></span>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <br />
+                <!-- Greyed-out tables -->
+                <div id="exchangeTables" class="disabled-section">
+                    <span style="border-collapse: collapse; width: 48%;"><strong>Item to IN</strong></span>
+                    <span style="border-collapse: collapse; width: 48%; float:right"><strong>Item to OUT</strong></span>
+
+                    <!-- Your Item to IN Table -->
+                    <div class="table-container">
+                        <table id="tblItemIn" style="border-collapse: collapse; width: 48%;">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Item</th>
+                                    <th>Qty</th>
+                                    <th>Sales Price</th>
+                                    <th>Total Amount</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="6">No sales details available.</td></tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Your Item to OUT Table -->
+                        <table id="tblItemOut" style="border-collapse: collapse; width: 48%;">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Item</th>
+                                    <th>Qty</th>
+                                    <th>Sales Price</th>
+                                    <th>Total Amount</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="6">No sales details available.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-container">
+                        <table id="tblSelectItemIn" style="width:48%">
+                            <tr>
+                                <td style="text-align: left;">Product</td>
+                                <td class="Product" style="text-align: left;">
+                                    @(Html.Kendo().DropDownList()
+                                    .Name("ProductsIn")
+                                    .HtmlAttributes(new { id = "ProductsIn", @class = "form-control col-md-2", style = "width: 450px;" })
+                                    .BindTo((System.Collections.IEnumerable)ViewData["ProductsIn"])
+                                    .DataTextField("ProductName")
+                                    .DataValueField("ProductId")
+                                    .OptionLabel(" -- Select Products -- ")
+                                    .Filter(FilterType.Contains))
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: left;">Qty</td>
+                                <td>
+                                    <input type="number" id="QtyIn" placeholder="0" style="width: 100%" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: left;">Selling Price</td>
+                                <td>
+                                    <input type="number" id="UnitPriceIn" placeholder="0.00" style="width: 100%" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td style="text-align:right">
+                                    <a class="AddIn" href="javascript:;"><img src="~/Images/cart.png" style="width: 30px" /></a>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <table id="tblSelectItemOut" style="width:48%">
+                            <tr>
+                                <td style="text-align: left;">Product</td>
+                                <td class="ProductOut" style="text-align: left;">
+                                    @(Html.Kendo().DropDownList()
+                                    .Name("ProductsOut")
+                                    .HtmlAttributes(new { id = "ProductsOut", @class = "form-control col-md-2", style = "width: 450px;" })
+                                    .BindTo((System.Collections.IEnumerable)ViewData["Products"])
+                                    .DataTextField("ProductName")
+                                    .DataValueField("ProductId")
+                                    .OptionLabel(" -- Select Products -- ")
+                                    .Filter(FilterType.Contains))
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: left;">Qty</td>
+                                <td>
+                                    <input type="number" id="QtyOut" placeholder="0" style="width: 100%" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: left;">Selling Price</td>
+                                <td>
+                                    <input type="number" id="UnitPriceOut" placeholder="0.00" style="width: 100%" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td style="text-align:right">
+                                    <a class="AddOut" href="javascript:;"><img src="~/Images/cart.png" style="width: 30px" /></a>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+
+        //#region load initial data
+        $(document).ready(function () {
+            //// Initialize the Kendo DropDownList
+            //$("#ProductsIn").kendoDropDownList({
+            //    dataTextField: "ProductName",
+            //    dataValueField: "ProductId",
+            //    optionLabel: " -- Select Products -- "
+            //});
+
+            var productsIn = $("#ProductsIn").data("kendoDropDownList");//.dataSource.options.data;
+            if (productsIn) {
+                productsIn.bind("change", function (e) {
+                    var selectedValue = this.value();
+                    var products = @Html.Raw(Json.Encode(ViewData["Products"]));
+
+                    var selectedProduct = products.find(function (product) {
+                        return product.ProductId == selectedValue;
+                    });
+
+                    var qtyInput = document.getElementById("QtyIn"); // Change to the correct ID of your Qty input
+                    var unitPriceInput = document.getElementById("UnitPriceIn"); // Change to the correct ID of your UnitPrice input
+
+                    if (qtyInput && unitPriceInput) {
+                        if (selectedProduct) {
+                            qtyInput.value = "1";
+                            unitPriceInput.value = selectedProduct.Price.toFixed(2);
+                        }
+                        else {
+                            unitPriceInput.value = "";
+                        }
+                    }
+                    else {
+                        console.error("QtyInput or UnitPriceInput element not found.");
+                    }
+
+                    console.log("Selected Product: " + selectedValue);
+                });
+            }
+            else {
+                console.error("Kendo DropDownList not found on #productsIn");
+            }
+
+            var productsOut = $("#ProductsOut").data("kendoDropDownList");//.dataSource.options.data;
+            if (productsOut) {
+                productsOut.bind("change", function (e) {
+                    var selectedValue = this.value();
+                    var products = @Html.Raw(Json.Encode(ViewData["Products"]));
+
+                    var selectedProduct = products.find(function (product) {
+                        return product.ProductId == selectedValue;
+                    });
+
+                    var qtyInput = document.getElementById("QtyOut"); // Change to the correct ID of your Qty input
+                    var unitPriceInput = document.getElementById("UnitPriceOut"); // Change to the correct ID of your UnitPrice input
+
+                    if (qtyInput && unitPriceInput) {
+                        if (selectedProduct) {
+                            qtyInput.value = "1";
+                            unitPriceInput.value = selectedProduct.Price.toFixed(2);
+                        }
+                        else {
+                            unitPriceInput.value = "";
+                        }
+                    }
+                    else {
+                        console.error("QtyInput or UnitPriceInput element not found.");
+                    }
+
+                    console.log("Selected Product: " + selectedValue);
+                });
+            }
+            else {
+                console.error("Kendo DropDownList not found on #productsOut");
+            }
+
+            // Function to enable/disable the tables
+            function toggleTables(enable, customerId) {
+                const tablesDiv = document.getElementById("exchangeTables");
+                if (tablesDiv) {
+                    if (enable) {
+                        tablesDiv.classList.remove("disabled-section");
+                        if (customerId) {
+                            // Call API to get data when tables are enabled
+                            fetchExchangeData(customerId);
+                        }
+                    } else {
+                        tablesDiv.classList.add("disabled-section");
+                    }
+                }
+            }
+
+            // Function to call API and retrieve exchange data for the selected customer
+            function fetchExchangeData(customerId) {
+                $.ajax({
+                    url: '@Url.Action("GetCustomerProduct", "Exchange")',
+                    type: "POST",
+                    data: { customerId: customerId }, // Send the customerId to the API
+                    success: function (response) {
+                        $("#ProductsIn").data("kendoDropDownList").setDataSource(response);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Failed to retrieve data: " + error);
+                    }
+                });
+            }
+
+            // Initially disable the tables
+            toggleTables(false);
+
+            // Initialize the Kendo DropDownList and attach change event using Kendo's API
+            const customerDropdown = $("#customerDropdown").data("kendoDropDownList");
+
+            if (customerDropdown) {
+                // Attach the Kendo change event listener
+                customerDropdown.bind("change", function () {
+                    const customerId = this.value();
+
+                    // Check if a valid customer is selected
+                    if (customerId && customerId !== "") {
+                        toggleTables(true, customerId); // Enable tables
+                    } else {
+                        toggleTables(false); // Disable tables
+                    }
+                });
+            } else {
+                console.error("Customer dropdown not found or not initialized as Kendo DropDownList.");
+            }
+        });
+        //#endregion
+
+        let totalQuantity = 0;
+        //let totalDiscount = 0;
+        let subtotal = 0;
+        let totalQuantityOut = 0;
+        //let totalDiscount = 0;
+        let subtotalOut = 0;
+
+        //#region Item IN section
+        //Add cart event handler. Add into Table
+        $("body").on("click", ".AddIn", function () {
+            var productsIn = $("#ProductsIn").data("kendoDropDownList");
+            var qtyInput = document.getElementById("QtyIn");
+            var unitPriceInput = document.getElementById("UnitPriceIn");
+
+            if (productsIn.value() === "") {
+                return alert("Product is required.");
+            }
+
+            // Get the selected value
+            var selectedValue = parseInt(productsIn.value());
+            var products = @Html.Raw(Json.Encode(ViewData["Products"]));
+            var selectedProduct = products.find(function (product) {
+                return product.ProductId === selectedValue;
+            });
+
+            //var orig_unitprice = parseFloat(selectedProduct.Price).toFixed(2) || 0;
+            var unitprice = parseFloat(unitPriceInput.value).toFixed(2) || 0;
+            var qty = parseInt(qtyInput.value) || 0;
+            //var disc = (orig_unitprice - unitprice).toFixed(2) || 0;
+            var total = (qty * unitprice).toFixed(2) || 0;
+
+            //if (selectedProduct.QtyAvailable < qty && selectedProduct.TypeName == "Product") {
+            //    return alert("\nFailed to Insert! \n" + selectedProduct.ProductName + " insufficient stock.");
+            //}
+
+            // Remove the "No sales details available" row if it exists
+            var noDataRow = $("#tblItemIn tr:contains('No sales details available')");
+            if (noDataRow.length > 0) {
+                noDataRow.remove();
+            }
+
+            $("#tblItemIn tr.totalRow").remove();
+            var rowCount = $("#tblItemIn tr").length;
+
+            $("#tblItemIn").append(`
+            <tr>
+                <td>${rowCount}</td>
+                <td>${selectedProduct.ProductName}</td>
+                <td>${qty}</td>
+                <td>${unitprice}</td>
+                <td>${total}</td>
+                <td><a class="deleteRow" href="javascript:;"><img src="@Url.Content("~/Images/dustbin.png")" style="width:25px" /></a></td>
+            </tr>`);
+
+            // Update totals
+            totalQuantity += qty || 0;
+            //totalDiscount += parseFloat(disc) * qty || 0;
+            subtotal += parseFloat(total) || 0;
+
+            // Re-insert the totals row at the end of the table
+            $("#tblItemIn").append(`
+            <tr class="totalRow">
+            <td colspan="2"></td>
+            <td><strong>${totalQuantity}</strong></td>
+            <td></td>
+            <td><strong>${subtotal.toFixed(2)}</strong></td>
+            <td></td>
+            </tr>`);
+
+            // Clear the input fields
+            $("#QtyIn").val("");
+            $("#UnitPriceIn").val("");
+            productsIn.value("");
+        });
+
+        // Handle row deletion
+        $(document).on("click", ".deleteRow", function () {
+            var row = $(this).closest("tr");
+            var qty = parseInt(row.find("td:nth-child(3)").text()) || 0;
+            //var disc = parseFloat(row.find("td:nth-child(5)").text()) || 0;
+            var total = parseFloat(row.find("td:nth-child(5)").text()) || 0;
+
+            // Update totals
+            totalQuantity -= qty || 0;
+            //totalDiscount -= disc * qty || 0;
+            subtotal -= total || 0;
+
+            row.remove();
+
+            // Remove and reinsert the totals row
+            $("#tblItemIn tr.totalRow").remove();
+
+            // Show "No sales details available" if table is empty
+            if ($("#tblItemIn tr").length === 1) {
+                $("#tblItemIn").append('<tr><td colspan="6">No sales details available.</td></tr>');
+            }
+            else {
+                $("#tblItemIn").append(`
+                <tr class="totalRow">
+                <td colspan="2"></td>
+                <td><strong>${totalQuantity}</strong></td>
+                <td></td>
+                <td><strong>${subtotal.toFixed(2)}</strong></td>
+                <td></td>
+                </tr>`);
+            }
+        });
+        //#endregion
+
+        //#region Item OUT section
+        //Add cart event handler. Add into Table
+        $("body").on("click", ".AddOut", function () {
+            var productsOut = $("#ProductsOut").data("kendoDropDownList");
+            var qtyInput = document.getElementById("QtyOut");
+            var unitPriceInput = document.getElementById("UnitPriceOut");
+
+            if (productsOut.value() === "") {
+                return alert("Product is required.");
+            }
+
+            // Get the selected value
+            var selectedValue = parseInt(productsOut.value());
+            var products = @Html.Raw(Json.Encode(ViewData["Products"]));
+            var selectedProduct = products.find(function (product) {
+                return product.ProductId === selectedValue;
+            });
+
+            //var orig_unitprice = parseFloat(selectedProduct.Price).toFixed(2) || 0;
+            var unitprice = parseFloat(unitPriceInput.value).toFixed(2) || 0;
+            var qty = parseInt(qtyInput.value) || 0;
+            //var disc = (orig_unitprice - unitprice).toFixed(2) || 0;
+            var total = (qty * unitprice).toFixed(2) || 0;
+
+            if (selectedProduct.QtyAvailable < qty && selectedProduct.TypeName == "Product") {
+                return alert("\nFailed to Insert! \n" + selectedProduct.ProductName + " insufficient stock.");
+            }
+
+            // Remove the "No sales details available" row if it exists
+            var noDataRow = $("#tblItemOut tr:contains('No sales details available')");
+            if (noDataRow.length > 0) {
+                noDataRow.remove();
+            }
+
+            $("#tblItemOut tr.totalRowOut").remove();
+            var rowCount = $("#tblItemOut tr").length;
+
+            $("#tblItemOut").append(`
+            <tr>
+                <td>${rowCount}</td>
+                <td>${selectedProduct.ProductName}</td>
+                <td>${qty}</td>
+                <td>${unitprice}</td>
+                <td>${total}</td>
+                <td><a class="deleteOutRow" href="javascript:;"><img src="@Url.Content("~/Images/dustbin.png")" style="width:25px" /></a></td>
+            </tr>`);
+
+            // Update totals
+            totalQuantityOut += qty || 0;
+            //totalDiscount += parseFloat(disc) * qty || 0;
+            subtotalOut += parseFloat(total) || 0;
+
+            // Re-insert the totals row at the end of the table
+            $("#tblItemOut").append(`
+            <tr class="totalRowOut">
+            <td colspan="2"></td>
+            <td><strong>${totalQuantityOut}</strong></td>
+            <td></td>
+            <td><strong>${subtotalOut.toFixed(2)}</strong></td>
+            <td></td>
+            </tr>`);
+
+            // Clear the input fields
+            $("#QtyOut").val("");
+            $("#UnitPriceOut").val("");
+            productsOut.value("");
+        });
+
+        // Handle row deletion
+        $(document).on("click", ".deleteOutRow", function () {
+            var row = $(this).closest("tr");
+            var qty = parseInt(row.find("td:nth-child(3)").text()) || 0;
+            //var disc = parseFloat(row.find("td:nth-child(5)").text()) || 0;
+            var total = parseFloat(row.find("td:nth-child(5)").text()) || 0;
+
+            // Update totals
+            totalQuantityOut -= qty || 0;
+            //totalDiscount -= disc * qty || 0;
+            subtotalOut -= total || 0;
+
+            row.remove();
+
+            // Remove and reinsert the totals row
+            $("#tblItemOut tr.totalRowOut").remove();
+
+            // Show "No sales details available" if table is empty
+            if ($("#tblItemOut tr").length === 1) {
+                $("#tblItemOut").append('<tr><td colspan="6">No sales details available.</td></tr>');
+            }
+            else {
+                $("#tblItemOut").append(`
+                <tr class="totalRowOut">
+                <td colspan="2"></td>
+                <td><strong>${totalQuantityOut}</strong></td>
+                <td></td>
+                <td><strong>${subtotalOut.toFixed(2)}</strong></td>
+                <td></td>
+                </tr>`);
+            }
+        });
+        //#endregion
+
+        //#region Payment Popup
+        function ShowModelPopUp() {
+            // Check cus id
+            var cusid = document.getElementById("customerDropdown").value;
+            if (cusid == "") {
+                window.alert("Please select Customer.");
+            }
+
+            // Get Subtotal amount
+            var salesId = '@Model.SalesId';
+            let subtotal = 0;
+            //var qtyIn = parseFloat($(".totalRow td:nth-child(2) strong").text()) || 0;
+            var totalIn = parseFloat($(".totalRow td:nth-child(4) strong").text()) || 0;
+            //var qtyOut = parseFloat($(".totalRowOut td:nth-child(2) strong").text()) || 0;
+            var totalOut = parseFloat($(".totalRowOut td:nth-child(4) strong").text()) || 0;
+            subtotal = totalOut - totalIn;
+
+            if (totalIn === 0 || totalOut === 0) {
+                window.alert("Nothing to process to payment.");
+            }
+            else {
+                var itemsToIn = [];
+                var itemsToOut = [];
+
+                // Loop through each row of the tbody except the "first"
+                $('#tblItemIn tr:not(:first)').each(function () {
+                    // Extract the values from the table cells (td)
+                    var name = $(this).find('td:eq(1)').text().trim();
+                    var qty = $(this).find('td:eq(2)').text().trim() || 0;
+
+                    //name = name.replace(/\s*\(.*?\)\s*/g, '').trim();
+                    name = name.match(/^[^\s\(]+/)[0];
+                    // Add the extracted item to the array
+                    if (name && qty) {
+
+                        var item = {
+                            InCode: name,
+                            InQty: qty
+                        };
+
+                        itemsToIn.push(item);
+                    }
+                });
+
+                // Loop through each row of the tbody except the "first"
+                $('#tblItemOut tr:not(:first)').each(function () {
+                    // Extract the values from the table cells (td)
+                    var name = $(this).find('td:eq(1)').text().trim();
+                    var qty = $(this).find('td:eq(2)').text().trim() || 0;
+
+                    //name = name.replace(/\s*\(.*?\)\s*/g, '').trim();
+                    name = name.match(/^[^\s\(]+/)[0];
+                    // Add the extracted item to the array
+                    if (name && qty) {
+
+                        var item = {
+                            OutCode: name,
+                            OutQty: qty
+                        };
+
+                        itemsToOut.push(item);
+                    }
+                });
+
+                // create exchnageprod (left) & salesitem w exchange true (right)
+                $.ajax({
+                    url: '@Url.Action("AddExchangeItem", "Exchange")',
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8", // Set content type to JSON
+                    dataType: "json", // Expect JSON data in return
+                    data: JSON.stringify({
+                        SalesId: '@Model.SalesId',
+                        CustomerId: cusid,        
+                        Total: subtotal,          
+                        itemsToIn: itemsToIn,     
+                        itemsToOut: itemsToOut    
+                    }),
+                    success: function (response) {
+                        if (response.success) {
+                            var basePath = window.location.pathname.includes('/BeYou') ? '/BeYou/Exchange/ExchangePaymentPopUp' : '/Exchange/ExchangePaymentPopUp';
+                            var url = basePath + '?salesid=@Model.SalesId&cusid=' + cusid + '&total=' + subtotal;
+                            MyPopUpWin(url, 500, 450);
+                        }
+                        else {
+                            alert('Error processing the exchange. Please try again.');
+                        }
+                    },
+                    error: function () {
+                        // Handle error (optional)
+                        alert('An error occurred while submitting the form.');
+                    }
+                });
+            }
+        }
+
+        function MyPopUpWin(url, width, height) {
+            //Allow for borders.
+            var leftPosition = (window.screen.width / 2) - ((width / 2) + 10);
+            //Allow for title and status bars.
+            var topPosition = (window.screen.height / 2) - ((height / 2) + 50);
+            //Open the window.
+            window.open(url, "Window2",
+                "status=no,height=" + height + ",width=" + width + ",resizable=yes,left="
+                + leftPosition + ",top=" + topPosition + ",screenX=" + leftPosition + ",screenY="
+                + topPosition + ",toolbar=no,menubar=no,scrollbars=no,location=no,directories=no");
+        }
+        //#endregion
+
+    </script>
+</body>
+</html>

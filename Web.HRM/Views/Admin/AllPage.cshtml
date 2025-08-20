@@ -1,0 +1,122 @@
+﻿@using Meo.Web.ViewModels
+@model IEnumerable<Meo.Web.ViewModels.EmployeeViewModels>
+@using Kendo.Mvc.UI
+
+@{
+    ViewBag.Title = "Page List";
+}
+
+<div class="page-content">
+    <div style="padding-top:5px; padding-bottom:5px">
+        <table style="width:100%">
+            <tr>
+                <td>
+                    <h2 class="pagetitle">Page Control</h2>
+                </td>
+                <td style="float:right">
+                    <input type="button" value="BACK" class="btn btn-default" id="close" style="width:100px" />
+                </td>
+            </tr>
+        </table>
+    </div>
+    @(Html.Kendo().Grid<PageViewModels>()
+        .Name("GridForPage")
+        .HtmlAttributes("100%")
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.Id).Title("#ID").Width("50px");
+            columns.Bound(c => c.Name);
+            //columns.Bound(c => c.ModBy);
+            //columns.ForeignKey(c => c.Mod_by, (System.Collections.IEnumerable)ViewData["Employee"], "Emp_id", "DisplayName").Title("Update By");
+            //columns.Bound(c => c.ModDate).ClientTemplate("#= kendo.toString(Mod_date, 'd') #");
+            columns.Command(command => { command.Edit(); command.Destroy(); }).Width(180);
+        })
+        .Pageable(pageable => pageable
+        .Refresh(true).Messages(m => m.Refresh(string.Empty)))
+        //.Events(e => e.Edit("onRequest"))
+        .Editable(editable => editable.Mode(GridEditMode.InLine))//.TemplateName("PageEditor"))
+        .ToolBar(toolbar => toolbar.Template("<a id='Create' class='k-button k-button-icontext k-grid-add' href='#'> + Create New </a>"))
+        .Sortable()
+        .Resizable(resize => resize.Columns(true))
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(10)
+        .Events(events => events.Error("error_handler").Sync("sync_handler").RequestEnd("onRequestEnd"))
+        .ServerOperation(true)
+        .Read(read => read.Action("Read_Page", "Admin"))
+        .Create(update => update.Action("Create_Page", "Admin"))
+        .Update(update => update.Action("Update_Page", "Admin"))
+        .Destroy(update => update.Action("Destroy_Page", "Admin"))
+        .Model(model =>
+        {
+            model.Id(e => e.Id);
+            model.Field(e => e.Id).Editable(false);
+            model.Field(e => e.ModBy).Editable(false);
+            model.Field(e => e.ModDate).Editable(false);
+        })).NoRecords("No Records Found"))
+</div>
+
+<span id="notification" style="display:none;"></span>
+
+@* Error msg to be shown & sync grid table automatically *@
+<script type="text/javascript">
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+
+    function sync_handler(e) {
+        this.read();
+    }
+
+    $("#close").click(function () {
+        window.open('@Url.Action("Index", "Home")', "_self");
+    });
+
+    @* Set window header
+function onRequest(e) {
+    $(".k-window-title").text("Page Editor");
+     $('.k-widget.k-window .k-window-titlebar').css({
+         'background-color': 'white'
+     });
+     $('.k-header').css({
+         'border-color': 'white'
+     });*@
+
+     @* Auto Focus on selected field
+     var arg = e;
+     arg.container.data('kendoWindow').bind('activate', function () {
+         arg.container.find("input[name='Name']").focus();
+     })
+    }*@
+
+    function onRequestEnd(e) {
+        var notificationWidget = $("#notification").kendoNotification(
+            {
+                position: {
+                    pinned: true,
+                    top: 100,
+                    right: 50
+                },
+            }).data("kendoNotification");
+
+        if (e.type == "create" && !e.response.Errors) {
+            notificationWidget.show("New Record created!", "success");
+        } else if (e.type == "update" && !e.response.Errors) {
+            notificationWidget.show("Update Successfully", "success");
+        } else if (e.response.Errors) {
+            notificationWidget.show("Fail to update", "warning");
+        }
+    }
+</script>
+
+

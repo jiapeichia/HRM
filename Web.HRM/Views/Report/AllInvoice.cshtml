@@ -1,0 +1,144 @@
+﻿@*@model IEnumerable<Meo.Web.ViewModels.EmployeeDetailsViewModel>*@
+@*@model Meo.Web.ViewModels.CustomerViewModels*@
+@model Meo.Web.ViewModels.ReportSearchContent
+
+@{
+    ViewBag.Title = "Employee List";
+    var ActiveList = ViewBag.ActiveList;
+}
+<head>
+    <style>
+        .customer-name {
+            display: inline-block;
+            vertical-align: middle;
+            line-height: 32px;
+            padding-left: 8px;
+        }
+
+        input.k-textbox {
+            width: 100%;
+            height: 2.45em;
+            text-indent: .33em;
+            line-height: 1.6em;
+        }
+
+        .k-textbox {
+            max-width: 100%;
+            width: 200px;
+        }
+    </style>
+</head>
+<div class="page-content">
+    <table style="width:100%">
+        <tr>
+            <td>
+                <h2 style="width: 250px" class="pagetitle">All Invoice</h2>
+            </td>
+            <td style="text-align: right;width: 280px">
+                @Html.LabelFor(model => model.StartDate)
+                @(Html.Kendo().DatePickerFor(m => m.StartDate)
+                    .Culture("en-IE")
+                    .Max(DateTime.Today)
+                    .ParseFormats(new string[] { "dd/MM/yyyy" })
+                    .Events(e => e.Change("startChange"))
+                    .HtmlAttributes(new { @class = "form-control", @style = "width: 150px;" }))
+            </td>
+            <td style="text-align: right; width: 280px">
+                @Html.LabelFor(model => model.EndDate)
+                @(Html.Kendo().DatePickerFor(m => m.EndDate)
+                    .Culture("en-IE")
+                    .Max(DateTime.Today)
+                    .ParseFormats(new string[] { "dd/MM/yyyy" })
+                    .Events(e => e.Change("endChange"))
+                    .HtmlAttributes(new { @class = "form-control", @style = "width : 150px" }))
+            </td>
+            <td align="right" style="width: 250px">
+                <input type="button" value="SEARCH" class="btn btn-primary" id="search" style="width:100px" />
+                <input type="button" value="BACK" class="btn btn-default" id="close" style="width:100px" />
+            </td>
+        </tr>
+    </table>
+    <br />
+    <div class="col-md-12" id="saveDiv">
+        @{ Html.RenderAction("_SearchAllInvoice", new { cusid = "" }); }
+    </div>
+</div>
+
+<script>
+
+    $(function () {
+        @*$('#search').click(function () {
+            var startDate = $('#StartDate').val();
+            var endDate = $('#EndDate').val();
+            //var searchPath = "_SearchReport";
+            var url = "@Html.Raw(Url.Action("_SearchAllInvoice", "Report", new { startDate = "startdate", endDate = "enddate" }))";
+            url = url.replace("cusid", cusId.replace(" ", ""));
+            url = url.replace("startdate", startDate);
+            url = url.replace("enddate", endDate);
+            //url = url.replace("Path", searchPath);
+            $('#saveDiv').load(url);
+        });*@
+
+        $('#clear').click(function () {
+            $("#CusId").val('').trigger("change");
+            var url = "@Html.Raw(Url.Action("_SearchAllInvoice", "Report", new { cusid = "", period = "" }))";
+            $('#saveDiv').load(url);
+        });
+
+        $("#close").click(function () {
+            window.open('@Url.Action("Index", "Home")', "_self");
+        });
+    });
+
+            function endChange() {
+                var startPicker = $("#StartDate").data("kendoDatePicker"),
+                    endDate = this.value();
+
+                if (endDate) {
+                    endDate = new Date(endDate);
+                    endDate.setDate(endDate.getDate() - 1);
+                    startPicker.max(endDate);
+                }
+            }
+
+            function startChange() {
+                var endPicker = $("#EndDate").data("kendoDatePicker"),
+                    startDate = this.value();
+
+                if (startDate) {
+                    startDate = new Date(startDate);
+                    startDate.setDate(startDate.getDate() + 1);
+                    endPicker.min(startDate);
+                }
+            }
+
+    $('#search').click(function () {
+            var startDate = $('#StartDate').val();
+            var endDate = $('#EndDate').val();
+            var searchPath = "_SearchAllInvoice";
+
+            var url = "@Html.Raw(Url.Action("Path", "Report", new { empNo = "empno", startDate = "startdate", endDate = "enddate" }))";
+            url = url.replace("startdate", startDate);
+            url = url.replace("enddate", endDate);
+            url = url.replace("Path", searchPath);
+            $('#saveDiv').load(url);
+        });
+
+        function error_handler(e) {
+            if (e.errors) {
+                var message = "Errors:\n";
+                $.each(e.errors, function (key, value) {
+                    if ('errors' in value) {
+                        $.each(value.errors, function () {
+                            message += this + "\n";
+                        });
+                    }
+                });
+                alert(message);
+            }
+        }
+
+        function sync_handler(e) {
+            this.read();
+    }
+</script>

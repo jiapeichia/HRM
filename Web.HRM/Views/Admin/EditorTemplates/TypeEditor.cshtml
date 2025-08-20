@@ -1,0 +1,40 @@
+﻿@model Meo.Web.ViewModels.TypeViewModels
+
+@{
+    ViewBag.Title = "Type Editor";
+}
+
+<table>
+    <tbody>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.TypeName, new { @style = "width : 150px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @Html.EditorFor(model => model.TypeName)
+                @Html.ValidationMessageFor(model => model.TypeName)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.Module, new { @style = "width : 150px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @Html.EditorFor(model => model.Module)
+                @Html.ValidationMessageFor(model => model.Module)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.Remarks, new { @style = "width : 150px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @Html.EditorFor(model => model.Remarks)
+                @Html.ValidationMessageFor(model => model.Remarks)
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+
+

@@ -1,0 +1,68 @@
+﻿<head>
+    @section Scripts {
+        @Scripts.Render("~/bundles/jqueryval")
+
+        <script>
+            function error_handler(e) {
+                if (e.errors) {
+                    var message = "Errors:\n";
+                    $.each(e.errors, function (key, value) {
+                        if ('errors' in value) {
+                            $.each(value.errors, function () {
+                                message += this + "\n";
+                            });
+                        }
+                    });
+                    alert(message);
+                }
+            }
+
+            function sync_handler(e) {
+                this.read();
+            }
+
+            // --- collapse all group grid ---
+            var collapseAllGroups = function (grid) {
+                grid.table.find(".k-grouping-row").each(function () {
+                    grid.collapseGroup(this);
+                });
+            }
+
+            //On the grid
+            function dataBound() {
+                collapseAllGroups(this);
+            }
+        </script>
+    }
+</head>
+<div>
+    @(Html.Kendo().Grid<Meo.Web.ViewModels.SalesViewModels>()
+        .Name("GridForAllInvoice")
+        .HtmlAttributes(new { style = "100%" })
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.SalesId).Title("Invoice No").ClientTemplate("<a href='" + @Url.Action("GIROReceipt", "GIROs", new { salesid = "#=SalesId#", from = "allinvoice" }) + "' ><span class='k-button k-button-icontext k-grid-edit'>#=SalesId#</span></a>").Width(100);
+            columns.ForeignKey(c => c.CusId, (System.Collections.IEnumerable)ViewData["Customer"], "CusId", "FullName").Title("Customer").Width(200);
+            columns.Bound(c => c.TotalAmt).Width(130);
+            columns.Bound(c => c.PaidAmt).Width(130);
+            columns.Bound(c => c.BalAmt).Width(130);
+            columns.ForeignKey(c => c.PaymentMethod, (System.Collections.IEnumerable)ViewData["PaymentType"], "TypeId", "TypeName").Width(150);
+            columns.Bound(c => c.PaymentDate).Width(200);
+            columns.Bound(c => c.OrderDate).Width(200);
+        })
+        .Sortable()
+        .Pageable(pageable => pageable
+        .Refresh(true).Messages(m => m.Refresh(string.Empty)))
+        .DataSource(source => source
+        .Ajax()
+        .Events(events => events.Error("error_handler").Sync("sync_handler"))
+        .Sort(sort => sort.Add("PaymentDate").Descending())
+        .Model(model =>
+        {
+            model.Id(tc => tc.SalesId);
+        })
+        .Read(read => read.Action("GetInvoiceData", "GIROs", new { salesId = @ViewBag.salesId }))
+        )
+        .NoRecords("No Records Found")
+    )
+</div>

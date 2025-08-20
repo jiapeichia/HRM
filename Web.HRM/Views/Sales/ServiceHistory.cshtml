@@ -1,0 +1,104 @@
+﻿@using Meo.Web.ViewModels
+@using Kendo.Mvc.UI
+
+@{
+    ViewBag.Title = "Service History";
+}
+
+@(Html.Kendo().Grid<ServiceHistory>()
+        .Name("GridForServicehistory")
+        .HtmlAttributes("100%")
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.SalesId).Width(130);
+            columns.Bound(c => c.ServiceName);
+            columns.Bound(c => c.PICName);
+            columns.Bound(c => c.Remarks).EditorTemplateName("RemarksEditor");
+            columns.Bound(c => c.ServiceDate).Width(180);
+            columns.Bound(c => c.SalesId).Title("")
+            .ClientTemplate("<a href='javascript:void(0)' class='k-button k-button-icontext k-grid-edit' onclick='printService(#=Id#, \"#=SalesId#\")'>PRINT</a>").Width(100);
+            columns.Command(command => { command.Edit(); }).Width(100);
+        })
+        //.Events(e => e.Edit("onRequest"))
+        .Pageable(pageable => pageable
+        .Refresh(true).Messages(m => m.Refresh(string.Empty)))
+        .Editable(editable => editable.Mode(GridEditMode.InLine))
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(10)
+        .Events(events => events.Error("error_handler").Sync("sync_handler").RequestEnd("onRequestEnd"))
+        .ServerOperation(true)
+        .Read(read => read.Action("Read_ServiceHistory", "Sales", new { cusid = @ViewBag.CusId }))
+        .Update(update => update.Action("Update_ServiceHistory", "Sales"))
+        .Sort(sort =>
+        {
+            sort.Add(c => c.ServiceDate).Descending();
+        })
+        .Model(model =>
+        {
+            model.Id(e => e.Id);
+            model.Field(e => e.SalesId).Editable(false);
+            model.Field(e => e.ServiceName).Editable(false);
+            model.Field(e => e.PICName).Editable(false);
+            model.Field(e => e.ServiceDate).Editable(false);
+        }))
+        .Resizable(resize => resize.Columns(true))
+        .NoRecords("No Records Found"))
+
+<span id="notification" style="display:none;"></span>
+@* Error msg to be shown & sync grid table automatically *@
+<script type="text/javascript">
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+
+    function sync_handler(e) {
+        this.read();
+    }
+
+    function onRequestEnd(e) {
+        var notificationWidget = $("#notification").kendoNotification(
+            {
+                position: {
+                    pinned: true,
+                    top: 100,
+                    right: 50
+                },
+            }).data("kendoNotification");
+
+        if (e.type == "create" && !e.response.Errors) {
+            notificationWidget.show("New Record created!", "success");
+        } else if (e.type == "update" && !e.response.Errors) {
+            notificationWidget.show("Update Successfully", "success");
+        } else if (e.response.Errors) {
+            notificationWidget.show("Fail to update", "warning");
+        }
+    }
+
+
+    function printService(id, salesId) {
+        if (salesId === undefined) {
+            alert("SalesId is undefined!");
+            return;
+        }
+
+        event.stopPropagation();
+
+        var grid = $("#GridForServicehistory").data("kendoGrid");
+        grid.cancelRow();
+
+        var url = '@Url.Action("ServiceReceipt", "Receipt")' + '?id=' + id + '&salesId=' + salesId;
+        window.open(url, '_blank');
+        //window.location.href ='Url.Action("ServiceReceipt", "Receipt")' + '?id=' + id + '&salesId=' + salesId;
+    }
+</script>

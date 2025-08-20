@@ -1,0 +1,112 @@
+﻿@using Kendo.Mvc.UI
+
+@{
+    ViewBag.Title = "Product Master";
+}
+
+<div>
+    @(Html.Kendo().Grid<Meo.Web.ViewModels.ProductViewModels>()
+        .Name("GridForProduct")
+        .HtmlAttributes(new { style = "100%" })
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.ProductCode).Width("10%");
+            columns.Bound(c => c.ProductName).Width("10%");
+            columns.ForeignKey(c => c.TypeId, (System.Collections.IEnumerable)ViewData["Type"], "TypeId", "TypeName").Title("Category").Width("10%");
+            columns.Bound(c => c.Cost).Width("8%");
+            columns.Bound(c => c.Price).Width("8%");
+            columns.Bound(c => c.Unit).Title("Qty").ClientTemplate("<div style='background-color: green; width: 60px; height: 25px; border-radius: 10%; text-align: center; color: white; font-weight: bold;'>#=Unit#</div>").Width("5%");
+            columns.Bound(c => c.Remarks);
+            columns.Command(command => { command.Edit(); command.Destroy(); }).Width(180);
+        })
+        .Sortable()
+        .Pageable(pageable => pageable
+        .Refresh(true).Messages(m => m.Refresh(string.Empty)))
+        .Events(e => e.Edit("onRequest"))
+        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("ProductEditor"))
+        .ToolBar(toolbar => toolbar.Template("<a id='Create' class='k-button k-button-icontext k-grid-add' href='#'> + Create New </a>"))
+        .Resizable(resize => resize.Columns(true))
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(10)
+        .Events(events => events.Error("error_handler").Sync("sync_handler").RequestEnd("onRequestEnd"))
+        .Sort(sort => sort.Add("ProductName").Ascending())
+        .ServerOperation(true)
+        .Read(read => read.Action("Read_Product", "Setting", new { searchContent = ViewBag.searchContent }))
+        .Create(update => update.Action("Create_Product", "Setting"))
+        .Update(update => update.Action("Update_Product", "Setting"))
+        .Destroy(update => update.Action("Destroy_Product", "Setting"))
+        .Model(modelItem =>
+        {
+            modelItem.Id(e => e.ProductId);
+            modelItem.Field(e => e.ProductId).Editable(false);
+        })
+        ).NoRecords("No Records Found"))
+</div>
+
+<span id="notification" style="display:none;"></span>
+
+@* Error msg to be shown & sync grid table automatically *@
+<script type="text/javascript">
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+
+    function sync_handler(e) {
+        this.read();
+    }
+
+    @* Set window header *@
+    function onRequest(e) {
+        $(".k-window-title").text("Product Editor");
+        $('.k-widget.k-window .k-window-titlebar').css({
+            'background-color': 'white'
+        });
+        $('.k-header').css({
+            'border-color': 'white'
+        });
+
+        // Handle the Grid's edit event
+        if (e.model.isNew() === false) {
+            // This is not a new record, so it's an edit operation
+            e.container.find("input[name='ProductCode']").prop('disabled', true);
+        } else {
+            e.container.find("input[name='Unit']").val(1);
+        }
+
+            @* Auto Focus on selected field *@
+        var arg = e;
+        arg.container.data('kendoWindow').bind('activate', function () {
+            arg.container.find("input[name='ProductCode']").focus();
+        })
+    }
+
+    function onRequestEnd(e) {
+        var notificationWidget = $("#notification").kendoNotification(
+            {
+                position: {
+                    pinned: true,
+                    top: 100,
+                    right: 50
+                },
+            }).data("kendoNotification");
+
+        if (e.type == "create" && !e.response.Errors) {
+            notificationWidget.show("New Record created!", "success");
+        } else if (e.type == "update" && !e.response.Errors) {
+            notificationWidget.show("Update Successfully", "success");
+        } else if (e.response.Errors) {
+            notificationWidget.show("Fail to update", "warning");
+        }
+    }
+</script>

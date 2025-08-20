@@ -1,0 +1,228 @@
+﻿@model Meo.Web.ViewModels.EmployeeViewModels
+
+@using Kendo.Mvc.UI;
+
+@{
+    ViewBag.Title = "Manage Employee List";
+}
+<head>
+    <style>
+        legend {
+            padding: 0.2em 0.5em;
+            color: grey;
+            font-size: 130%;
+        }
+
+        fieldset {
+            border: 1px solid grey;
+            padding: 1em;
+            font: 100%/1 sans-serif;
+        }
+
+        label {
+            float: left;
+            width: 25%;
+            margin-right: 0.5em;
+            padding-top: 0.2em;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        td {
+            padding: 5px;
+        }
+
+        .k-upload .k-upload-button {
+            min-width: 7.167em;
+            margin-right: 0em;
+        }
+
+        .k-dropzone {
+            border-style: solid;
+            border-width: 0;
+            padding: .2em;
+            background-color: white;
+        }
+
+        .k-dropdown, .k-textbox {
+            /*width: 100%;*/
+            max-width: 100%;
+            width: 18.4em;
+        }
+
+        .btn {
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-content">
+        @* Button *@
+        <div align="right">
+            @*<input type="button" value="SET PASSWORD" class="btn btn-primary" id="set" style="width:150px" />*@
+            <input type="button" value="EDIT" class="btn btn-primary" id="edit" style="width:100px" />
+            <input type="button" value="BACK" class="btn btn-default" id="close" style="width:100px" />
+        </div>
+        <br />
+
+        @Html.HiddenFor(m => m.Emp_id)
+        @* Employee Info*@
+        <div class="sub-content" style="margin-top:0px">
+            <div class="bar-title"><span>EMPLOYEE PROFILE</span></div>
+            <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
+            <br />
+
+            <table style="width:80%" align="center">
+                <tr>
+                    <td rowspan="9" width="10%" align="center">
+                        <img src="@Url.Content("~/Images/Employee/" + Model.ImagePath)" padding="5px" width="110" @*height="130"*@ alt="" onerror="this.src='@Url.Content("~/Images/Employee/user.png")' " /><br>
+                    </td>
+                    <td style="width:5%">@Html.LabelFor(model => model.EmpNo, new { @style = "width : 150px" })</td>
+                    <td style="width:30%">
+                        @Html.DisplayFor(model => model.EmpNo)
+                        @Html.ValidationMessageFor(model => model.EmpNo, "", new { @class = "text-danger" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>@Html.LabelFor(model => model.DisplayName, new { @style = "width : 150px" })</td>
+                    <td>
+                        @Html.DisplayFor(model => model.DisplayName, new { @style = "width : 350px" })
+                        @Html.ValidationMessageFor(model => model.DisplayName, "", new { @class = "text-danger" })
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width:5%">
+                        @Html.LabelFor(model => model.FullName, new { @style = "width : 150px" })
+                    </td>
+                    <td style="width:30%">
+                        @Html.DisplayFor(model => model.FullName, new { @style = "width : 350px" })
+                        @Html.ValidationMessageFor(model => model.FullName, "", new { @class = "text-danger" })
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width:5%">
+                        @Html.LabelFor(model => model.IcNo, new { @style = "width : 150px" })
+                    </td>
+                    <td style="width:30%">
+                        @Html.DisplayFor(model => model.IcNo, new { @style = "width : 350px" })
+                        @Html.ValidationMessageFor(model => model.IcNo, "", new { @class = "text-danger" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>@Html.LabelFor(model => model.Gender, new { @style = "width : 150px" })</td>
+                    <td>
+                        Male @Html.RadioButtonFor(m => m.Gender, "Male", new { @style = "width : 40px", @disabled = "disabled" })
+                        Female @Html.RadioButtonFor(m => m.Gender, "Female", new { @style = "width : 40px", @disabled = "disabled" })
+                        @Html.ValidationMessageFor(model => model.Gender, "", new { @class = "text-danger" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.LabelFor(model => model.OEmail, new { @style = "width : 150px" })
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => model.OEmail, new { @style = "width : 350px" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.LabelFor(model => model.BirthDate, new { @style = "width : 150px" })
+                    </td>
+                    <td>
+                        @(Html.Kendo().DatePickerFor(model => model.BirthDate)
+                        .Culture("en-IE")
+                        .Format("dd/MM/yyyy")
+                        .ParseFormats(new List<string>() { "dd-MMM-yyyy" })
+                        .HtmlAttributes(new { @class = "form-control", @style = "width : 250px" }).Enable(false))
+                        @Html.ValidationMessageFor(model => model.BirthDate, "", new { @class = "text-danger" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.LabelFor(model => model.HiredDate, new { @style = "width : 150px" })
+                    </td>
+                    <td>
+                        @(Html.Kendo().DatePickerFor(model => model.HiredDate)
+                        .Culture("en-IE")
+                        .Format("dd/MM/yyyy")
+                        .ParseFormats(new List<string>() { "dd-MMM-yyyy" })
+                        .HtmlAttributes(new { @class = "form-control", @style = "width : 250px" }).Enable(false))
+                        @Html.ValidationMessageFor(model => model.HiredDate, "", new { @class = "text-danger" })
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width:5%">
+                        @Html.LabelFor(model => model.ConfirmationDate, new { @style = "width : 150px" })
+                    </td>
+                    <td style="width:30%">
+                        @(Html.Kendo().DatePickerFor(model => model.ConfirmationDate)
+                        .Culture("en-IE")
+                        .Format("dd/MM/yyyy")
+                        .ParseFormats(new List<string>() { "dd-MMM-yyyy" })
+                        .HtmlAttributes(new { @class = "form-control" , @style = "width : 250px" }).Enable(false))
+                        @Html.ValidationMessageFor(model => model.ConfirmationDate, "", new { @class = "text-danger" })
+                    </td>
+                </tr>
+            </table>
+        </div>
+        }
+    </div>
+
+    <!-- The Modal -->
+    <!--<div class="modal fade" id="setPasswordModal">
+        <div class="modal-dialog">
+            <div class="modal-content">-->
+                <!-- Modal Header -->
+                <!--<div class="modal-header">
+                    <h4 class="modal-title">Set Password</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>-->
+
+                <!-- Modal Body -->
+                <!--<div class="modal-body">
+                    <form id="setPasswordForm" method="post" action="Url.Action('SetPassword', 'Employee', new { id = Model.Emp_id })">
+                        <div class="form-group">
+                            <label for="newPassword">New Password:</label>
+                            <input type="password" class="form-control" id="newPassword" name="newPassword" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirm Password:</label>
+                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                        </div>
+                    </form>
+                </div>-->
+
+                <!-- Modal Footer -->
+                <!--<div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" form="setPasswordForm">Submit</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>-->
+</body>
+<script>
+        @*$(function () {
+            $("#set").click(function () {
+            window.open('@Url.Action("SetPassword", "Employee", new { id = Model.Emp_id})', "_self");
+         });*@
+
+        $("#edit").click(function () {
+            window.open('@Url.Action("EmployeeEdited", "Employee", new { id = Model.Emp_id})', "_self");
+        });
+
+        $("#close").click(function () {
+            window.open('@Url.Action("Index", "Employee")', "_self");
+        });
+
+        $(function () {
+            $("#set").click(function () {
+                $('#setPasswordModal').modal('show');
+            });
+        });
+
+    $("html, body").animate({
+        scrollTop: 0
+    }, 200);
+</script>
+

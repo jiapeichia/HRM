@@ -1,0 +1,19 @@
+﻿@model Meo.Web.ViewModels.RoleViewModels
+
+@{
+    ViewBag.Title = "Role Editor";
+}
+
+<table>
+    <tbody>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.RoleName, new { @style = "width : 150px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @Html.EditorFor(model => model.RoleName)
+                @Html.ValidationMessageFor(model => model.RoleName)
+            </td>
+        </tr>
+    </tbody>
+</table>

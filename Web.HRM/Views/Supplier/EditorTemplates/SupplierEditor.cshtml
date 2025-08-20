@@ -1,0 +1,64 @@
+﻿@model Meo.Web.ViewModels.SupplierViewModels
+
+@{
+    ViewBag.Title = "Supplier Editor";
+}
+
+<table>
+    <tbody>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.SupplierId, new { @style = "width : 100px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @Html.EditorFor(model => model.SupplierId, new { @style = "width : 100%;", @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.SupplierId)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.Name, new { @style = "width : 100px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @Html.EditorFor(model => model.Name, new { @style = "width : 100%;", @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.Name)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.ContactNo, new { @style = "width : 100px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @Html.EditorFor(model => model.ContactNo, new { @style = "width : 100%;", @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.ContactNo)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.Address1, new { @style = "width : 100px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @Html.EditorFor(model => model.Address1, new { @style = "width : 100%;", @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.Address1)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.Address2, new { @style = "width : 100px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @Html.EditorFor(model => model.Address2, new { @style = "width : 100%;", @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.Address2)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.Remarks, new { @style = "width : 100px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @Html.TextAreaFor(model => model.Remarks, new { @style = "width : 100%;", rows = 6 })
+                @Html.ValidationMessageFor(model => model.Remarks)
+            </td>
+        </tr>
+    </tbody>
+</table>

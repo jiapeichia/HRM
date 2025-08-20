@@ -1,0 +1,151 @@
+﻿@model Meo.Web.ViewModels.PaymentViewModels
+
+@{
+    ViewBag.Title = "Payment";
+    var paymentType = ViewBag.PaymentType;
+}
+
+<head>
+    @Styles.Render("~/Content/css")
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function calculateBalance() {
+            var total = parseFloat(document.getElementById("TotalAmt").value) || 0;
+            var discount = parseFloat(document.getElementById("DiscAmt").value) || 0;
+            var paid = parseFloat(document.getElementById("PaidAmt").value) || 0;
+            var balance = total - discount - paid;
+
+            document.getElementById("BalAmt").value = balance.toFixed(2);
+        }
+
+        window.onload = function () {
+            var paidAmtField = document.getElementById('PaidAmt');
+            paidAmtField.focus();
+            paidAmtField.select(); // This will highlight the content of the input
+        };
+
+        $(document).ready(function () {
+            $("#updatePayment").bind("click", function () {
+                var totalAmt = $("#BalAmt").val();
+                var paymethod = $("#PaymentMethod").val();
+                var paytype = $("#PaymentMethod").val();
+                var ttlamt = parseFloat($("#BalAmt").val()) || 0;
+                var payamt = parseFloat($("#PaidAmt").val()) || 0;
+                var balamt = ttlamt - payamt;
+                const minAmount = parseFloat("@ViewBag.minAmount");
+
+                if (totalAmt === 0) {
+                    return alert("Nothing to process to payment.");
+                }
+                else if (paymethod === "") {
+                    return alert("Payment method is required.");
+                }
+                else if (payamt < minAmount) {
+                    return alert("Minimum amount to pay is RM" + @ViewBag.minAmount);
+                }
+                
+                $.ajax({
+                    url: @Model.IsTopUp.ToString().ToLower() ? '@Url.Action("UpdatePaymentTopUp", "GIROs")' : '@Url.Action("UpdatePayment", "GIROs")',
+                    type: "POST",
+                    data: {
+                        CusId: @Model.CusId,
+                        SalesId: "@Model.SalesId",
+                        OldSalesId: "@Model.OldSalesId",
+                        //PaymentDate: @Model.PaymentDate,
+                        PaymentMethod: paytype,
+                        TotalAmt: ttlamt,
+                        PaidAmt: payamt,
+                        DiscAmt: 0,
+                        BalAmt: balamt,
+                        IsTopUp: @Model.IsTopUp.ToString().ToLower(),
+                    },
+                    success: function (response) {
+                        $.ajax({
+                            url: '@Url.Action("GIROReceipt", "GIROs")',
+                            type: "POST",
+                            data: {
+                                salesId: response.SalesId,
+                                oldsalesId: "@Model.SalesId"
+                            },
+                            success: function (res) {
+                                window.close();
+                                //$("#GridForCustomer").data("kendoGrid").dataSource.read();
+                                window.opener.location.href = '@Url.Action("GIROReceipt", "GIROs")' + '?salesId=' + response.SalesId;
+
+                                var url = '@Url.Action("GIROReceipt", "Receipt")' + '?salesId=' + response.SalesId;
+                                window.open(url, '_blank');
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="card px-0 pt-4 pb-0 mt-3 mb-3" style="text-align: center">
+        <h2>Payment : @Model.SalesId</h2>
+        <hr />
+        @Html.HiddenFor(m => m.CusId)
+        @Html.HiddenFor(m => m.OldSalesId)
+        <table>
+            <tbody>
+                <tr>
+                    <td>
+                        @Html.Label("Date", new { @style = "width : 250px", @class = "control-label col-md-2" })
+                        @*@Html.LabelFor(model => model.PaymentDate, new { @style = "width : 250px", @class = "control-label col-md-2" })*@
+                    </td>
+                    <td>
+                        @Model.PaymentDate.ToShortDateString()
+                        @Html.ValidationMessageFor(model => model.PaymentDate, "", new { @class = "text-danger" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.LabelFor(model => model.PaymentMethod, new { @style = "width : 250px", @class = "control-label col-md-2" })
+                    </td>
+                    <td>
+                        @Html.DropDownListFor(model => model.PaymentMethod, new SelectList(paymentType, "TypeId", "TypeName"), "----- Select -----", new { @class = "form-control col-md-2", @style = "width : 250px;" })
+                        @Html.ValidationMessageFor(model => model.PaymentMethod)
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.Label("Outstanding Amount", new { @style = "width : 250px", @class = "control-label col-md-2" })
+                    </td>
+                    <td>
+                        @Html.EditorFor(model => model.BalAmt, new { htmlAttributes = new { @disabled = "disabled" } })
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.LabelFor(model => model.PaidAmt, new { @style = "width : 250px", @class = "control-label col-md-2" })
+                    </td>
+                    <td>
+                        @*<input type="text" value="@Model.PaidAmt" id="PaidAmt" placeholder="0.00" onchange="calculateBalance()" autofocus>*@
+
+                        @Html.EditorFor(model => model.PaidAmt)
+                        @Html.ValidationMessageFor(model => model.PaidAmt)
+                        @if (ViewBag.minAmount != 0)
+                        {
+                            <font color="red">** Minimum amount to pay is RM @ViewBag.minAmount</font>
+                        }
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.LabelFor(model => model.Remarks, new { @style = "width : 250px", @class = "control-label col-md-2" })
+                    </td>
+                    <td>
+                        @*@Html.EditorFor(model => model.Remarks)*@
+                        @Html.TextAreaFor(model => model.Remarks, new { @style = "width : 350px" })
+                        @Html.ValidationMessageFor(model => model.Remarks)
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <br />
+        <input type="button" value="CONFRIM" class="btn btn-success" id="updatePayment" style="width:200px" />
+        <input type="button" value="CANCEL" class="btn btn-default" style="width:200px" onclick="window.opener=null; window.close(); return false;" />
+    </div>
+</body>

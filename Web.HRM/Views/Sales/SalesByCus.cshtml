@@ -1,0 +1,234 @@
+﻿@{
+    ViewBag.Title = "Treatment Record";
+}
+
+<head>
+    @section Scripts {
+        @Scripts.Render("~/bundles/jqueryval")
+
+    <script>
+        function error_handler(e) {
+            if (e.errors) {
+                var message = "Errors:\n";
+                $.each(e.errors, function (key, value) {
+                    if ('errors' in value) {
+                        $.each(value.errors, function () {
+                            message += this + "\n";
+                        });
+                    }
+                });
+                alert(message);
+            }
+        }
+
+        function sync_handler(e) {
+            this.read();
+        }
+
+         $(function () {
+             $("#close").click(function () {
+                 window.history.back();
+                @*window.open('@Url.Action("Index", "Customer", new { id = ViewBag.CusId })', "_self");*@
+            });
+
+             $("#cusPurchaseHistory").click(function () {
+                window.open('@Url.Action("CusPurchaseHistory", "Sales", new { id = ViewBag.CusId })', "_self");
+             });
+
+             $("#newOrder").click(function () {
+                window.open('@Url.Action("Invoice", "Sales", new { id = ViewBag.CusId, flag = "new" })', "_self");
+             });
+             // <a class="btn btn-silver btn-admin" href="~/Sales/GIROSales?flag=new#">
+              $("#newOrderGIRO").click(function () {
+                window.open('@Url.Action("GIROSales", "Sales", new { id = ViewBag.CusId, flag = "new" })', "_self");
+            });
+        });
+
+        // --- collapse all group grid ---
+        var collapseAllGroups = function (grid) {
+            grid.table.find(".k-grouping-row").each(function () {
+                grid.collapseGroup(this);
+            });
+        }
+
+        //On the grid
+        function dataBound() {
+            collapseAllGroups(this);
+        }
+    </script>
+    }
+
+    <style>
+        .profile-header {
+            background: white;
+            padding: 20px;
+            border-bottom: 2px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            align-items: center;
+            border-radius: 10px;
+        }
+
+        .profile-pic {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-right: 20px;
+        }
+
+        .user-info h2 {
+            margin: 0;
+            font-size: 24px;
+            color: #333;
+        }
+
+        .action-buttons .btn {
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .btn.new-order {
+            background: #4a90e2; /* Bright blue button */
+            color: white;
+            border: none;
+            margin-right: 10px;
+        }
+
+            .btn.new-order:hover {
+                background: #357ab8; /* Darker blue on hover */
+            }
+
+        .btn.back {
+            background: #d6e8fc; /* Light blue for secondary button */
+            color: #4a90e2; /* Blue text */
+            border: 1px solid #4a90e2;
+        }
+
+            .btn.back:hover {
+                background: #b3d4fc; /* Slightly darker blue on hover */
+                color: #fff;
+            }
+
+        .label {
+            font-weight: bold;
+            color: #000; /* Blue labels */
+            font-size: 14px
+        }
+
+        .value {
+            color: #f58d29;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<div class="page-content">
+    <div class="profile-header">
+        <table style="width:100%;">
+            <tr>
+                <td style="width: 120px; padding:0px; padding-left: 10px" align="left" rowspan="2">
+                    <img src="@Url.Content("~/Images/Customer/" + ViewData["CusImagePath"])" width="90" height="90" alt="" onerror="this.src='@Url.Content("~/Images/Employee/user.png")'" />
+                </td>
+                <td style="width: 40%; padding: 0px; padding-left: 10px" align="left" class="user-info" colspan="2">
+                    <h2>
+                        <strong>@ViewData["CusFullName"]</strong>
+                        <span style="padding-left:20px"><input type="button" value="HISTORY" class="btn btn-primary" id="cusPurchaseHistory" style="width:110px;" /></span>
+                    </h2>
+                    <span style="font-size: 14px; font-style: italic; color: grey"><img src="~/Images/hp.png" style="width:10px" />  @ViewData["CusContactNo"]</span>
+                </td>
+                <td style="text-align:right">
+                    @if (Session["RoleName"].ToString().Contains("Admin") || Session["RoleName"].Equals("PIC"))
+                    {
+                        <input type="button" value="+ NEW ORDER" class="btn back" id="newOrder" style="width:120px" />
+                        <input type="button" value="+ NEW ORDER (GIRO)" class="btn back" id="newOrderGIRO" style="width:150px" />
+                    }
+                    <input type="button" value="BACK" class="btn btn-default" id="close" style="width:110px" />
+
+                    @*@if (Session["RoleName"].ToString().Contains("Admin") || Session["RoleName"].Equals("PIC"))
+                        {
+                            <input type="button" value="+ NEW ORDER" class="btn new-order" id="newOrder" style="width:120px" />
+                        }
+                        <input type="button" value="BACK" class="btn back" id="close" style="width:110px" />*@
+                </td>
+            </tr>
+            <tr>
+                <td style="width:20%;" align="left">
+                    <div><img src="~/Images/card.png" style="width:20px" /><strong> Card No. </strong>@ViewData["CusCardNo"]</div>
+                    <div><strong>Credit Balance </strong><u><a href="~/Sales/InvoiceByCredit/@ViewBag.CusId?flag=new">@ViewData["Credit"]</a></u></div>
+                </td>
+                <td align="left">
+                    @if (!string.IsNullOrEmpty(ViewData["TPDueAmt"]?.ToString()))
+                    {
+                        <span class="label">Top Up Outstanding : </span><span class="value">@ViewData["TPDueAmt"]</span>
+                    }
+                    <br />
+                    @if (!string.IsNullOrEmpty(ViewData["TPDueAmt"]?.ToString()))
+                    {
+                        <span class="label">Service Outstanding : </span><span class="value">@ViewData["SVDueAmt"]</span>
+                    }
+                </td>
+                <td>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    @*// Treatment Available *@
+    <div class="row" style="padding-top:10px">
+        <div class="col-md-12" style="padding-bottom:15px">
+            <div class="sub-content">
+                <div class="bar-title"><span>TREATMENT AVAILABLE</span></div>
+                <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
+                <br />
+                <table style="width:100%">
+                    <tr>
+                        <td>
+                            @Html.Action("ServiceLeft", "Sales", new { cusid = ViewBag.CusId })
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @*// Treatment History *@
+    <div class="row">
+        <div class="col-md-12" style="padding-bottom:15px">
+            <div class="sub-content">
+                <div class="bar-title"><span>TREATMENT HISTORY</span></div>
+                <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
+                <br />
+                <table style="width:100%">
+                    <tr>
+                        <td>
+                            @Html.Action("ServiceHistory", "Sales", new { cusid = ViewBag.CusId })
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @*// Treatment Expired *@
+    <div class="row">
+        <div class="col-md-12" style="padding-bottom:15px">
+            <div class="sub-content">
+                <div class="bar-title"><span>TREATMENT EXPIRED</span></div>
+                <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
+                <br />
+                <table style="width:100%">
+                    <tr>
+                        <td>
+                            @Html.Action("ServiceExpired", "Sales", new { cusid = ViewBag.CusId })
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+

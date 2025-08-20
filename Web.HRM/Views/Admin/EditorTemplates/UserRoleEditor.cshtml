@@ -1,0 +1,25 @@
+﻿@model Meo.Web.ViewModels.EmployeeDetailsViewModel
+
+@{
+    ViewBag.Title = "Role Editor";
+}
+
+<table>
+    <tbody>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.RoleId, "User Role", new { @style = "width : 150px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @(Html.Kendo().DropDownListFor(model => model.RoleId)
+                .BindTo((System.Collections.IEnumerable)ViewData["Role"])
+                .DataTextField("RoleName")
+                .DataValueField("RoleId")
+                .Filter(FilterType.Contains))
+                @Html.ValidationMessageFor(model => model.RoleId)
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+

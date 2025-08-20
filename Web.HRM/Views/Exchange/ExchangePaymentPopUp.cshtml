@@ -1,0 +1,149 @@
+﻿@model Meo.Web.ViewModels.PaymentViewModels
+
+@{
+    ViewBag.Title = "Payment";
+    var paymentType = ViewBag.PaymentType;
+}
+
+<head>
+    @Styles.Render("~/Content/css")
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function calculateBalance() {
+            var total = parseFloat(document.getElementById("TotalAmt").value) || 0;
+            var discount = parseFloat(document.getElementById("DiscAmt").value) || 0;
+            var paid = parseFloat(document.getElementById("PaidAmt").value) || 0;
+            var balance = total - discount - paid;
+
+            document.getElementById("BalAmt").value = balance.toFixed(2);
+        }
+
+        window.onload = function () {
+            var paidAmtField = document.getElementById('PaidAmt');
+            paidAmtField.focus();
+            paidAmtField.select(); // This will highlight the content of the input
+        };
+
+        $(document).ready(function () {
+            $("#updatePayment").bind("click", function () {
+                var totalAmt = $("#TotalAmt").val();
+                var paymethod = $("#PaymentMethod").val();
+
+                if (totalAmt === 0) {
+                    return alert("Nothing to process to payment.");
+                }
+                if (paymethod === "") {
+                    return alert("Payment method is required.");
+                }
+
+                var paytype = $("#PaymentMethod").val();
+                var ttlamt = parseFloat($("#TotalAmt").val()) || 0;
+                var payamt = parseFloat($("#PaidAmt").val()) || 0;
+                var discamt = parseFloat($("#DiscAmt").val()) || 0;
+                var balamt = ttlamt - discamt - payamt;
+
+                $.ajax({
+                    url: '@Url.Action("Update_Payment", "Exchange")',
+                    type: "POST",
+                    data: {
+                        CusId: @Model.CusId,
+                        SalesId: "@Model.SalesId",
+                        PaymentMethod: paytype,
+                        TotalAmt: ttlamt,
+                        PaidAmt: payamt,
+                        DiscAmt: discamt,
+                        BalAmt: balamt,
+                    },
+                    success: function (response) {
+                        $.ajax({
+                            url: '@Url.Action("PreviewINV", "Sales")',
+                            type: "POST",
+                            data: {
+                                salesId: response.SalesId,
+                                oldsalesId: "@Model.SalesId"
+                            },
+                            success: function (res) {
+                                window.close();
+                                window.opener.location.href = '@Url.Action("PreviewINV", "Sales")' + '?salesId=' + response.SalesId;// + '&from=exchange';
+
+                                var url = '@Url.Action("Index", "Receipt")' + '?salesId=' + response.SalesId;
+                                window.open(url, '_blank');
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="card px-0 pt-4 pb-0 mt-3 mb-3" style="text-align: center">
+        <h2>Exchange</h2>
+        <hr />
+        @Html.HiddenFor(m => m.CusId)
+        <table>
+            <tbody>
+                <tr>
+                    <td>
+                        @Html.Label("Date", new { @style = "width : 250px", @class = "control-label col-md-2" })
+                        @*@Html.LabelFor(model => model.PaymentDate, new { @style = "width : 250px", @class = "control-label col-md-2" })*@
+                    </td>
+                    <td>
+                        @Model.PaymentDate.ToShortDateString()
+                        @Html.ValidationMessageFor(model => model.PaymentDate, "", new { @class = "text-danger" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.LabelFor(model => model.PaymentMethod, new { @style = "width : 250px", @class = "control-label col-md-2" })
+                    </td>
+                    <td>
+                        @Html.DropDownListFor(model => model.PaymentMethod, new SelectList(paymentType, "TypeId", "TypeName"), "----- Select -----", new { @class = "form-control col-md-2", @style = "width : 200px;" })
+                        @Html.ValidationMessageFor(model => model.PaymentMethod)
+                    </td>
+                </tr>           
+                <tr>
+                    <td>
+                        @Html.LabelFor(model => model.TotalAmt, new { @style = "width : 250px", @class = "control-label col-md-2" })
+                    </td>
+                    <td>
+                        @Html.EditorFor(model => model.TotalAmt, new { htmlAttributes = new { @disabled = "disabled" } })
+                        @Html.ValidationMessageFor(model => model.TotalAmt)
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.LabelFor(model => model.DiscAmt, new { @style = "width : 250px", @class = "control-label col-md-2" })
+                    </td>
+                    <td>
+                        <input type="text" id="DiscAmt" placeholder="0.00" onchange="calculateBalance()">
+                        @Html.ValidationMessageFor(model => model.DiscAmt)
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.LabelFor(model => model.PaidAmt, new { @style = "width : 250px", @class = "control-label col-md-2" })
+                    </td>
+                    <td>
+                        <input type="text" value="@Model.PaidAmt" id="PaidAmt" placeholder="0.00" onchange="calculateBalance()" autofocus>
+
+                        @*@Html.EditorFor(model => model.PaidAmt, new { @onchange = "calculateBalance()" })*@
+                        @Html.ValidationMessageFor(model => model.PaidAmt)
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.LabelFor(model => model.BalAmt, new { @style = "width : 250px", @class = "control-label col-md-2" })
+                    </td>
+                    <td>
+                        @Html.EditorFor(model => model.BalAmt)
+                        @Html.ValidationMessageFor(model => model.BalAmt)
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <br />
+        <input type="button" value="CONFRIM" class="btn btn-success" id="updatePayment" style="width:200px" />
+        <input type="button" value="CANCEL" class="btn btn-default" style="width:200px" onclick="window.opener=null; window.close(); return false;" />
+    </div>
+</body>

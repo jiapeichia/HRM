@@ -1,0 +1,468 @@
+﻿@model Meo.Web.ViewModels.CreditNote
+@using Kendo.Mvc.UI;
+
+@{
+    ViewBag.Title = "Invoice";
+    var index = 1;
+    var Products = ViewBag.Products;
+    var productsJson = Newtonsoft.Json.JsonConvert.SerializeObject(Products);
+}
+
+<body>
+    <div class="page-content">
+        <div class="col-md-12 mx-0">
+            <div align="right" style="width:100%">
+                @*<input type="button" value="PRINT" class="btn btn-default" id="PrintReceipt" style="width:100px" />*@
+                <input type="button" value="BACK" class="btn btn-default" id="close" style="width:100px" />
+            </div>
+            <br />
+
+            @* CN Info*@
+        <div class="sub-content" style="margin-top: 0px; padding-top: 20px">
+            <div class="card px-0 pt-4 pb-0 mt-3 mb-3" style="text-align: center">
+                <h2><strong>Credit Note</strong></h2>
+            </div>
+            <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
+            <br />
+            @Html.HiddenFor(m => m.Id)
+            @Html.AntiForgeryToken()
+            <!-- Header -->
+            <table>
+                <tr>
+                    <td style="border-top: none; text-align: left; padding: 3px"><strong>Date </strong></td>
+                    <td style="border-top: none; text-align: left; padding: 3px">: @Model.CNDate.ToShortDateString() </td>
+                    <td style="border-top:none; padding:3px">
+                        <strong>Remarks </strong> :
+                    </td>
+                    <td rowspan="3" style="border-top: none; padding: 3px; width: 40%; text-align: left">
+                        @Html.TextAreaFor(model => model.Remarks, new { @id = "Remarks" })
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border-top: none; text-align: left; padding: 3px"><strong>CN No </strong></td>
+                    <td style="border-top: none; text-align: left; padding: 3px">
+                        :
+                        @Html.EditorFor(model => model.CNNo, new { @id = "CNNo" })
+                        @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border-top:none; text-align:left; padding:3px">
+                        <strong>Supplier </strong>
+                    </td>
+                    <td id="SupId" style="border-top: none; text-align: left; padding: 3px; width: 30% ">
+                        :
+                        <input type="text" value="@Model.SupplierId" style="display:none;" />
+                        @Html.Kendo().DropDownListFor(model => model.SupplierId).BindTo((System.Collections.IEnumerable)ViewData["Supplier"]).DataTextField("Name").DataValueField("Id").OptionLabel(" -- Select Supplier -- ").Filter(FilterType.Contains)
+
+                        @*@(Html.Kendo().DropDownListFor(model => model.SupplierId)
+                        .BindTo((System.Collections.IEnumerable)ViewData["Supplier"])
+                        .DataTextField("Name")
+                        .DataValueField("Id")
+                        .OptionLabel(" -- Select Supplier -- ")
+                        .Filter(FilterType.Contains))*@
+                        @Html.ValidationMessageFor(model => model.SupplierId, "", new { @class = "text-danger" })
+                    </td>
+                </tr>
+            </table>
+
+            <br />
+            <!-- Body [Sales Item] -->
+            <table id="tblItemReturn" style="width:100%">
+                <tr>
+                    <th>
+                        No
+                    </th>
+                    <th>
+                        Product
+                    </th>
+                    <th>
+                        Qty
+                    </th>
+                    <th>
+                        Unit Price
+                    </th>
+                    <th>
+                        Total
+                    </th>
+                    <th>
+                        Remarks
+                    </th>
+                    <th>
+                        Action
+                    </th>
+                </tr>
+                @if (Model.ItemReturns != null && Model.ItemReturns.Any())
+                {
+                    foreach (var item in Model.ItemReturns)
+                    {
+                        <tr>
+                            <td class="id" style="display:none"><span>@item.Id</span></td>
+                            <td style="width:5%">@index</td>
+                            <td style="width:20%; text-align:left">
+                                @Html.DisplayFor(modelItem => item.ProductName)
+                            </td>
+                            <td class="qty" style="width:5%">
+                                <span>@item.Qty</span>
+                                <input type="text" value="@item.Qty" style="display:none; width:100%" />
+                            </td>
+                            <td class="unitprice" style="width:10%">
+                                <span>@item.UnitPrice</span>
+                            </td>
+                            <td class="linetotal" style="width:10%">
+                                <span>@item.LineTotal</span>
+                            </td>
+                            <td class="remarks" style="width:10%">
+                                <span>@item.Remarks</span>
+                            </td>
+                            <td style="text-align:center; width:10%">
+                                <a class="Delete" href="javascript:;"><img src="~/Images/dustbin.png" style="width:25px" /></a>
+                            </td>
+                        </tr>
+
+                        index++;
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="8">No sales details available.</td></tr>
+                }
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td><strong>@Model.totalQty</strong></td>
+                    <td></td>
+                    <td><strong>@Model.subtotal</strong></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </table>
+            <br />
+            <div style="float:right; padding-top:100px">
+                <input type="button" value="CONFIRM" onclick="ShowModelPopUp();" class="btn btn-success fontsize" style="width:250px; height:100px; float:right" />
+            </div>
+            <table id="Addtable">
+                <tr>
+                    <td style="text-align: left;">Product</td>
+                    <td class="Product" style="text-align: left;">
+                        @(Html.Kendo().DropDownList()
+                                .Name("Products")
+                                .HtmlAttributes(new { id = "ProductDropdown", @class = "form-control col-md-2", style = "width: 450px;" })
+                                .BindTo((System.Collections.IEnumerable)ViewData["Products"])
+                                .DataTextField("ProductName")
+                                .DataValueField("ProductId")
+                                .OptionLabel(" -- Select Products -- ")
+                                .Filter(FilterType.Contains))
+                        @*@Html.DropDownList("Products", new SelectList(Products, "ProductId", "ProductName"), "----- Select -----", new { @class = "form-control col-md-2", @style = "width : 100%;" })*@
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align: left;">Qty</td>
+                    <td>
+                        <input type="text" id="Qty" placeholder="0" style="width: 100%" />
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align: left;">Unit Price</td>
+                    <td>
+                        <input type="text" id="UnitPrice" placeholder="0.00" style="width: 100%" />
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align: left;">Selling Price</td>
+                    <td>
+                        <input type="number" id="SellingPrice" placeholder="0.00" disabled="disabled" />
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align: left;">Remarks</td>
+                    <td>
+                        <input type="text" id="subRemarks" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                    <td style="text-align:right">
+                        <a class="Add" href="javascript:;"><img src="~/Images/cart.png" style="width:30px" /></a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        </div>
+    </div>
+</body>
+<style>
+    th, td {
+        border-top: 1px solid #ddd;
+        text-align: center;
+    }
+
+    legend {
+        padding: 0.2em 0.5em;
+        color: grey;
+        font-size: 130%;
+    }
+
+    fieldset {
+        border: 1px solid grey;
+        padding: 1em;
+        font: 100%/1 sans-serif;
+    }
+
+    label {
+        float: left;
+        width: 25%;
+        margin-right: 0.5em;
+        padding-top: 0.2em;
+        text-align: right;
+        font-weight: bold;
+    }
+
+    td {
+        padding-left: 20px;
+    }
+
+    .k-upload .k-upload-button {
+        min-width: 7.167em;
+        margin-right: 0em;
+    }
+
+    .k-dropzone {
+        border-style: solid;
+        border-width: 0;
+        padding: .2em;
+        background-color: white;
+    }
+
+    .k-dropdown, .k-textbox {
+        /*width: 100%;*/
+        max-width: 100%;
+        width: 18.4em;
+    }
+
+    .fontsize {
+        font-size: 25px;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(function () {
+            $("#close").click(function () {
+                window.open('@Url.Action("Return", "Stock", new { cnno = "" })', "_self");
+            });
+        });
+
+            $("html, body").animate({
+                scrollTop: 0
+            }, 200);
+    </script>
+}
+<script type="text/javascript">
+     $(document).ready(function () {
+        // Get a reference to the dropdown element
+        var productDropdown = $("#ProductDropdown").data("kendoDropDownList");//.dataSource.options.data;
+
+        if (productDropdown) {
+            productDropdown.bind("change", function (e) {
+
+                var selectedValue = this.value();
+                console.log("Selected value: " + selectedValue);
+
+                var products = @Html.Raw(Json.Encode(ViewData["Products"]));
+
+                var selectedProduct = products.find(function(product) {
+                    return product.ProductId == selectedValue;
+                });
+
+                var qtyInput = document.getElementById("Qty"); // Change to the correct ID of your Qty input
+                var unitPriceInput = document.getElementById("UnitPrice"); // Change to the correct ID of your UnitPrice input
+                var sellingPrice = document.getElementById("SellingPrice");
+
+                if (qtyInput && unitPriceInput) {
+                    if (selectedProduct) {
+                        // Set the "Qty" input value to 1
+                        qtyInput.value = "1";
+
+                        // Set the "UnitPrice" input value to the unit price of the selected product
+                        unitPriceInput.value = selectedProduct.Cost.toFixed(2);
+                        sellingPrice.value = selectedProduct.Price.toFixed(2);
+                    }
+                    else {
+                        unitPriceInput.value = "";
+                        sellingPrice.value = "";
+                    }
+                }
+                else {
+                    console.error("QtyInput or UnitPriceInput element not found.");
+                }
+
+                console.log("Selected Product: " + selectedValue);
+            });
+        } else {
+            console.error("Kendo DropDownList not found on #ProductDropdown");
+        }
+    });
+
+    //Add event handler.
+    $("body").on("click", "#Addtable .Add", function () {
+        var productDropdown = $("#ProductDropdown").data("kendoDropDownList");
+        var cnno = document.getElementById("CNNo");
+        var qtyInput = document.getElementById("Qty");
+        var unitPriceInput = document.getElementById("UnitPrice");
+        var supid = document.getElementById("SupplierId").value;
+        var remarks = document.getElementById("Remarks").value;
+        var subremarks = document.getElementById("subRemarks").value;
+
+        if (productDropdown.value === "") {
+            return alert("Product is required.");
+        }
+
+        if (!qtyInput || !unitPriceInput) {
+            return alert("Qty or UnitPrice element not found.");
+        }
+        //if (cnno.value === "") {
+        //    alert("CN No is required.");
+        //    return;
+        //}
+
+        // Get the selected value
+        var selectedValue = parseInt(productDropdown.value());
+        var products = @Html.Raw(Json.Encode(ViewData["Products"]));
+        var selectedProduct = products.find(function (product) {
+            return product.ProductId === selectedValue;
+        });
+        var unitprice = parseFloat(unitPriceInput.value).toFixed(2);
+        var qty = parseInt(qtyInput.value);
+        var orig_unitprice = parseFloat(selectedProduct.Cost).toFixed(2);
+        var disc = orig_unitprice - unitprice;
+        var total = qty * unitprice;
+        cnno = cnno.value != "undefined" ? cnno.value : "";
+
+        if (selectedProduct.QtyAvailable < qty && selectedProduct.TypeName == "Product") {
+            return alert("\nFailed to Insert! \n" + selectedProduct.ProductName + " insufficient stock.");
+        }
+
+        $.ajax({
+            url: '@Url.Action("AddItemReturn", "Stock")', //"/Stock/AddItemReturn",
+            type: "POST",
+            data: {
+                poid: @Model.Id ?? 0,
+                cnno: cnno,
+                pid: selectedValue,
+                qty: qty,
+                price: orig_unitprice,
+                disc: disc,
+                total: total,
+                supid: supid,
+                remarks: remarks, // main remarks
+                subremark: subremarks,
+            },
+            success: function (response) {
+                if (response.success === false) {
+                    // Display error message if duplicate CNNo is detected
+                    alert(response.message);
+                }
+                else {
+                    var supid = response.supid;
+                    var cnno = response.cnno;
+                    var remarks = response.remarks;
+
+                    var url = '@Url.Action("CreditNote", "Stock")' + '?id=@Model.Id&supid=' + encodeURIComponent(supid)
+                        + '&cnno=' + encodeURIComponent(cnno) + '&remarks=' + encodeURIComponent(remarks);
+                    window.location.href = url;
+                }
+            },
+            error: function (error) {
+                // Handle errors if the AJAX call fails
+                alert('An error occurred while processing the request.');
+            }
+        });
+    });
+
+    //Delete event handler.
+    $("body").on("click", "#tblItemReturn .Delete", function () {
+        if (confirm("Do you want to delete this item?")) {
+            var row = $(this).closest("tr");
+            var id = row.find(".id").find("span").html();
+            id = parseInt(id);
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("DeleteItemReturn", "Stock")',//"/Stock/DeleteItemReturn",
+                data: {
+                    id: id,
+                },
+                success: function (response) {
+                    window.location.reload();
+                }
+            });
+        }
+    });
+
+    function ShowModelPopUp() {
+        var supid = document.getElementById("SupId").value;
+        var supId = parseInt(supid, 10);
+        if (!isNaN(supId)) {
+            supId = 0;
+        }
+
+         var cnno = document.getElementById("CNNo").value;
+        var remarks = document.getElementById("Remarks").value;
+        var totalQty = parseInt(@Model.totalQty);
+        var totalDisc = parseFloat(@Model.totalDisc).toFixed(2);
+        var subtotal = parseFloat(@Model.subtotal).toFixed(2);
+
+         // Check if the conversion was successful
+         //if (!cnno) {
+         //    return window.alert("Please insert CN No.");
+         //}
+         if (@Model.Id > 0) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("Update_StockReturn", "Stock")',
+                data: {
+                    cnid: @Model.Id,
+                    supid: supId,
+                    cnno: cnno,
+                    remarks: remarks,
+                    totalqty: totalQty,
+                    totalDisc: totalDisc,
+                    subtotal: subtotal,
+                },
+                success: function (response) {
+                    if (response != "-1") {
+                        var url = '@Url.Action("PreviewCN", "Stock")' + '?id=' + encodeURIComponent(response);
+                        window.location.href = url;
+                    }
+                    else {
+                        alert(response);
+                    }
+                }
+            });
+        }
+        else {
+             $.ajax({
+                type: "POST",
+                url: '@Url.Action("Create_StockReturn", "Stock")',//"/Stock/DeleteItemReturn",
+                data: {
+                    supid: supId,
+                    cnno: cnno,
+                    remarks: remarks,
+                    totalqty: totalQty,
+                    totaldisc: totalDisc,
+                    subtotal: subtotal,
+                },
+                 success: function (response) {
+                     if (response != "-1") {
+                         var url = '@Url.Action("PreviewCN", "Stock")' + '?id=' + encodeURIComponent(response);
+                         window.location.href = url;
+                     }
+                     else {
+                         alert(response);
+                     }
+                 }
+            });
+         }
+    }
+</script>

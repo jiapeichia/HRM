@@ -1,0 +1,101 @@
+﻿@model Meo.Web.ViewModels.PackageDetailsViewModels
+
+@{
+    ViewBag.Title = "Package Details Editor";
+}
+
+@*@using (Html.BeginForm("Create_PackageDetails", "Package", FormMethod.Post, new { @packageid = @ViewBag.PackageId }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(m => m.PackageId)
+        <div style="padding-left: 15px; padding-right: 25px">
+            <label style="text-align:left" for="ItemId">Item</label>
+            @(Html.Kendo().DropDownListFor(m => m.ItemId)
+                  .DataTextField("ProductName")
+                  .DataValueField("ProductId")
+                  .BindTo((System.Collections.IEnumerable)ViewData["Product"])
+                  .Filter(FilterType.Contains))
+        </div>
+        <div style="padding-left: 15px; padding-right: 33px">
+            <label style="text-align:left" for="ItemType">Item Type</label>
+            @Html.EditorFor(m => m.ItemType)
+        </div>
+        <div style="padding-left: 15px; padding-right: 25px">
+            <label style="text-align:left" for="Remarks">Remarks</label>
+            @Html.EditorFor(m => m.Remarks)
+        </div>
+        <div style="padding-left: 15px; padding-right: 33px">
+            <label style="text-align:left" for="Qty">Quantity</label>
+            @Html.EditorFor(m => m.Qty)
+        </div>
+
+        <input type="submit" value="Submit" />
+    }*@
+
+@*//Hidden field to store the PackageId*@
+@*<input type="hidden" id="PackageId" name="PackageId" value="@ViewBag.PackageId" />*@
+<input type="hidden" id="PackageId" name="PackageId" value="@ViewData["PackageId"]" />
+
+<div style="padding-left: 15px; padding-right: 25px">
+    <label style="text-align:left" for="ItemId">Item</label>
+    @(Html.Kendo().DropDownListFor(m => m.ItemId)
+          .DataTextField("ProductName")
+          .DataValueField("ProductId")
+          .BindTo((System.Collections.IEnumerable)ViewData["Product"])
+          .Filter(FilterType.Contains))
+</div>
+<div style="padding-left: 15px; padding-right: 33px">
+    <label style="text-align:left" for="Qty">Quantity</label>
+    @Html.EditorFor(m => m.Qty)
+</div>
+<div style="padding-left: 15px; padding-right: 25px" rowspan="5">
+    <label style="text-align:left" for="Remarks">Remarks</label>
+    @Html.TextAreaFor(m => m.Remarks)
+</div>
+
+
+<!--<table>
+    <tbody>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.PackageId, new { @style = "width : 100px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @Html.EditorFor(model => model.PackageId, new { @style = "width : 100%;", @class = "form-control", @value = ViewBag.PackageId })
+                @Html.ValidationMessageFor(model => model.PackageId)
+            </td>
+        </tr>-->
+@*@Html.HiddenFor(m => m.PackageId)*@
+<!--<tr>
+            <td>
+            </td>
+            <td>
+                @Html.EditorFor(model => model.Qty, new { @style = "width : 100%;", @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.Qty)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.ItemId, "Item", new { @style = "width : 100px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @(Html.Kendo().DropDownListFor(model => model.ItemId)
+                .BindTo((System.Collections.IEnumerable)ViewData["Product"])
+                .DataTextField("ProductName")
+                .DataValueField("ProductId")
+                .Filter(FilterType.Contains))
+                @Html.ValidationMessageFor(model => model.ItemId)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.Remarks, new { @style = "width : 100px", @class = "control-label col-md-2" })
+            </td>
+
+            <td style="border-top: none; padding: 3px; width: 40%; text-align: left">
+                @Html.TextAreaFor(model => model.Remarks, new { @style = "width : 170px", rows = 6, @id = "Remarks" })
+                @Html.ValidationMessageFor(model => model.Remarks)
+            </td>
+        </tr>
+    </tbody>
+</table>-->

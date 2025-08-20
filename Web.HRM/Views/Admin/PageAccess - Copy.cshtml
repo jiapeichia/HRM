@@ -1,0 +1,81 @@
+﻿@using Meo.Web.ViewModels
+@using Kendo.Mvc.UI
+
+@{
+    ViewBag.Title = "Page Access";
+}
+
+<div class="page-content">
+    @using (Html.BeginForm("Update_PageAccess", "Admin", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+    {
+        <table style="width:100%">
+            <tr>
+                <td>
+                    <h2 class="pagetitle">Access Given to : @Session["EmpName"].ToString()</h2>
+                </td>
+                <td>
+                    <span style="padding-right:5px"><button id="update" data-bind="click: update" class="btn btn-primary" style="width:110px;padding:5px">UPDATE</button> </span>
+                    <input type="button" value="BACK" class="btn btn-default" id="backHome" style="width: 100px; float: right" onclick="goBack()" />
+                </td>
+            </tr>
+        </table>
+
+        @(Html.Kendo().Grid<PageAccessViewModels>()
+            .Name("GridForPageAccesses")
+            .HtmlAttributes("100%")
+            .Columns(columns =>
+            {
+                columns.ForeignKey(c => c.PageId, (System.Collections.IEnumerable)ViewData["Page"], "Id", "Name").Title("Button Name").Width("250px");
+                columns.Bound(c => c.Active).ClientTemplate("# if(Active==1){#" + "<div align='center'><input type='checkbox' checked='checked' class='readchkbox'/></div>" + "#}else{#" + "<div align='center'><input type='checkbox' class='readchkbox'/></div>" + "#}#").Width(130).Title("<div align='center'>Access</div>");
+                //columns.Command(command => { command.Edit(); command.Destroy(); });
+            })
+            //.ToolBar(commands => { commands.Create().Text("+ Create New"); })
+            .Editable(editable => editable.Mode(GridEditMode.InLine).ConfirmDelete("Delete Confirmation").DisplayDeleteConfirmation("Are you sure to delete this record?"))
+            .Pageable(pageable => pageable
+            .Refresh(true).Messages(m => m.Refresh(string.Empty)))
+            .DataSource(dataSource => dataSource
+            .Ajax()
+            .PageSize(20)
+            .Events(events => events.Error("error_handler").Sync("sync_handler"))
+            .Read(read => read.Action("Read_PageAccess", "Admin", new { id = @Session["Emp_id_pageaccess"].ToString() }))
+            .Update(update => update.Action("Update_PageAccess", "Admin"))
+            .Sort(sort =>
+            {
+                sort.Add(c => c.PageId);
+            })
+            .Model(model =>
+            {
+                model.Id(e => e.PageAccess_id);
+                model.Id(e => e.PageId);
+                model.Field(e => e.PageAccess_id).Editable(false);
+            }))
+        .NoRecords("No Records Found"))
+    }
+</div>
+
+@* Error msg to be shown & sync grid table automatically *@
+<script type="text/javascript">
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+
+    function sync_handler(e) {
+        this.read();
+    }
+
+    function goBack() {
+        window.history.back();
+    }
+</script>
+
+

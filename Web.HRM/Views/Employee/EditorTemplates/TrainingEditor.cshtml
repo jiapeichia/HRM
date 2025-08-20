@@ -1,0 +1,115 @@
+﻿@model Meo.Web.ViewModels.TrainingViewModels
+
+@{
+    ViewBag.Title = "Training";
+}
+
+
+<div style="padding:10px">
+    <fieldset>
+        <legend>Training</legend>
+
+        <table style="width:100%">
+            <tbody>
+                <tr>
+                    <td style="width:5%">@Html.LabelFor(model => model.CourseTitle, new { @style = "width : 150px", @class = "control-label col-md-2" })</td>
+                    <td>
+                        @Html.EditorFor(model => model.CourseTitle)
+                        @Html.ValidationMessageFor(model => model.CourseTitle)
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width:5%">@Html.LabelFor(model => model.StartDate, new { @style = "width : 150px", @class = "control-label col-md-2" })</td>
+                    <td>
+                        @(Html.Kendo().DatePickerFor(model => model.StartDate)
+.Culture("en-IE")
+.Format("dd/MM/yyyy")
+.ParseFormats(new List<string>() { "dd/MM/yyyy" })
+.HtmlAttributes(new { @class = "form-control" }))
+                    </td>
+                </tr>
+                <tr>
+                    <td>@Html.LabelFor(model => model.CourseProvider, new { @style = "width : 150px", @class = "control-label col-md-2" })</td>
+                    <td>@Html.EditorFor(model => model.CourseProvider)</td>
+                </tr>
+                <tr>
+                    <td>@Html.LabelFor(model => model.EndDate, new { @style = "width : 150px", @class = "control-label col-md-2" })</td>
+                    <td>
+                        @(Html.Kendo().DatePickerFor(model => model.EndDate)
+.Culture("en-IE")
+.Format("dd/MM/yyyy")
+.ParseFormats(new List<string>() { "dd/MM/yyyy" }))
+                    </td>
+                </tr>
+                <tr>
+                    <td>@Html.LabelFor(model => model.CourseCategory_id, new { @style = "width : 150px", @class = "control-label col-md-2" })</td>
+                    <td>
+                        @Html.Kendo().DropDownListFor(model => model.CourseCategory_id).BindTo((System.Collections.IEnumerable)ViewData["CourseCategory"]).DataTextField("CourseCategory_name").DataValueField("CourseCategory_id").OptionLabel("Select Category")
+                        @Html.ValidationMessageFor(model => model.CourseCategory_id)
+                    </td>
+                </tr>
+                <tr>
+                    <td>@Html.LabelFor(model => model.CourseDuration, new { @style = "width : 150px", @class = "control-label col-md-2" })</td>
+                    <td>@Html.Kendo().TextBoxFor(model => model.CourseDuration)</td>
+                </tr>
+                <tr>
+                    <td>@Html.LabelFor(model => model.CourseFee, new { @style = "width : 150px", @class = "control-label col-md-2" })</td>
+                    <td>@Html.Kendo().TextBoxFor(model => model.CourseFee)</td>
+                </tr>
+                <tr>
+                    <td>@Html.LabelFor(model => model.Currency_id, new { @style = "width : 150px", @class = "control-label col-md-2" })</td>
+                    <td>
+                        @* @Html.Kendo().DropDownListFor(model => model.Currency_id).BindTo((System.Collections.IEnumerable)ViewData["Currency"]).DataTextField("Currency").DataValueField("Currency_id").OptionLabel("Select Currency").Filter(FilterType.Contains)*@
+                        @* @Html.ValidationMessageFor(model => model.Currency_id)*@
+                    </td>
+                </tr>
+                @*<tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>
+                <div style="float:right"><button id="clear" data-bind="click: clear" class="btn btn-primary">Clear</button> <button id="create" data-bind="click: create" class="btn btn-primary">Add New</button></div>
+            </td>
+        </tr>*@
+                @*<tr>
+                                <td></td>
+                                <td colspan="4">
+                                    @(Html.Kendo().Grid<Meo.Web.ViewModels.TrainingViewModels>()
+        .Name("GridForTraining")
+        .HtmlAttributes("50%")
+        .Columns(columns =>
+        {
+        columns.Bound(model => model.Attachement);
+        columns.Bound(model => model.CourseTitle);
+        columns.Bound(model => model.CourseProvider);
+        columns.Bound(model => model.CourseCategory_id);
+        columns.Bound(model => model.StartDate);
+        columns.Bound(model => model.EndDate);
+        columns.Bound(model => model.CourseDuration);
+        columns.Bound(model => model.CourseFee);
+        columns.Bound(model => model.Currency_id);
+        columns.Bound(model => model.Update_date).Title("Last update");
+                            //  columns.ForeignKey(c => c.Update_by, (System.Collections.IEnumerable)ViewData["Employee"], "Emp_id", "DisplayName").Title("Update By").Filterable(false);
+                            columns.Command(command => { command.Edit(); command.Destroy(); }).Width(110);
+        })
+        .Pageable()
+        .DataSource(source => source
+        .Ajax()
+        .PageSize(10)
+        .Model(model =>
+        {
+        model.Id(item => item.CourseCategory_id);
+        model.Field(item => item.CourseCategory_id).Editable(false);
+        }))
+        .Resizable(resize => resize.Columns(true))
+        .NoRecords("No Records Found")
+                                    )
+                                </td>
+                            </tr>*@
+            </tbody>
+        </table>
+
+    </fieldset>
+
+</div>

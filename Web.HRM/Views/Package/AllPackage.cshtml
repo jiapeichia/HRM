@@ -1,0 +1,132 @@
+﻿@using Meo.Web.ViewModels
+@model IEnumerable<Meo.Web.ViewModels.EmployeeViewModels>
+@using Kendo.Mvc.UI
+
+@{
+    ViewBag.Title = "Package";
+}
+
+<div>
+    @(Html.Kendo().Grid<PackageViewModels>()
+        .Name("GridForPackage")
+        .HtmlAttributes("100%")
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.Code);
+            columns.Bound(c => c.Description);
+            columns.Bound(c => c.Remarks);
+            columns.Bound(c => c.TotalCost);
+            columns.Bound(c => c.SellingPrice);
+            columns.Bound(c => c.ExpiryPeriod).ClientTemplate("# if (ExpiryPeriod > 0) { #" +
+                "#=ExpiryPeriod#" + " Months" + "# } #").Width("80px");
+            columns.Bound(c => c.Active).ClientTemplate("# if (Active == false) { #" +
+               "Active" +
+           "# } else if (Active == true) { #" +
+               "Inactive" +
+           "# } else { #" +
+           "# } #"
+           ).Width("80px");
+            //  columns.Bound(c => c.CreditBuy).ClientTemplate("# if (CreditBuy == false) { #" +
+            //    "No" +
+            //"# } else if (CreditBuy == true) { #" +
+            //    "Yes" +
+            //"# } else { #" +
+            //"# } #"
+            //).Width("80px").Title("Credit Buy?");
+            columns.Bound(c => c.GIROBuy).ClientTemplate("# if (GIROBuy == false) { #" +
+               "No" +
+           "# } else if (GIROBuy == true) { #" +
+               "Yes" +
+           "# } else { #" +
+           "# } #"
+           ).Width("80px").Title("Allow GIRO?");
+            columns.Bound(c => c.Id).Title("").ClientTemplate("<a href='" + @Url.Action("UpdateDetails", "Package", new { packageId = "#=Id#" }) + "' ><span class='k-button k-button-icontext k-grid-edit'>Update</span></a>").Width(100);
+            columns.Command(command => command.Destroy()).Width(100);
+        })
+        .Pageable(pageable => pageable
+        .Refresh(true).Messages(m => m.Refresh(string.Empty)))
+        .Events(e => e.Edit("onRequest"))
+        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("PackageEditor"))
+        .ToolBar(toolbar => toolbar.Template("<a id='Create' class='k-button k-button-icontext k-grid-add' href='#'> + Create New </a>"))
+        .Sortable()
+        .Resizable(resize => resize.Columns(true))
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(10)
+        .Events(events => events.Error("error_handler").Sync("sync_handler").RequestEnd("onRequestEnd"))
+        .Sort(sort => sort.Add("Code").Ascending())
+        .ServerOperation(true)
+        .Read(read => read.Action("Read_Package", "Package", new { searchContent = ViewBag.searchContent }))
+        .Create(create => create.Action("Create_Package", "Package"))
+        .Update(update => update.Action("Update_Package", "Package"))
+        .Destroy(update => update.Action("Destroy_Package", "Package"))
+        .Model(modelItem =>
+        {
+            modelItem.Id(e => e.Id);
+        })
+        ).NoRecords("No Records Found")
+    )
+</div>
+
+<span id="notification" style="display:none;"></span>
+
+@* Error msg to be shown & sync grid table automatically *@
+<script type="text/javascript">
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+
+    function sync_handler(e) {
+        this.read();
+    }
+
+    $("#close").click(function () {
+        window.open('@Url.Action("Index", "Home")', "_self");
+    });
+
+    @* Set window header *@
+    function onRequest(e) {
+    $(".k-window-title").text("Package Editor");
+     $('.k-widget.k-window .k-window-titlebar').css({
+         'background-color': 'white'
+     });
+     $('.k-header').css({
+         'border-color': 'white'
+     });
+
+     @* Auto Focus on selected field *@
+     var arg = e;
+     arg.container.data('kendoWindow').bind('activate', function () {
+         arg.container.find("input[name='Code']").focus();
+     })
+    }
+
+    function onRequestEnd(e) {
+        var notificationWidget = $("#notification").kendoNotification(
+            {
+                position: {
+                    pinned: true,
+                    top: 100,
+                    right: 50
+                },
+            }).data("kendoNotification");
+
+        if (e.type == "create" && !e.response.Errors) {
+            notificationWidget.show("New Record created!", "success");
+        } else if (e.type == "update" && !e.response.Errors) {
+            notificationWidget.show("Update Successfully", "success");
+        } else if (e.response.Errors) {
+            notificationWidget.show("Fail to update", "warning");
+        }
+    }
+</script>

@@ -1,0 +1,81 @@
+﻿<head>
+    @section Scripts {
+        @Scripts.Render("~/bundles/jqueryval")
+
+        <script>
+            function error_handler(e) {
+                if (e.errors) {
+                    var message = "Errors:\n";
+                    $.each(e.errors, function (key, value) {
+                        if ('errors' in value) {
+                            $.each(value.errors, function () {
+                                message += this + "\n";
+                            });
+                        }
+                    });
+                    alert(message);
+                }
+            }
+
+            function sync_handler(e) {
+                this.read();
+            }
+
+            // --- collapse all group grid ---
+            var collapseAllGroups = function (grid) {
+                grid.table.find(".k-grouping-row").each(function () {
+                    grid.collapseGroup(this);
+                });
+            }
+
+            //On the grid
+            function dataBound() {
+                collapseAllGroups(this);
+            }
+        </script>
+    }
+</head>
+<div>
+    @(Html.Kendo().Grid<Meo.Web.ViewModels.ServiceReportViewModels>()
+        .Name("GridForServiceReport")
+        .HtmlAttributes(new { style = "100%" })
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.CusId).Title("").ClientTemplate(
+                "# if (data.ImagePath != null) { #"
+                + "<div class='small-photo' style='background-image: url(" + @Url.Content("~/Images/Customer/#:data.ImagePath#") + ");'></div>"
+                + "# } else { #"
+                + "<div class='small-photo' style='background-image: url(" + @Url.Content("~/Images/Customer/user.png") + ");'></div>"
+                + "# } #"
+                + "<div class='customer-name'>#: CardNo #</div>").Width("50px");
+            columns.ForeignKey(c => c.CusId, (System.Collections.IEnumerable)ViewData["Customer"], "CusId", "FullName").Title("Customer");
+            columns.Bound(c => c.PICName);
+            columns.Bound(c => c.ServiceName);
+            columns.Bound(c => c.ServiceDate);
+            columns.Bound(c => c.Remarks);
+            columns.Bound(c => c.SalesId).Title("Preview").ClientTemplate("<a href='" + @Url.Action("PreviewINV", "Sales", new { salesid = "#=SalesId#", from = "servicereport" }) + "' ><span class='k-button k-button-icontext k-grid-edit'>#=SalesId#</span></a>").Width(100);
+            //columns.Bound(c => c.SalesId).Title("Preview").ClientTemplate("<a href='" + @Url.Action("Preview", "Report", new { id = "#=SalesId#" }) + "' ><span class='k-button k-button-icontext k-grid-edit'>#=SalesId#</span></a>").Width(100);
+        })
+        .ToolBar(t => t.Excel().HtmlAttributes(new { style = "float: right" }))
+        .Excel(excel => excel
+        .AllPages(true)
+        .FileName("EmployeeServiceReport" + ".xlsx")
+        )
+        .Sortable()
+        .Pageable(pageable => pageable
+        .Refresh(true).Messages(m => m.Refresh(string.Empty)))
+        .DataSource(source => source
+        .Ajax()
+        .PageSize(10)
+        .Events(events => events.Error("error_handler").Sync("sync_handler"))
+        .Sort(sort => sort.Add("ServiceDate").Ascending())
+        .Model(model =>
+        {
+            model.Id(tc => tc.SalesId);
+        })
+        .Read(read => read.Action("GetServiceReportData", "Report", new { empNo = ViewBag.empNo, startDate = ViewBag.StartDate, endDate = ViewBag.EndDate }))
+        )
+        .Resizable(resize => resize.Columns(true))
+        .NoRecords("No Records Found")
+    )
+</div>

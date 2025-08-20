@@ -1,0 +1,267 @@
+﻿@model Meo.Web.ViewModels.ReceiptModel
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Receipt</title>
+
+    <style>
+        /* Common table styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            border-top: 1px solid darkgrey;
+            border-bottom: 1px solid darkgrey;
+            text-align: left;
+            font-size: 11px;
+        }
+
+        td {
+            font-size: 11px;
+        }
+
+        /* Print-specific settings */
+        @@media print {
+            @@page {
+                size: auto;
+                margin: 5mm;
+            }
+        }
+    </style>
+</head>
+<body>
+    @* header *@
+    <div style="text-align: center; padding-bottom: 5px;">
+        <span style="font-size: 13px;"><strong>@Model.StoreName</strong></span><br />
+        <span style="font-size: 11px;">@Model.RegNo</span><br />
+        <span style="font-size: 11px;">@Model.Address1</span><br />
+        <span style="font-size: 11px;">@Model.Address2</span><br />
+        @if (Model.Address3 != null)
+        {
+            <span style="font-size: 11px;">@Model.Address3</span><br />
+        }
+        <span style="font-size: 11px;">TEL: @Model.Tel</span>
+    </div>
+    <div style="text-align: center; padding-bottom: 5px; "><span style="font-size: 13px;"><strong>@Model.ReceiptHeader</strong></span></div>
+
+    @* body *@
+    <table>
+        <tr>
+            <td>
+                Invoice No.
+            </td>
+            <td>
+                : @Model.SalesId
+            </td>
+            <td>
+                Paid By
+            </td>
+            <td>
+                : @Model.PaymentMethod
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Date
+            </td>
+            <td>
+                : @Model.Date
+            </td>
+            <td>
+                Card No.
+            </td>
+            <td>
+                : @Model.CardNo
+            </td>
+        </tr>
+    </table>
+    <table>
+        <tr>
+            <th>
+                Code/Desc
+            </th>
+            @if (Model.PaymentMethod.Equals("Credit"))
+            {
+                <th style="text-align: right">
+                    Credit(CR)
+                </th>
+                <th style="text-align: right; padding-left: 2px;">
+                    Qty
+                </th>
+                <th style="text-align: right; padding-left: 2px;">
+                    Amt(CR)
+                </th>
+            }
+            else
+            {
+                <th style="text-align: right">
+                    Price(RM)
+                </th>
+                <th style="text-align: right; padding-left: 2px;">
+                    Qty
+                </th>
+                <th style="text-align: right; padding-left: 2px;">
+                    Amt(RM)
+                </th>
+            }
+        </tr>
+        @foreach (var item in Model.ReceiptItems)
+        {
+            <tr>
+                <td>
+                    @item.ProductCode
+                </td>
+                <td style="text-align: right">
+                    @item.UnitPrice
+                </td>
+                <td style="text-align: right">
+                    *@item.Quantity
+                </td>
+                <td style="text-align: right">
+                    @item.LineTotal
+                </td>
+            </tr>
+            <tr>
+                <td colspan="4">
+                    @item.ProductName
+                </td>
+            </tr>
+        }
+    </table>
+    <br />
+    <br />
+    <table style="font-size: 11px; border-top: 1px darkgrey dotted; border-bottom: 1px darkgrey dotted; ">
+        @if (Model.PaymentMethod.Equals("Credit"))
+        {
+            <tr>
+                <td colspan="3" style="font-size: 11px;">
+                    TOTAL (CR)
+                </td>
+                <td style="font-size: 11px; text-align:right">
+                    @Model.CRTotalAmount
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3" style="font-size: 11px">
+                    CREDIT BALANCE (CR)
+                </td>
+                <td style="font-size: 11px; text-align: right ">
+                    @Model.CreditBal
+                </td>
+            </tr>
+        }
+        else
+        {
+            if (!string.IsNullOrEmpty(Model.TotalDisc.ToString()) && Model.TotalDisc.ToString() != "0.00")
+            {
+                <tr>
+                    <td colspan="3" style="font-size: 11px">
+                        SUBTOTAL (RM)
+                    </td>
+                    <td style="font-size: 11px; text-align: right ">
+                        @Model.SubTotal
+                    </td>
+                </tr>
+                <tr style="border-bottom: 1px darkgrey dotted;">
+                    <td colspan="3" style="font-size: 11px">
+                        DISCOUNT (RM)
+                    </td>
+                    <td style="font-size: 11px; text-align: right ">
+                        (@Model.TotalDisc)
+                    </td>
+                </tr>
+            }
+            <tr>
+                <td colspan="3" style="font-size: 11px;">
+                    TOTAL (RM)
+                </td>
+                <td style="font-size: 11px; text-align:right">
+                    @Model.TotalAmount
+                </td>
+            </tr>
+
+            <tr>
+                <td colspan="3" style="font-size: 11px">
+                    PAID AMOUNT (RM)
+                </td>
+                <td style="font-size: 11px; text-align: right ">
+                    @Model.TotalPaid
+                </td>
+            </tr>
+            <tr>
+                @if (string.IsNullOrEmpty(Model.TotalBalanceString))
+                {
+                    <td colspan="3" style="font-size: 11px">
+                        BALANCE (RM)
+                    </td>
+                    <td style="font-size: 11px; text-align: right ">
+                        @Model.TotalBalance
+                    </td>
+                }
+                else
+                {
+                    <td colspan="3" style="font-size: 11px">
+                        OUTSTANDING AMOUNT (RM)
+                    </td>
+                    <td style="font-size: 11px; text-align: right ">
+                        @Model.TotalBalanceString
+                    </td>
+                }
+            </tr>
+        }
+    </table>
+
+    <div style="text-align:center">
+        <br />
+        <span style="font-size: 11px;">Thank you for choosing <strong>BeYou</strong></span>
+        <br />
+    </div>
+</body>
+</html>
+
+<script>
+    // Call the printReceipt function after redirect
+    window.onload = function () {
+        window.print();
+    };
+</script>
+@*<button onclick="printReceipt()">Print Receipt</button>
+
+    <script>
+            function printReceipt() {
+                window.print();
+            }
+        </script>*@
+
+@*@using (Html.BeginForm("PrintReceipt", "Receipt", FormMethod.Post, new { onsubmit = "afterFormSubmitted();" }))
+    {*@
+<!--<body>-->
+@*@Html.Hidden("salesId", "INV2300043")*@
+<!--<input type="button" value="Print Receipt" class="btn btn-primary" id="print" />
+</body>-->
+@*<input type="submit" value="Print Receipt" id="print" />*@
+@* } *@
+
+<!--<script>
+    // This function will be called when the form is submitted
+    $(document).ready(function () {
+        $("#print").bind("click", function () {
+            $.ajax({
+                url: '@Url.Action("PrintReceipt", "Receipt")', //"/Receipt/PrintReceipt",
+                type: "POST",
+                data: {
+                    //salesId: "INV2300043",
+                },
+                success: function (response) {
+                    alert("Record printed.");
+                    //window.close();
+
+                    //// Reload the parent window after closing the popup
+                    //window.opener.location.reload();
+                }
+            });
+        });
+    });
+</script>-->

@@ -1,0 +1,240 @@
+﻿@model Meo.Web.ViewModels.PackageViewModels
+
+@{
+    ViewBag.Title = "Package Details";
+}
+
+<head>
+    <style>
+        th, td {
+            border-top: 1px solid #ddd;
+            text-align: left;
+        }
+
+        legend {
+            padding: 0.2em 0.5em;
+            color: grey;
+            font-size: 130%;
+        }
+
+        fieldset {
+            border: 1px solid grey;
+            padding: 1em;
+            font: 100%/1 sans-serif;
+        }
+
+        label {
+            float: left;
+            width: 25%;
+            margin-right: 0.5em;
+            padding-top: 0.2em;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        td {
+            padding-left: 20px;
+        }
+
+        .k-upload .k-upload-button {
+            min-width: 7.167em;
+            margin-right: 0em;
+        }
+
+        .k-dropzone {
+            border-style: solid;
+            border-width: 0;
+            padding: .2em;
+            background-color: white;
+        }
+
+        .k-dropdown, .k-textbox {
+            /*width: 100%;*/
+            max-width: 100%;
+            width: 28.4em;
+        }
+
+        .fontsize {
+            font-size: 25px;
+        }
+    </style>
+    @section Scripts {
+        <script>
+    $(function () {
+        $("#close").click(function () {
+            window.open('@Url.Action("AllPackageIndex", "Package")', "_self");
+        });
+
+        $("#specialPayCheckbox").change(function () {
+            if ($(this).is(":checked")) {
+                $("#minFirstTimePayAmount").show();
+            } else {
+                $("#minFirstTimePayAmount").hide();
+            }
+        });
+
+        // Hide input initially if not checked
+        if (!$("#specialPayCheckbox").is(":checked")) {
+            $("#minFirstTimePayAmount").hide();
+        }
+    });
+
+    $("html, body").animate({
+        scrollTop: 0
+    }, 200);
+        </script>
+    }
+</head>
+<body>
+    @{
+        var monthsOptions = new[]
+        {
+        new { Text = "3 Months", Value = 3 },
+        new { Text = "6 Months", Value = 6 },
+        new { Text = "9 Months", Value = 9 },
+        new { Text = "12 Months", Value = 12 },
+        new { Text = "18 Months", Value = 18 },
+        new { Text = "24 Months", Value = 24 },
+    };
+    }
+
+    @using (Html.BeginForm("Update_Package", "Package", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+    {
+        <div class="page-content">
+            <div class="col-md-12 mx-0">
+                <div align="right">
+                    <span style="padding-right:5px"><button id="update" data-bind="click: update" class="btn btn-primary" style="width:110px;padding:5px">UPDATE</button> </span>
+                    <input type="button" value="CANCEL" class="btn btn-default" id="close" style="width:100px" />
+                </div>
+                <br />
+                @Html.HiddenFor(m => m.Id)
+                @Html.HiddenFor(m => m.AddBy)
+                @Html.HiddenFor(m => m.AddDate)
+                @Html.HiddenFor(m => m.ModBy)
+                @Html.HiddenFor(m => m.ModDate)
+                @*// Sales Info*@
+                <div class="sub-content" style="margin-top: 0px; padding-top: 20px">
+                    <div class="card px-0 pt-4 pb-0 mt-3 mb-3" style="text-align: center">
+                        <h2><strong>Package Details</strong></h2>
+                    </div>
+                    <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
+                    <br />
+                    @Html.AntiForgeryToken()
+                    <!-- Header -->
+                <table width="100%">
+                    <tr>
+                        <td style="border-top:none; padding:3px; width:12%">
+                            <strong>Package Code</strong>
+                        </td>
+                        <td style="border-top: none; text-align: left; padding: 3px; width: 25%">
+                            @Html.EditorFor(model => model.Code, new { @style = "width: 350px" })
+                            @Html.ValidationMessageFor(model => model.Code, "", new { @class = "text-danger" })
+                        </td>
+                        <td style="border-top:none; padding:3px; width:12%">
+                            <strong>
+                                @Html.LabelFor(model => model.ExpiryPeriod, new { @style = "width: 100%", @align = "left" })
+                            </strong>
+                        </td>
+                        <td style="border-top: none; padding: 3px; padding-left: 10px; width: 25%">
+                            @(Html.Kendo().DropDownListFor(model => model.ExpiryPeriod)
+                                .BindTo(monthsOptions)
+                                .DataTextField("Text")
+                                .DataValueField("Value")
+                                .OptionLabel(" -- Select Duration -- ")
+                                .Filter(FilterType.Contains)
+                                .HtmlAttributes(new { style = "width: 350px" }))
+                            @Html.ValidationMessageFor(model => model.ExpiryPeriod)
+                        </td>
+                        <td style="border-top: none; padding: 3px; padding-left: 10px;"></td>
+                    </tr>
+                    <tr>
+                        <td style="border-top:none; padding:3px; float:inline-start">
+                            <strong>Description</strong>
+                        </td>
+                        <td style="border-top: none; text-align: left; padding: 3px">
+                            @Html.TextAreaFor(model => model.Description, new { @style = "width : 400px" })
+                            @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+                        </td>
+                        <td style="border-top:none; padding:3px; float:inline-start">
+                            <strong>Remarks</strong>
+                        </td>
+                        <td style="border-top: none; text-align: left; padding: 3px">
+                            @Html.TextAreaFor(model => model.Remarks, new { @style = "width : 400px" })
+                            @Html.ValidationMessageFor(model => model.Remarks, "", new { @class = "text-danger" })
+                        </td>
+                    </tr>
+                    <tr>
+                        @*<td style="border-top:none; padding:3px">
+                <strong>
+                    @Html.LabelFor(model => model.CreditBuy, new { @style = "width: 100%", @align = "left" })
+                </strong>
+            </td>
+            <td style="border-top: none; padding: 3px; padding-left: 10px">
+                @Html.CheckBoxFor(model => model.CreditBuy)
+                @Html.ValidationMessageFor(model => model.CreditBuy)
+            </td>*@
+                        <td style="border-top:none; padding:3px">
+                            <strong>
+                                @Html.LabelFor(model => model.GIROBuy, new { @style = "width: 100%", @align = "left" })
+                            </strong>
+                        </td>
+                        <td style="border-top: none; padding: 3px; padding-left: 10px">
+                            @Html.CheckBoxFor(model => model.GIROBuy)
+                            @Html.ValidationMessageFor(model => model.GIROBuy)
+                        </td>
+                        <td style="border-top: none; padding: 3px; padding-left: 10px">
+                            <strong>
+                                @Html.LabelFor(model => model.SpecialPay, new { @style = "width: 100%", @align = "left" })
+                            </strong>
+                        </td>
+                        <td style="border-top: none; padding: 3px; padding-left: 10px">
+                            @Html.CheckBoxFor(model => model.SpecialPay, new { id = "specialPayCheckbox" })
+                            @*<input type="checkbox" id="specialPayCheckbox" name="SpecialPay" value="@Model.SpecialPay">*@
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="border-top: none; padding: 3px; padding-left: 10px">
+                        </td>
+                        <td style="border-top: none; padding: 3px; padding-left: 10px">
+                        </td>
+                        <td style="border-top: none; padding: 3px; padding-left: 10px;" colspan="2">
+                            <strong>
+                                <label for="minFirstTimePayAmount" style="font-weight: bold;width:150px">1st Payment Amount</label>
+                            </strong>
+                            <input type="number" id="minFirstTimePayAmount" name="FirstPayAmt" value="@Model.FirstPayAmt"  style="width: 200px;">
+                        </td>
+                    </tr>
+                </table>
+                    <br />
+                    <div id="saveDiv">
+                        @{ Html.RenderAction("_PackageDetails", new { packageId = Model.Id }); }
+                    </div>
+
+                    <table width="100%" style="margin-top:30px">
+                        <tr>
+                            <td rowspan="2" style="border-top: none; width: 70%"></td>
+                            <td style="border-top:none; text-align:left; padding:3px ; width: 10%">
+                                <strong>Total Cost </strong>
+                            </td>
+                            <td style="border-top: none; text-align: left; padding: 3px">
+                                @Html.EditorFor(model => model.TotalCost, new { htmlAttributes = new { @style = "width: 250px", @readonly = "readonly", @class = "form-control" } })
+                                @Html.ValidationMessageFor(model => model.TotalCost, "", new { @class = "text-danger" })
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="border-top:none; text-align:left; padding:3px">
+                                <strong>Selling Price </strong>
+                            </td>
+                            <td style="border-top: none; text-align: left; padding: 3px">
+                                @Html.EditorFor(model => model.SellingPrice, new { htmlAttributes = new { @style = "width: 250px", @class = "form-control" } })
+                                @Html.ValidationMessageFor(model => model.SellingPrice, "", new { @class = "text-danger" })
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</body>
+
+

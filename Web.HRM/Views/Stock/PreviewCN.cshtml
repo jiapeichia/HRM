@@ -1,0 +1,220 @@
+﻿@model Meo.Web.ViewModels.CreditNote
+
+@{
+    ViewBag.Title = "Credit Note";
+    var index = 1;
+    var Products = ViewBag.Products;
+    var productsJson = Newtonsoft.Json.JsonConvert.SerializeObject(Products);
+}
+
+<body>
+    <div class="page-content">
+        <div class="col-md-12 mx-0">
+            <div align="right" style="width:100%">
+                <input type="button" value="NEW" class="btn btn-default" id="addnew" style="width:100px" />
+                <input type="button" value="EDIT" class="btn btn-default" id="edit" style="width:100px" />
+                <input type="button" value="BACK" class="btn btn-default" id="close" style="width:100px" />
+            </div>
+            <br />
+
+            @*// Sales Info*@
+            <div class="sub-content" style="margin-top: 0px; padding-top: 20px">
+                <div class="card px-0 pt-4 pb-0 mt-3 mb-3" style="text-align: center">
+                    <h2><strong>Credit Note</strong></h2>
+                </div>
+                <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
+                <br />
+
+                <!-- Header -->
+                <table>
+                    <tr>
+                        <td style="border-top: none; text-align: left; padding: 3px"><strong>Date </strong></td>
+                        <td style="border-top: none; text-align: left; padding: 3px">: @Model.CNDate.ToShortDateString() </td>
+                        <td style="border-top:none; padding:3px">
+                            <strong>Remarks </strong> :
+                        </td>
+                        <td rowspan="3" style="border-top: none; padding: 3px; width: 40%">
+                            @*<strong>Remarks </strong>*@
+                            @Html.TextAreaFor(model => model.Remarks, new { @style = "width : 350px", @id = "Remarks", @disabled = "disabled" })
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="border-top: none; text-align: left; padding: 3px"><strong>CN No </strong></td>
+                        <td style="border-top: none; text-align: left; padding: 3px">
+                            :
+                            @Html.DisplayFor(model => model.CNNo, new { @style = "width : 350px", @id = "CNNo" })
+                        </td>
+                    </tr>
+                    <tr>
+                        @if (ViewData["SupplierName"].ToString() != "")
+                        {
+                            <td style="border-top:none; text-align:left; padding:3px">
+                                <strong>Supplier </strong>
+                            </td>
+                            <td id="SupId" style="border-top:none; text-align:left; padding:3px; width:30%">
+                                :
+                                @ViewData["SupplierName"].ToString()
+                                @*@Html.DisplayFor(model => model.SupplierId, new { @style = "width : 350px", @id = "SupplierId" })*@
+                            </td>
+                        }
+                        else
+                        {
+                            <td style="border-top:none; text-align:left; padding:3px">
+                            </td>
+                            <td style="border-top:none">
+                            </td>
+                        }
+                    </tr>
+                </table>
+
+                <br />
+                <!-- Body [Sales Item] -->
+                <table id="tblItemRceive" style="width:100%">
+                    <tr>
+                        <th>
+                            No
+                        </th>
+                        <th>
+                            Product
+                        </th>
+                        <th>
+                            Qty
+                        </th>
+                        <th>
+                            Unit Price
+                        </th>
+                        <th>
+                            Discount
+                        </th>
+                        <th>
+                            Total
+                        </th>
+                        @*<th>
+                            Remarks
+                        </th>*@
+                    </tr>
+                    @if (Model.ItemReturns != null && Model.ItemReturns.Any())
+                    {
+                        foreach (var item in Model.ItemReturns)
+                        {
+                            <tr>
+                                <td class="cnno" style="display:none"><span>@item.CNNo</span></td>
+                                <td style="width:5%">@index</td>
+                                <td style="width:20%; text-align:left">
+                                    @Html.DisplayFor(modelItem => item.ProductName)
+                                </td>
+                                <td class="qty" style="width:5%">
+                                    <span>@item.Qty</span>
+                                    <input type="text" value="@item.Qty" style="display:none; width:100%" />
+                                </td>
+                                <td class="unitprice" style="width:10%">
+                                    <span>@item.UnitPrice</span>
+                                </td>
+                                <td class="linediscount" style="width:10%">
+                                    <span>@item.LineDiscAmt</span>
+                                    <input type="text" value="@item.LineDiscAmt" style="display: none; width: 100%" />
+                                </td>
+                                <td class="linetotal" style="width:10%">
+                                    <span>@item.LineTotal</span>
+                                </td>
+                                @*<td class="remarks" style="width:10%">
+                                    <span>@item.Remarks</span>
+                                </td>*@
+                            </tr>
+
+                            index++;
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="8">No CN details available.</td></tr>
+                    }
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td><strong>@Model.totalQty</strong></td>
+                        <td></td>
+                        <td><strong>@Model.totalDisc</strong></td>
+                        <td><strong>@Model.subtotal</strong></td>
+                        @*<td></td>*@
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+<style>
+    th, td {
+        border-top: 1px solid #ddd;
+        text-align: center;
+    }
+
+    legend {
+        padding: 0.2em 0.5em;
+        color: grey;
+        font-size: 130%;
+    }
+
+    fieldset {
+        border: 1px solid grey;
+        padding: 1em;
+        font: 100%/1 sans-serif;
+    }
+
+    label {
+        float: left;
+        width: 25%;
+        margin-right: 0.5em;
+        padding-top: 0.2em;
+        text-align: right;
+        font-weight: bold;
+    }
+
+    td {
+        padding-left: 20px;
+    }
+
+    .k-upload .k-upload-button {
+        min-width: 7.167em;
+        margin-right: 0em;
+    }
+
+    .k-dropzone {
+        border-style: solid;
+        border-width: 0;
+        padding: .2em;
+        background-color: white;
+    }
+
+    .k-dropdown, .k-textbox {
+        /*width: 100%;*/
+        max-width: 100%;
+        width: 18.4em;
+    }
+
+    .fontsize {
+        font-size: 25px;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(function () {
+            $("#close").click(function () {
+                window.open('@Url.Action("Return", "Stock", new { cnno = "" })', "_self");
+            });
+
+            $("#addnew").click(function () {
+                window.open('@Url.Action("CreditNote", "Stock", new { flag = "new" })', "_self");
+            });
+
+            $("#edit").click(function () {
+                window.open('@Url.Action("CreditNote", "Stock", new { id = Model.Id, flag = "edit" })', "_self");
+            });
+        });
+
+            $("html, body").animate({
+                scrollTop: 0
+            }, 200);
+    </script>
+}

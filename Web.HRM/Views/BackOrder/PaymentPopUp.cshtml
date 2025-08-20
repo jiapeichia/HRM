@@ -1,0 +1,199 @@
+﻿@model Meo.Web.ViewModels.PaymentViewModels
+
+@{
+    ViewBag.Title = "Payment";
+    var paymentType = ViewBag.PaymentType;
+    var discOptions = ViewBag.DiscOptions;
+}
+
+<head>
+    @Styles.Render("~/Content/css")
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function calculateBalance() {
+            var subtotal = parseFloat(document.getElementById("SubTotal").value) || 0;
+            var discount = parseFloat(document.getElementById("DiscAmt").value) || 0;
+            var discPercent = parseFloat(document.getElementById("DiscPercentage").value) / 100 || 0;
+            var paid = parseFloat(document.getElementById("PaidAmt").value) || 0;
+            var paidAmt = (subtotal - discount) - discPercent * subtotal;
+            var balance = paidAmt - paid;
+
+            document.getElementById("BalAmt").value = balance.toFixed(2);
+        }
+
+        function resetPaidAmount() {
+            var subtotal = parseFloat(document.getElementById("SubTotal").value) || 0;
+            var discount = parseFloat(document.getElementById("DiscAmt").value) || 0;
+            var discPercent = parseFloat(document.getElementById("DiscPercentage").value) / 100 || 0;
+            var paidAmt = (subtotal - discount) - discPercent * subtotal;
+            var balance = 0;
+
+            document.getElementById("TotalAmt").value = paidAmt.toFixed(2);
+            document.getElementById("PaidAmt").value = paidAmt.toFixed(2);
+            document.getElementById("BalAmt").value = balance.toFixed(2);
+        }
+
+        window.onload = function () {
+            var paidAmtField = document.getElementById('PaidAmt');
+            paidAmtField.focus();
+            paidAmtField.select(); // This will highlight the content of the input
+        };
+
+        $(document).ready(function () {
+            $("#updatePayment").bind("click", function () {
+                var totalAmt = $("#TotalAmt").val();
+                var paymethod = $("#PaymentMethod").val();
+
+                if (totalAmt === 0) {
+                    return alert("Nothing to process to payment.");
+                }
+                if (paymethod === "") {
+                    return alert("Payment method is required.");
+                }
+
+                var paytype = $("#PaymentMethod").val();
+                var subtotal = parseFloat($("#SubTotal").val()) || 0;
+                var ttlamt = parseFloat($("#TotalAmt").val()) || 0;
+                var payamt = parseFloat($("#PaidAmt").val()) || 0;
+                var discamt = parseFloat($("#DiscAmt").val()) || 0;
+                var discPercent = parseInt($("#DiscPercentage").val()) || 0;
+                var discpercentamt = (subtotal * discPercent / 100) || 0;
+                var balamt = subtotal - discamt - discpercentamt - payamt;
+           
+                if (balamt > 0) {
+                    return alert("Please ensure you pay the full amount of RM" + ttlamt + ".");
+                }
+
+                $.ajax({
+                    url: '@Url.Action("Update_Payment", "BackOrder")',
+                    type: "POST",
+                    data: {
+                        CusId: @Model.CusId,
+                        SalesId: "@Model.SalesId",
+                        PaymentMethod: paytype,
+                        SubTotal: subtotal,
+                        TotalAmt: ttlamt,
+                        PaidAmt: payamt,
+                        DiscAmt: discamt,
+                        DiscPercentage: discPercent,
+                        DiscPercentageAmt: discpercentamt,
+                        BalAmt: balamt,
+                    },
+                    success: function (response) {
+                        if (response.message != null) {
+                            return alert(response.message);
+                        }
+
+                        $.ajax({
+                            url: '@Url.Action("PreviewINV", "Sales")',
+                            type: "POST",
+                            data: {
+                                salesId: response.SalesId,
+                                oldsalesId: "@Model.SalesId"
+                            },
+                            success: function (res) {
+                                window.close();
+                                window.opener.location.href = '@Url.Action("PreviewINV", "Sales")' + '?salesId=' + response.SalesId;
+
+                                var url = '@Url.Action("Index", "Receipt")' + '?salesId=' + response.SalesId;
+                                window.open(url, '_blank');
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="card px-0 pt-4 pb-0 mt-3 mb-3" style="text-align: center">
+        <h2>Payment : @Model.SalesId</h2>
+        <hr />
+        @Html.HiddenFor(m => m.CusId)
+        <table>
+            <tbody>
+                <tr>
+                    <td>
+                        @Html.Label("Date", new { @style = "width : 250px", @class = "control-label col-md-2" })
+                        @*@Html.LabelFor(model => model.PaymentDate, new { @style = "width : 250px", @class = "control-label col-md-2" })*@
+                    </td>
+                    <td>
+                        @Model.PaymentDate.ToShortDateString()
+                        @Html.ValidationMessageFor(model => model.PaymentDate, "", new { @class = "text-danger" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.LabelFor(model => model.PaymentMethod, new { @style = "width : 250px", @class = "control-label col-md-2" })
+                    </td>
+                    <td>
+                        @Html.DropDownListFor(model => model.PaymentMethod, new SelectList(paymentType, "TypeId", "TypeName"), "----- Select -----", new { @class = "form-control col-md-2", @style = "width : 200px;" })
+                        @Html.ValidationMessageFor(model => model.PaymentMethod)
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.LabelFor(model => model.SubTotal, new { @style = "width : 250px", @class = "control-label col-md-2" })
+                    </td>
+                    <td>
+                        @Html.EditorFor(model => model.SubTotal, new { htmlAttributes = new { @disabled = "disabled" } })
+                        @Html.ValidationMessageFor(model => model.SubTotal)
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.LabelFor(model => model.DiscPercentage, new { @style = "width : 250px", @class = "control-label col-md-2" })
+                    </td>
+                    <td>
+                        @Html.DropDownListFor(model => model.DiscPercentage, new SelectList(discOptions, "Value", "Text"), "----- Select -----", new { @class = "form-control col-md-2", @style = "width : 200px;", onchange = "resetPaidAmount()" })
+                        @Html.ValidationMessageFor(model => model.DiscPercentage)
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.LabelFor(model => model.DiscAmt, new { @style = "width : 250px", @class = "control-label col-md-2" })
+                    </td>
+                    <td>
+                        <input type="text" id="DiscAmt" placeholder="0.00" onchange="resetPaidAmount()">
+                        @Html.ValidationMessageFor(model => model.DiscAmt)
+                    </td>
+                </tr>
+        </table>
+        <hr />
+        <table>
+            <tr>
+                <td>
+                    @Html.LabelFor(model => model.TotalAmt, new { @style = "width : 250px", @class = "control-label col-md-2" })
+                </td>
+                <td>
+                    @Html.EditorFor(model => model.TotalAmt, new { htmlAttributes = new { @disabled = "disabled" } })
+                    @Html.ValidationMessageFor(model => model.TotalAmt)
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(model => model.PaidAmt, new { @style = "width : 250px", @class = "control-label col-md-2" })
+                </td>
+                <td>
+                    <input type="text" value="@Model.PaidAmt" id="PaidAmt" placeholder="0.00" onchange="calculateBalance()" autofocus>
+
+                    @*@Html.EditorFor(model => model.PaidAmt, new { @onchange = "calculateBalance()" })*@
+                    @Html.ValidationMessageFor(model => model.PaidAmt)
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(model => model.BalAmt, new { @style = "width : 250px", @class = "control-label col-md-2" })
+                </td>
+                <td>
+                    @Html.EditorFor(model => model.BalAmt)
+                    @Html.ValidationMessageFor(model => model.BalAmt)
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <br />
+        <input type="button" value="CONFRIM" class="btn btn-success" id="updatePayment" style="width:200px" />
+        <input type="button" value="CANCEL" class="btn btn-default" style="width:200px" onclick="window.opener=null; window.close(); return false;" />
+    </div>
+</body>

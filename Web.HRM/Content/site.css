@@ -1,0 +1,468 @@
+﻿/*
+    layout changed for KPIS
+*/
+
+
+.navbar-inverse {
+    background-color: #f4f2f2 !important;
+}
+
+.body {
+    margin: 0%;
+    font-family: novel_sans_proregular,sans-serif;
+}
+
+.body-content {
+    padding-top: 0%;
+}
+
+.sub-content {
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.filter-content {
+    background-color: #fff;
+    border-radius: 18px;
+    padding: 20px;
+}
+
+.page-content {
+    width: 100%;
+    background-color: #f4f2f2;
+    padding: 10px 40px !important;
+}
+
+.tab-content {
+    padding: 20px;
+    background-color: white;
+}
+
+.k-grid-footer {
+    display: none;
+}
+
+.customer-photo {
+    display: inline-block;
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    background-size: 32px 35px;
+    background-position: center center;
+    vertical-align: middle;
+    line-height: 32px;
+    /*box-shadow: inset 0 0 1px #999, inset 0 0 10px rgba(0,0,0,.2);
+    margin-left: 5px;*/
+}
+.small-photo {
+    display: inline-block;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background-size: 39px 42px;
+    background-position: center center;
+    vertical-align: middle;
+    line-height: 42px;
+    box-shadow: inset 0 0 1px #999, inset 0 0 10px rgba(0,0,0,.2);
+    margin-left: 5px;
+}
+legend {
+    /*padding: 0.2em 0.5em;*/
+    color: grey;
+    font-size: 100%;
+    margin-bottom: 0px;
+    margin-top: 10px;
+}
+
+fieldset {
+    margin-top: 20px;
+    border: 1px solid #ddd;
+    padding: 20px;
+    font: 100%/1 sans-serif;
+    height: 92%;
+}
+    fieldset > label {
+        display: inline-block;
+        font-weight: normal !important;
+    }
+
+.th, td {
+    padding: 7px;
+}
+    td > label {
+        display: inline-block;
+        margin-bottom: 5px;
+        font-weight: normal !important;
+    }
+
+.header-text {
+    text-transform: uppercase;
+    font-size: 25px;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.bar-title {
+    font-weight: bold;
+    font-size: 18px;
+    color: #C0C0C0;
+}
+
+    .bar-title > span {
+        border-bottom: 1px solid #C0C0C0;
+        padding-bottom: 1.5px;
+    }
+
+.header, th {
+    background-color: #2b67af;
+    color: #fff;
+    box-shadow: none;
+    padding: 10px 10px 10px 20px;
+    font-weight: bold;
+    font-size: 14px;
+    border: 1px solid #ddd;
+}
+
+/*.btn {
+    margin-left: 5px;
+    padding: 10px 15px;*/
+    /*font-weight: 700;*/
+/*}*/
+
+    .btn > a {
+        text-decoration: none;
+    } 
+
+.btn-flex-end {
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-pack: end;
+    justify-content: flex-end;
+    -ms-flex-direction: row;
+    flex-direction: row;
+    margin-bottom: 15px;
+}
+
+/*.btn-kpi {
+    background-color: #646464;
+    color: #fff;
+    text-transform: uppercase;
+    padding: 12px 20px;
+    border: 1px solid transparent;
+    font-weight: 700;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    border-radius: 4px;
+}*/
+
+.step {
+    width: 100%;
+    min-height: 65px;
+    font-weight: bold;
+    display: inline-grid;
+    align-items: center;
+    white-space: normal;
+}
+
+.complete {
+    color: gray;
+    background-color: #dddce0;
+    border-color: #dddce0;
+}
+
+    .complete:hover, .complete:focus, .complete:active, .complete.active, .open .dropdown-toggle.complete {
+        color: gray;
+        background-color: #cecdd1;
+        border-color: #cecdd1;
+    }
+
+.pending {
+    background-color: #4CAF50; /*green*/
+    color: #ffffff;
+}
+
+    .pending:hover {
+        color: #ffffff;
+        background-color: #3e8e41;
+    }
+
+td.proc {
+    width: 12%;
+    padding: 0px 3px;
+    font-size: 10px;
+}
+
+.proc > a, .proc > a:hover {
+    text-decoration: none;
+}
+
+.section-desc {
+    color: gray;
+    font-style: italic;
+    padding: 10px 0px;
+}
+/* Override the default bootstrap behavior where horizontal description lists 
+   will truncate terms that are too long to fit in the left column 
+*/
+.dl-horizontal dt {
+    white-space: normal;
+}
+
+/* Set width on the form input elements since they're 100% wide by default */
+input,
+select
+{
+    /*textarea*/ 
+    /*max-width: 300px;*/
+    width: 100%;
+}
+
+    input[type='checkbox'] {
+        /*-webkit-appearance: none;*/
+        width: 25px;
+        height: 25px;
+        background: white;
+        border-radius: 5px;
+        border: 2px solid #555;
+        /*display: block;*/
+        margin: 0 auto;
+    }
+
+/* CSS for close button top right */
+.image-container {
+    width: 100%;
+    position: absolute;
+    float: right;
+    right: 0;
+    clear: both;
+}
+
+.image-container-right {
+    float: right;
+}
+
+/* Refresh button CSS */
+#grid .k-grid-toolbar {
+    padding: .6em 1.3em .6em .4em;
+}
+
+.category-label {
+    vertical-align: middle;
+    padding-right: .5em;
+}
+
+#category {
+    vertical-align: middle;
+}
+
+.refreshBtnContainer {
+    display: inline-block;
+}
+
+.createNew {
+    display: inline-block;
+}
+
+.pagetitle {
+    /* text-align: center; */
+    font-weight: bold;
+    /*padding-left:20px;*/
+    margin-top:0;
+}
+
+/* --- START --- CSS for Home page panel --- */
+/* panelbar text color - hover (mouse over) */
+.k-state-selected > .k-link:hover, .k-panelbar > li > .k-state-selected:hover, .k-panelbar > li.k-state-default > .k-state-selected.k-link:hover {
+    background-color: #646464;
+    color: #fff;
+    box-shadow: none;
+}
+
+/* panelbar info */
+.k-state-selected > .k-link,
+.k-panelbar > li > .k-state-selected,
+.k-panelbar > li.k-state-default > .k-state-selected.k-link {
+    background-color: #646464;
+    color: #fff;
+    box-shadow: none;
+}
+
+/* default 'My Profile' text and backgroup color */
+.k-panelbar > .k-state-active > .k-link,
+.k-panelbar > .k-state-active:hover > .k-link,
+.k-panelbar > li.k-state-active > .k-link {
+    background-color: #646464;
+    color: #fff;
+    box-shadow: none;
+}
+
+/* panelbar content */
+.wrapper {
+    height: 320px;
+    margin: 20px auto;
+    padding: 20px;
+}
+
+#panelbar {
+    width: 100%;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+/* Panelbar */
+.k-panelbar label {
+    display: block;
+    font-weight: bold;
+    margin: .5em 0;
+}
+
+.k-panelbar .k-content {
+    padding: 15px;
+}
+
+.k-panelbar .k-textbox {
+    /*width: 100%;*/
+    max-width: 100%;
+    width: 14.4em;
+}
+/* --- END --- CSS for Home page panel --- */
+
+/* Grid color */
+.k-grid .k-alt.k-state-selected,
+.k-grid .k-state-selected {
+    color: #ffffff;
+    background-color: #646464;
+    border-color: #646464;
+}
+
+    .k-grid tr.k-state-selected:hover,
+    .k-grid .k-alt.k-state-selected:hover {
+        background-color: #646464;
+        border-color: #646464;
+    }
+
+/* Icon color change on grid top button */
+/*.k-grid .k-header .k-button {
+    background-color: #ffffff;
+}*/
+.k-button.k-button-icontext.k-add {
+    float: right;
+    background-color: #fff;
+}
+.k-button.k-button-icontext.k-grid-add {
+    float: right;
+    background-color: #fff;
+}
+.k-button.k-button-icontext.k-grid-edit {
+    background-color: #fff;
+}
+.k-button.k-button-icontext.k-grid-delete {
+    background-color: #fff;
+}
+.k-button.k-button-icontext.k-grid-ViewDetails {
+    background-color: #fff;
+}
+/* Email released button */
+.k-button.k-button-icontext.k-grid-email {
+    background-color: #ffffff;
+}
+    .k-button.k-button-icontext.k-grid-email:focus:active {
+        box-shadow: 0 0 3px 0 #ffffff;
+    }
+    .k-button.k-button-icontext.k-grid-email:focus {
+        box-shadow: 0 0 3px 0 #ffffff;
+    }
+    .k-button.k-button-icontext.k-grid-email:hover {
+        box-shadow: 0 0 3px 0 #ffffff;
+    }
+
+
+/* update button background-color */
+.k-button.k-button-icontext.k-primary.k-grid-update {
+    border-color: #646464;
+    background-color: #646464;
+}
+
+    .k-button.k-button-icontext.k-primary.k-grid-update:focus:active {
+        box-shadow: 0 0 3px 0 #646464;
+    }
+
+    .k-button.k-button-icontext.k-primary.k-grid-update:focus {
+        box-shadow: 0 0 3px 0 #646464;
+    }
+
+/*.k-button:active,
+.k-button.k-state-active {
+    color: #ffffff;
+    border-color: #646464;
+    background-color: #646464;
+}*/
+.k-button.k-state-active, .k-button:active {
+    color: #fff;
+    background-color: #646464;
+    border-color: #646464;
+    background-image: url(textures/highlight.png);
+    background-image: none,-webkit-gradient(linear,left top,left bottom,from(rgba(255,255,255,.2)),to(rgba(255,255,255,0)));
+    background-image: none,-webkit-linear-gradient(top,rgba(255,255,255,.2) 0,rgba(255,255,255,0) 100%);
+    background-image: none,linear-gradient(to bottom,rgba(255,255,255,.2) 0,rgba(255,255,255,0) 100%);
+}
+
+.k-button:focus {
+    box-shadow: inset 0 0 3px 1px #646464;
+}
+
+    .k-button:focus:active {
+        box-shadow: inset 0 0 3px 1px #646464;
+    }
+
+.k-button:active:hover,
+.k-button.k-state-active:hover {
+    color: #ffffff;
+    border-color: #646464;
+    background-color: #646464;
+}
+
+ 
+/* popup window header 
+.k-window-titlebar .k-header {
+    background-color: #ffffff;
+}*/
+
+/* btn without background color */
+.btn-nobackground {
+    color: #ffffff;
+    background-color: transparent;
+    border-color: transparent;
+}
+
+.k-today {
+    box-shadow: inset 0 0 0 1px #646464;
+}
+
+    .k-today.k-link {
+        color: #646464;
+        font-weight: 700;
+    }
+
+/* space for bottom grid */
+.bottom-grids {
+    margin-bottom: 3em;
+}
+
+ul#clock li {
+    border: none;
+}
+
+.btn-default {
+    border-radius: 3px;
+}
+
+/* Keep '+ New Goal' button to right */
+.k-button.k-button-icontext.k-grid-add {
+    float: right;
+}
+

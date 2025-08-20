@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.421
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Meo.Web", "Web.HRM\Meo.Web.csproj", "{1B7F7724-ABD7-4F51-9FB5-36C15EB53747}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1B7F7724-ABD7-4F51-9FB5-36C15EB53747}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B7F7724-ABD7-4F51-9FB5-36C15EB53747}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B7F7724-ABD7-4F51-9FB5-36C15EB53747}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B7F7724-ABD7-4F51-9FB5-36C15EB53747}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FBF196B9-4E03-4044-857F-C50583615718}
+	EndGlobalSection
+EndGlobal

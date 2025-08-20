@@ -1,0 +1,93 @@
+﻿@using Meo.Web.ViewModels
+@using Kendo.Mvc.UI
+
+@{
+    ViewBag.Title = "Service Expired";
+}
+<head>
+    <style>
+        /* green count */
+        .grey-count {
+            background-color: grey;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+@(Html.Kendo().Grid<Service>()
+        .Name("GridForServiceExpired")
+        .HtmlAttributes("100%")
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.SalesId);
+            columns.Bound(c => c.ServiceName);
+            columns.Bound(c => c.CourseBal).ClientTemplate("<div class='grey-count'>#=CourseBal#</div>");
+            columns.Bound(c => c.Course);
+            columns.Bound(c => c.Remarks);
+            columns.Bound(c => c.PurchaseDate);
+            columns.Bound(c => c.ExpiryDate);
+            columns.Bound(c => c.Id).Hidden().Title("");
+        })
+        .Pageable(pageable => pageable
+        .Refresh(true).Messages(m => m.Refresh(string.Empty)))
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(10)
+        .Events(events => events.Error("error_handler").Sync("sync_handler").RequestEnd("onRequestEnd"))
+        .ServerOperation(true)
+        .Read(read => read.Action("Read_ServiceExpired", "Sales", new { cusid = @ViewBag.CusId }))
+        .Sort(sort =>
+        {
+            sort.Add(c => c.PurchaseDate).Descending();
+        })
+        .Model(model =>
+        {
+            model.Id(e => e.Id);
+        }))
+        .Resizable(resize => resize.Columns(true))
+        .NoRecords("No Records Found"))
+
+@* Error msg to be shown & sync grid table automatically *@
+<script type="text/javascript">
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+
+    function sync_handler(e) {
+        this.read();
+    }
+
+    function onRequestEnd(e) {
+        var notificationWidget = $("#notification").kendoNotification(
+            {
+                position: {
+                    pinned: true,
+                    top: 100,
+                    right: 50
+                },
+            }).data("kendoNotification");
+
+        if (e.type == "create" && !e.response.Errors) {
+            notificationWidget.show("New Record created!", "success");
+        } else if (e.type == "update" && !e.response.Errors) {
+            notificationWidget.show("Update Successfully", "success");
+        } else if (e.response.Errors) {
+            notificationWidget.show("Fail to update", "warning");
+        }
+    }
+</script>

@@ -1,0 +1,123 @@
+﻿@model Meo.Web.ViewModels.PackageDetailsViewModels
+
+@{
+    ViewBag.Title = "Package Details Editor";
+}
+<head>
+    <style>
+        th, td {
+            border-top: 1px solid #ddd;
+            text-align: center;
+        }
+
+        legend {
+            padding: 0.2em 0.5em;
+            color: grey;
+            font-size: 130%;
+        }
+
+        fieldset {
+            border: 1px solid grey;
+            padding: 1em;
+            font: 100%/1 sans-serif;
+        }
+
+        label {
+            float: left;
+            width: 25%;
+            margin-right: 0.5em;
+            padding-top: 0.2em;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        td {
+            padding-left: 20px;
+        }
+
+        .k-upload .k-upload-button {
+            min-width: 7.167em;
+            margin-right: 0em;
+        }
+
+        .k-dropzone {
+            border-style: solid;
+            border-width: 0;
+            padding: .2em;
+            background-color: white;
+        }
+
+        .k-dropdown, .k-textbox {
+            /*width: 100%;*/
+            max-width: 100%;
+            width: 28.4em;
+        }
+
+        .fontsize {
+            font-size: 25px;
+        }
+    </style>
+    @section Scripts {
+        <script>
+    $(function () {
+        $("#close").click(function () {
+            window.open('@Url.Action("UpdateDetails", "Package", new { packageId = Model.PackageId })', "_self");
+        });
+    });
+
+    $("html, body").animate({
+        scrollTop: 0
+    }, 200);
+        </script>
+    }
+</head>
+
+<body>
+    <div class="page-content">
+        <div class="col-md-12 mx-0">
+            @using (Html.BeginForm("Create_PackageDetails", "Package", FormMethod.Post, new { @packageid = @ViewBag.PackageId }))
+            {
+                <div align="right">
+                    @*<span style="padding-right:5px"><button id="create" data-bind="click: create" class="btn btn-primary" style="width:110px;padding:5px">UPDATE</button> </span>*@
+                    <input type="submit" value="SUBMIT" class="btn btn-default" style="width:100px" />
+                    <input type="button" value="CANCEL" class="btn btn-default" id="close" style="width:100px" />
+                </div>
+                <br />
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(m => m.Id)
+                @Html.HiddenFor(m => m.PackageId)
+                <div class="sub-content" style="margin-top: 0px; padding-top: 20px">
+                    <div class="card px-0 pt-4 pb-0 mt-3 mb-3" style="text-align: center">
+                        <h2><strong>Create Package Details</strong></h2>
+                    </div>
+                    <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
+                    <br />
+                    @Html.AntiForgeryToken()
+                    <!-- Header -->
+                    <div style="width:50%">
+                        <div style="padding-left: 15px; padding-right: 25px;">
+                            <label style="text-align:left" for="ItemId">Item</label>
+                        </div>
+                        <div style="padding-left: 15px; padding-right: 25px;">
+                            @(Html.Kendo().DropDownListFor(m => m.ItemId)
+                            .DataTextField("ProductName")
+                            .DataValueField("ProductId")
+                            .BindTo((System.Collections.IEnumerable)ViewData["Product"])
+                            .Filter(FilterType.Contains))
+                        </div>
+                        <div style="padding-left: 15px; padding-right: 33px">
+                            <label style="text-align:left" for="Qty">Quantity</label>
+                            @Html.EditorFor(m => m.Qty)
+                        </div>
+                        <div style="padding-left: 15px; padding-right: 25px" rowspan="5">
+                            <label style="text-align:left" for="Remarks">Remarks</label>
+                            @Html.TextAreaFor(m => m.Remarks)
+                        </div>
+                    </div>
+                    @*<input type="submit" value="Submit" />*@
+                    
+                </div>
+                }
+        </div>
+    </div>
+</body>

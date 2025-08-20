@@ -1,0 +1,105 @@
+﻿@model Meo.Web.ViewModels.CompanyProfile
+@using Kendo.Mvc.UI
+
+@{
+    ViewBag.Title = "Company Profile";
+}
+
+<head>
+    <script>
+         $(function () {
+             $("#edit").click(function () {
+                 window.open('@Url.Action("Update", "CompanyProfile", new { action = "Update" })', "_self");
+             });
+
+            $("#close").click(function () {
+                window.open('@Url.Action("Index", "Home")', "_self");
+            });
+        });
+
+    $("html, body").animate({
+        scrollTop: 0
+    }, 200);
+    </script>
+</head>
+<div class="page-content">
+    @* Button *@
+    <div align="right">
+        <input type="button" value="EDIT" class="btn btn-primary" id="edit" style="width:100px" />
+        <input type="button" value="BACK" class="btn btn-default" id="close" style="width:100px" />
+    </div>
+    <br />
+    @* Customer Info *@
+    <div class="sub-content" style="margin-top:0px">
+        <div class="bar-title"><span>COMPANY PROFILE</span></div>
+        <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
+        <br />
+        <table style="width:80%" align="center">
+            @*<tr>
+                    <td rowspan="9" width="10%" align="center">
+                        <img src="@Url.Content("~/Images/Customer/" + Model.Logo)" padding="5px" width="110" alt="" onerror="this.src=''" /><br>
+                    </td>
+                    <td style="width:5%">@Html.LabelFor(model => model.Logo, new { @style = "width : 150px" })</td>
+                    <td style="width:30%">
+                        @Html.DisplayTextFor(model => model.Logo)
+                    </td>
+                </tr>*@
+            <tr>
+                <td style="width:5%">
+                    @Html.LabelFor(model => model.Name, new { @style = "width : 150px" })
+                </td>
+                <td style="width:30%">
+                    @Html.DisplayFor(model => model.Name, new { @style = "width : 350px" })
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(model => model.RegNo, new { @style = "width : 150px" })
+                </td>
+                <td>
+                    @Html.DisplayFor(model => model.RegNo, new { @style = "width : 350px" })
+                </td>
+            </tr>
+            <tr>
+                <td style="width:5%">
+                    @Html.LabelFor(model => model.Address1, new { @style = "width : 150px" })
+                </td>
+                <td style="width:30%">
+                    @Html.DisplayFor(model => model.Address1, new { @style = "width : 350px" })
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(model => model.Address2, new { @style = "width : 150px" })
+                </td>
+                <td>
+                    @Html.DisplayFor(model => model.Address2, new { @style = "width: 350px" })
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(model => model.Address3, new { @style = "width : 150px" })
+                </td>
+                <td>
+                    @Html.DisplayFor(model => model.Address3, new { @style = "width: 350px" })
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(model => model.Tel, new { @style = "width : 150px" })
+                </td>
+                <td>
+                    @Html.DisplayFor(model => model.Tel, new { @style = "width : 350px" })
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(model => model.Currency, new { @style = "width : 150px" })
+                </td>
+                <td>
+                    @Html.DisplayFor(model => model.Currency, new { @style = "width : 350px" })
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>

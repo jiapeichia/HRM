@@ -1,0 +1,61 @@
+﻿
+/*.rating { height: 35px; padding:1px; margin:1px; }
+.rating li { list-style: none; float: left; width: 30px; height: 30px; padding:0px; margin:0px;}
+.rating li a { display: block; width: 35px; height: 35px; padding:0px; margin:0px; overflow: hidden; text-indent: -110px; background-image: url(../Images/rating.png); background-repeat: no-repeat; text-decoration:none; }
+.rating li a:hover { background-color: transparent; text-decoration: none; }
+.rating li .hover { background-position: 0px -35px; }
+.rating li .full { background-position: 0px -0px; }*/
+
+.rating {
+    height: 50px;
+    padding: 0px;
+    margin: 0px;
+}
+
+    .rating li {
+        list-style: none;
+        float: left;
+        width: 35px;
+        height: 35px;
+        padding: 0px;
+        margin: 0px;
+    }
+
+        .rating li a {
+            display: block;
+            width: 35px;
+            height: 35px;
+            padding: 0px;
+            margin: 0px;
+            overflow: hidden;
+            text-indent: -100px;
+            background-image: url(../Images/rating.png);
+            background-repeat: no-repeat;
+            text-decoration: none;
+        }
+
+            .rating li a span {
+                display: block;
+                width: 35px;
+                height: 35px;
+                padding: 2px;
+                margin: 0px;
+                overflow: hidden;
+                text-indent: -100px;
+                background-image: url(../Images/noEntry_35px.jpg);
+                background-repeat: no-repeat;
+                text-decoration: none;
+            }
+
+            .rating li a:hover {
+                background-color: transparent;
+                text-decoration: none;
+            }
+
+        .rating li .hover {
+            background-position: 0px -35px;
+        }
+
+        .rating li .full {
+            background-position: 0px -35px;
+        }

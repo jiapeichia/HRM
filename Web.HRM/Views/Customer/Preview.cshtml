@@ -1,0 +1,139 @@
+﻿@model Meo.Web.ViewModels.CustomerViewModels
+
+@{
+    ViewBag.Title = "Manage Customer List";
+}
+
+<head>
+    <script>
+        $(function () {
+         $("#edit").click(function () {
+        window.open('@Url.Action("UpdateCustomer", "Customer", new { id = Model.CusId })', "_self");
+         });
+
+            $("#close").click(function () {
+                window.history.back();
+                @*window.open('@Url.Action("Index", "Customer")', "_self");*@
+            });
+        });
+
+    $("html, body").animate({
+        scrollTop: 0
+    }, 200);
+    </script>
+
+    <style>
+        legend {
+            padding: 0.2em 0.5em;
+            color: grey;
+            font-size: 130%;
+        }
+
+        fieldset {
+            border: 1px solid grey;
+            padding: 1em;
+            font: 100%/1 sans-serif;
+        }
+
+        label {
+            float: left;
+            width: 25%;
+            margin-right: 0.5em;
+            padding-top: 0.2em;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        td {
+            padding: 5px;
+        }
+
+        .k-upload .k-upload-button {
+            min-width: 7.167em;
+            margin-right: 0em;
+        }
+
+        .k-dropzone {
+            border-style: solid;
+            border-width: 0;
+            padding: .2em;
+            background-color: white;
+        }
+
+        .k-dropdown, .k-textbox {
+            /*width: 100%;*/
+            max-width: 100%;
+            width: 18.4em;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-content">
+        @* Button *@
+        <div align="right">
+            <input type="button" value="EDIT" class="btn btn-primary" id="edit" style="width:100px" />
+            <input type="button" value="BACK" class="btn btn-default" id="close" style="width:100px" />
+        </div>
+        <br />
+
+        @Html.HiddenFor(m => m.CusId)
+        @* Customer Info *@
+        <div class="sub-content" style="margin-top:0px">
+            <div class="bar-title"><span>CUSTOMER PROFILE</span></div>
+            <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
+            <br />
+
+            <table style="width:80%" align="center">
+                <tr>
+                    <td rowspan="9" width="10%" align="center">
+                        <img src="@Url.Content("~/Images/Customer/" + Model.ImagePath)" padding="5px" width="110" @*height="130"*@ alt="" onerror="this.src='@Url.Content("~/Images/Employee/user.png")'" /><br>
+                    </td>
+                    <td style="width:5%">@Html.LabelFor(model => model.CardNo, new { @style = "width : 150px" })</td>
+                    <td style="width:30%">
+                        @Html.DisplayTextFor(model => model.CardNo)
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width:5%">
+                        @Html.LabelFor(model => model.FullName, new { @style = "width : 150px" })
+                    </td>
+                    <td style="width:30%">
+                        @Html.DisplayFor(model => model.FullName, new { @style = "width : 350px" })
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width:5%">
+                        @Html.LabelFor(model => model.IcNo, new { @style = "width : 150px" })
+                    </td>
+                    <td style="width:30%">
+                        @Html.DisplayFor(model => model.IcNo, new { @style = "width : 350px" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.LabelFor(model => model.ContactNo, new { @style = "width : 150px" })
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => model.ContactNo, new { @style = "width: 350px" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>@Html.LabelFor(model => model.Gender, new { @style = "width : 150px" })</td>
+                    <td>
+                        Male @Html.RadioButtonFor(m => m.Gender, "Male", new { @style = "width : 40px", @disabled = "disabled" })
+                        Female @Html.RadioButtonFor(m => m.Gender, "Female", new { @style = "width : 40px", @disabled = "disabled" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.LabelFor(model => model.Remarks, new { @style = "width : 150px" })
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => model.Remarks, new { @style = "width : 350px" })
+                    </td>
+                </tr>
+            </table>
+        </div>
+        }
+    </div>
+</body>

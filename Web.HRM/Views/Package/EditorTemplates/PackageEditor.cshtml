@@ -1,0 +1,37 @@
+﻿@model Meo.Web.ViewModels.PackageViewModels
+
+@{
+    ViewBag.Title = "Package Editor";
+}
+
+<table>
+    <tbody>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.Code, new { @style = "width : 100px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @Html.EditorFor(model => model.Code, new { @style = "width : 100%;", @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.Code)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.Description, new { @style = "width : 100px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @Html.TextAreaFor(model => model.Description, new { @style = "width : 100%", rows = 6, @id = "Description" })
+                @Html.ValidationMessageFor(model => model.Description)
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.Remarks, new { @style = "width : 100px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @Html.TextAreaFor(model => model.Remarks, new { @style = "width : 100%,", rows = 6, @id = "Remarks" })
+                @Html.ValidationMessageFor(model => model.Remarks)
+            </td>
+        </tr>
+    </tbody>
+</table>

@@ -1,0 +1,198 @@
+﻿@model Meo.Web.ViewModels.GIROViewModels
+
+@{
+    ViewBag.Title = "GIRO Sales";
+}
+
+<head>
+    @section Scripts {
+        @Scripts.Render("~/bundles/jqueryval")
+
+        <script>
+        function error_handler(e) {
+            if (e.errors) {
+                var message = "Errors:\n";
+                $.each(e.errors, function (key, value) {
+                    if ('errors' in value) {
+                        $.each(value.errors, function () {
+                            message += this + "\n";
+                        });
+                    }
+                });
+                alert(message);
+            }
+        }
+
+        function sync_handler(e) {
+            this.read();
+        }
+
+         $(function () {
+             $("#close").click(function () {
+                 window.history.back();
+               @* window.open('@Url.Action("Index", "Customer", new { id = ViewBag.CusId })', "_self");*@
+            });
+
+             $("#cusPurchaseHistory").click(function () {
+                window.open('@Url.Action("CusPurchaseHistory", "Sales", new { id = ViewBag.CusId })', "_self");
+             });
+
+             $("#newOrder").click(function () {
+                window.open('@Url.Action("Invoice", "Sales", new { id = ViewBag.CusId, flag = "new" })', "_self");
+            });
+        });
+
+        // --- collapse all group grid ---
+        var collapseAllGroups = function (grid) {
+            grid.table.find(".k-grouping-row").each(function () {
+                grid.collapseGroup(this);
+            });
+        }
+
+        //On the grid
+        function dataBound() {
+            collapseAllGroups(this);
+        }
+        </script>
+    }
+    <style>
+        th, td {
+            border-top: 1px solid #ddd;
+            text-align: center;
+        }
+
+        legend {
+            padding: 0.2em 0.5em;
+            color: grey;
+            font-size: 130%;
+        }
+
+        fieldset {
+            border: 1px solid grey;
+            padding: 1em;
+            font: 100%/1 sans-serif;
+        }
+
+        label {
+            float: left;
+            width: 25%;
+            margin-right: 0.5em;
+            padding-top: 0.2em;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        td {
+            padding-left: 20px;
+        }
+
+        .k-upload .k-upload-button {
+            min-width: 7.167em;
+            margin-right: 0em;
+        }
+
+        .k-dropzone {
+            border-style: solid;
+            border-width: 0;
+            padding: .2em;
+            background-color: white;
+        }
+
+        .k-dropdown, .k-textbox {
+            /*width: 100%;*/
+            max-width: 100%;
+            width: 28.4em;
+        }
+
+        .fontsize {
+            font-size: 25px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-content">
+        <div class="col-md-12">
+            <div align="right" style="width:100%">
+               @* <input type="button" value="PRINT" class="btn btn-default" id="PrintReceipt" style="width:100px" />*@
+               @* <input type="button" value="GO HISTORY" class="btn btn-default" id="gohistory" style="width:100px" />*@
+                <input type="button" value="BACK" class="btn btn-default" id="close" style="width:100px" />
+            </div>
+            <br />
+
+            @*// Sales Info*@
+        <div class="sub-content" style="margin-top: 0px; padding-top: 20px">
+            <div class="card px-0 pt-4 pb-0 mt-3 mb-3" style="text-align: center">
+                <h2><strong>GIRO Sales</strong></h2>
+            </div>
+            <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
+            <br />
+            @*@Html.HiddenFor(m => m.SalesId)*@
+            @Html.AntiForgeryToken()
+            <!-- Header -->
+        <table style="width:100%">
+            <tr>
+                <td style="border-top:none; text-align:left; padding:3px;width:200px">
+                    <strong>Customer Name </strong>
+                </td>
+                <td style="border-top: none; text-align: left; padding: 3px; width: 200px">
+                    : @Model.CusName
+                </td>
+                <td style="border-top: none; text-align: right;" rowspan="3">
+                    <input type="button" value="PAYMENT" onclick="ShowModelPopUp();" class="btn btn-success fontsize" style="width:250px; height:100px; float:right" />
+                </td>
+            </tr>
+            <tr>
+                <td style="border-top: none; text-align: left; padding: 3px;"><strong>Invoice No </strong></td>
+                <td style="border-top: none; text-align: left; padding: 3px;">: @Model.SalesId</td>
+            </tr>
+            <tr>
+                <td style="border-top: none; text-align: left; padding: 3px"><strong>Date </strong></td>
+                <td style="border-top: none; text-align: left; padding: 3px">: @Model.PaymentDate.ToShortDateString() </td>
+            </tr>
+            <tr>
+                <td style="border-top: none; text-align: left; padding: 3px"><strong>Outstanding Amount </strong></td>
+                <td style="border-top: none; text-align: left; padding: 3px">: @Model.BalAmt </td>
+            </tr>
+        </table>
+        </div>
+            <br />
+
+            @* PAYMENT MADE *@
+            <div class="sub-content" style="padding-top: 20px">
+                <div class="bar-title"><span>PAYMENT MADE</span></div>
+                <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
+                <br />
+                <table style="width:100%">
+                    <tr>
+                        <td style="border-top:none;">
+                            @Html.Action("_SearchAllInvoice", "GIROs", new { salesId = Model.SalesId })
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script type="text/javascript">
+    function ShowModelPopUp() {
+       // var cusid = document.getElementById("CusId").value;
+        var basePath = window.location.pathname.includes('/BeYou') ? '/BeYou/GIROs/GIROPopUp' : '/GIROs/GIROPopUp';
+        var url = basePath + '?salesid=@Model.SalesId' + '&isTopUp=' + @Model.IsTopUp.ToString().ToLower();
+        //var url = basePath + '?salesid=Model.SalesId&cusid=' + cusid + '&total=' + Model.subtotal+ '&payamt=' + //Model.totalPayAmt;
+        MyPopUpWin(url, 650, 500);
+    }
+
+    function MyPopUpWin(url, width, height) {
+        var leftPosition, topPosition;
+        //Allow for borders.
+        leftPosition = (window.screen.width / 2) - ((width / 2) + 10);
+        //Allow for title and status bars.
+        topPosition = (window.screen.height / 2) - ((height / 2) + 50);
+        //Open the window.
+        window.open(url, "Window2",
+            "status=no,height=" + height + ",width=" + width + ",resizable=yes,left="
+            + leftPosition + ",top=" + topPosition + ",screenX=" + leftPosition + ",screenY="
+            + topPosition + ",toolbar=no,menubar=no,scrollbars=no,location=no,directories=no");
+    }
+</script>

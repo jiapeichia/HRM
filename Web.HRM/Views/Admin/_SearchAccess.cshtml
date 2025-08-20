@@ -1,0 +1,76 @@
+﻿@using Kendo.Mvc.UI
+
+@{
+    ViewBag.Title = "Access Control";
+}
+
+<div>
+    @(Html.Kendo().Grid<Meo.Web.ViewModels.EmployeeDetailsViewModel>()
+        .Name("GridForEmployee")
+        .HtmlAttributes(new { style = "width: 100%;" })
+        .Columns(columns =>
+        {
+            columns.Bound(model => model.DisplayName)
+                .Title("Employee Name")
+                .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains").ShowOperators(false)))
+                .Width("250px");
+
+            columns.ForeignKey(c => c.RoleId, (System.Collections.IEnumerable)ViewData["Role"], "RoleId", "RoleName")
+                .Title("User Role")
+                .Filterable(ftb => ftb.Cell(cell => cell.Operator("equals").ShowOperators(false)));
+
+            //columns.Bound(c => c.ModDate)
+            //    .Filterable(false);
+
+            columns.Bound(c => c.Emp_id)
+                .Title("")
+                .ClientTemplate("<a href='" + @Url.Action("PageAccess", "Admin", new { id = "#=EmpNo#" }) + "' ><span class='k-button k-button-icontext k-grid-edit'>Page Access</span></a>")
+                .Width(120)
+                .Filterable(false);
+        })
+        .Sortable()
+        .Pageable(pageable => pageable
+            .Refresh(true)
+            .Messages(m => m.Refresh(string.Empty)))
+        .DataSource(source => source
+            .Ajax()
+            .PageSize(10)
+            .Events(events => events
+                .Error("error_handler")
+                .Sync("sync_handler"))
+            .ServerOperation(true)
+            .Sort(sort => sort.Add("DisplayName").Ascending())
+            .Model(model =>
+            {
+                model.Id(tc => tc.Emp_id);
+                model.Field(item => item.Emp_id).Editable(false);
+            })
+            .Read(read => read.Action("Read_UserRole", "Admin", new
+            {
+                displayName = ViewBag.displayName,
+                countryId = ViewBag.countryId,
+                deptId = ViewBag.DeptId,
+                managerName = ViewBag.managerName
+            })))
+        .NoRecords("No Records Found"))
+</div>
+
+<script type="text/javascript">
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+
+    function sync_handler(e) {
+        this.read();
+    }
+</script>

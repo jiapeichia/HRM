@@ -1,0 +1,406 @@
+﻿@model Meo.Web.ViewModels.SalesInvoiceViewModels
+
+@{
+    ViewBag.Title = "GIRO Receipt";
+    var index = 1;
+}
+
+<head>
+    <style>
+        th, td {
+            border-top: 1px solid #ddd;
+            text-align: center;
+        }
+
+        legend {
+            padding: 0.2em 0.5em;
+            color: grey;
+            font-size: 130%;
+        }
+
+        fieldset {
+            border: 1px solid grey;
+            padding: 1em;
+            font: 100%/1 sans-serif;
+        }
+
+        label {
+            float: left;
+            width: 25%;
+            margin-right: 0.5em;
+            padding-top: 0.2em;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        td {
+            padding-left: 20px;
+        }
+
+        .k-upload .k-upload-button {
+            min-width: 7.167em;
+            margin-right: 0em;
+        }
+
+        .k-dropzone {
+            border-style: solid;
+            border-width: 0;
+            padding: .2em;
+            background-color: white;
+        }
+
+        .k-dropdown, .k-textbox {
+            /*width: 100%;*/
+            max-width: 100%;
+            width: 18.4em;
+        }
+
+        .fontsize {
+            font-size: 25px;
+        }
+
+        #loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: gray; /*rgba(255, 255, 255, 0.8);*/ /* semi-transparent white background */
+        }
+
+        #loading-spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 5px solid #3498db; /* blue border */
+            border-top: 5px solid gray; /*#ffffff;*/ /* white top border to create spinner effect */
+            animation: spin 1s linear infinite; /* CSS animation for spinning */
+        }
+
+        .payment-summary {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            width: 48%;
+            margin-left: auto;
+            margin-right: 0;
+        }
+
+        .payment-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-left: auto;
+            margin-right: 0;
+        }
+
+            .payment-table th,
+            .payment-table td {
+                border: 1px solid #ddd;
+                text-align: left;
+                padding: 8px;
+                color: black;
+                width:20%;
+            }
+
+            .payment-table th {
+                background-color: #f4f4f4;
+                font-weight: bold;
+            }
+
+            .payment-table .total-label {
+                text-align: right;
+                font-weight: bold;
+                background-color: #e9e9e9;
+            }
+
+            .payment-table .total-amount {
+                font-weight: bold;
+                color: #333;
+            }
+
+        .payment-options {
+            padding: 10px 0;
+        }
+
+            .payment-options h3 {
+                margin-bottom: 10px;
+                font-size: 18px;
+                color: #333;
+            }
+
+            .payment-options ul {
+                list-style: none;
+                padding: 0;
+            }
+
+            .payment-options li {
+                margin-bottom: 5px;
+                font-size: 16px;
+            }
+
+            .payment-options .option-amount {
+                float: right;
+                font-weight: bold;
+            }
+    </style>
+
+    @section Scripts {
+        <script>
+            $(function () {
+                $("#close").click(function () {
+                      window.open('@Url.Action("Index", "Home")', "_self");
+                    //window.history.back();
+                });
+
+                $("#PrintReceipt").click(function () {
+                    var salesId = '@Model.SalesId';
+                    var url = '@Url.Action("GIROReceipt", "Receipt")' + '?salesId=' + salesId;
+                    window.open(url, '_blank');
+                });
+
+                 $("#gohistory").click(function () {
+                    window.open('@Url.Action("CusPurchaseHistory", "Sales", new { id = Model.CusId })', "_self");
+                });
+
+                $("#cusservice").click(function () {
+                    window.open('@Url.Action("SalesByCus", "Sales", new { id = Model.CusId })', "_self");
+                });
+            });
+
+            $("html, body").animate({
+                scrollTop: 0
+            }, 200);
+
+        </script>
+    }
+</head>
+<body>
+    <div id="loading-overlay">
+        <div id="loading-spinner"></div>
+    </div>
+    <div class="page-content">
+        <div class="col-md-12 mx-0">
+            <div align="right" style="width:100%">
+                <input type="button" value="GO SERVICE" class="btn btn-default" id="cusservice" style="width:100px" />
+                <input type="button" value="GO HISTORY" class="btn btn-default" id="gohistory" style="width:100px" />
+                <input type="button" value="PRINT" class="btn btn-default" id="PrintReceipt" style="width:100px" />
+                <input type="button" value="BACK" class="btn btn-default" id="close" style="width:100px" />
+            </div>
+            <br />
+
+            @*// Sales Info*@
+        <div class="sub-content" style="margin-top: 0px; padding-top: 20px">
+            <div class="card px-0 pt-4 pb-0 mt-3 mb-3" style="text-align: center">
+                <h2><strong>Sales Order (GIRO)</strong></h2>
+            </div>
+            <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
+            <br />
+
+            @Html.AntiForgeryToken()
+            <!-- Header -->
+            <table>
+                <tr>
+                    <td style="border-top: none; text-align: left; padding: 3px; width: 10%;"><strong>Card No. </strong></td>
+                    <td style="border-top: none; text-align: left; padding: 3px; width: 20%;">: @Model.CardNo </td>
+                    <td style="border-top: none; text-align: left; padding: 3px; width: 10%;"><strong>Date </strong></td>
+                    <td style="border-top: none; text-align: left; padding: 3px; width: 20%;">: @Model.OrderDate.ToShortDateString() </td>
+                    <td style="border-top: none; text-align: left; padding: 3px"></td>
+                </tr>
+                <tr>
+                    <td style="border-top:none; text-align:left; padding:3px">
+                        <strong>Customer Name </strong>
+                    </td>
+                    <td style="border-top:none; text-align:left; padding:3px">
+                        :
+                        @ViewData["CustomerName"].ToString()
+                        <input id="CusId" type="text" value="@Model.CusId" style="display:none; width:100%" />
+                    </td>
+                    <td style="border-top: none; text-align: left; padding: 3px"><strong>Paid By </strong></td>
+                    <td style="border-top: none; text-align: left; padding: 3px">: @Model.PaymentMethodName </td>
+                    <td style="border-top: none; text-align: left; padding: 3px"></td>
+                </tr>
+                <tr>
+                    <td style="border-top: none; text-align: left; padding: 3px"><strong>Invoice No. </strong></td>
+                    <td style="border-top: none; text-align: left; padding: 3px">: @Model.SalesId</td>
+                    <td style="border-top: none; text-align: left; padding: 3px"><strong>Credit Balance </strong></td>
+                    <td style="border-top: none; text-align: left; padding: 3px">: @Model.CreditBal </td>
+                    <td style="border-top: none; text-align: left; padding: 3px"></td>
+                </tr>
+            </table>
+            <br />
+
+            <!-- Body [Sales Item] -->
+            @if (!string.IsNullOrEmpty(Model.dueInvoice))
+            {
+                <p style="color: red">Invoice details is refering to @Model.dueInvoice </p>
+            }
+            <table id="tblSalesItem" style="width:100%">
+                <tr>
+                    <th>
+                        No
+                    </th>
+                    <th>
+                        Item
+                    </th>
+                    <th>
+                        Qty
+                    </th>
+                    <th>
+                        Unit Price
+                    </th>
+                    <th>
+                        Paid Amount
+                    </th>
+                    <th>
+                        Total
+                    </th>
+                    <th>
+                        Outstanding Amount
+                    </th>
+                    <th>
+                        Sales By
+                    </th>
+                </tr>
+                @if (Model.ExchangeDetails != null && Model.ExchangeDetails.Any())
+                {
+                    foreach (var item in Model.ExchangeDetails)
+                    {
+                        <tr>
+                            @*<td class="salesitemid" style="display:none"><span>@item.SalesItemId</span></td>*@
+                            <td style="width:5%">@index</td>
+                            <td style="width:20%; text-align:left">
+                                @Html.DisplayFor(modelItem => item.ProductName)
+                            </td>
+                            <td class="quantity" style="width:5%">
+                                @if (Model.PaidAmt == null)
+                                {
+                                    <span>@item.Quantity</span>
+                                    <input type="text" value="@item.Quantity" style="display:none; width:100%" />
+                                }
+                                else
+                                {
+                                    @Html.DisplayFor(modelItem => item.Quantity)
+                                }
+                            </td>
+                            <td class="unitprice" style="width:10%">
+                                <span>@item.UnitPrice</span>
+                            </td>
+                            <td class="linediscount" style="width:10%">
+                                @if (Model.PaidAmt == null)
+                                {
+                                    <span>@item.LineDiscAmt</span>
+                                    <input type="text" value="@item.LineDiscAmt" style="display: none; width: 100%" />
+                                }
+                                else
+                                {
+                                    @Html.DisplayFor(modelItem => item.LineDiscAmt)
+                                }
+                            </td>
+                            <td class="linetotal" style="width:10%">
+                                <span>@item.LineTotal</span>
+                            </td>
+                            <td class="linetotal" style="width:10%">
+                                <span>@item.LineOutstandingAmt</span>
+                            </td>
+                            <td style="width:10%">
+                                <span>@item.EmpName</span>
+                            </td>
+                        </tr>
+                        index++;
+                    }
+                }
+                @if (Model.SalesDetails != null && Model.SalesDetails.Any())
+                {
+                    foreach (var item in Model.SalesDetails)
+                    {
+                        <tr>
+                            <td class="salesitemid" style="display:none"><span>@item.SalesItemId</span></td>
+                            <td style="width:5%">@index</td>
+                            <td style="width:20%; text-align:left">
+                                @Html.DisplayFor(modelItem => item.ProductName)
+                            </td>
+                            <td class="quantity" style="width:5%">
+                                @Html.DisplayFor(modelItem => item.Quantity)
+                            </td>
+                            <td class="unitprice" style="width:10%">
+                                <span>@item.UnitPrice</span>
+                            </td>
+                            <td class="linediscount" style="width:10%">
+                                @Html.DisplayFor(modelItem => item.LinePayAmt)
+                            </td>
+                            <td class="linetotal" style="width:10%">
+                                <span>@item.LineTotal</span>
+                            </td>
+                            <td class="linetotal" style="width:10%">
+                                <span>@item.LineOutstandingAmt</span>
+                            </td>
+                            <td style="width:10%">
+                                <span>@item.EmpName</span>
+                            </td>
+                        </tr>
+                        index++;
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="8">No sales details available.</td></tr>
+                }
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td><strong>@Model.totalQty</strong></td>
+                    <td></td>
+                    <td><strong>@Model.totalPayAmt</strong></td>
+                    <td><strong>@Model.subtotal</strong></td>
+                    <td><strong>@Model.totalOutStanding</strong></td>
+                    <td></td>
+                </tr>
+            </table>
+            <br />
+            @if (!string.IsNullOrEmpty(Model.dueInvoice))
+            {
+                <div class="payment-summary">
+                    <table class="payment-table">
+                        <thead>
+                            <tr>
+                                <th>Invoice No</th>
+                                <th>Payment Date</th>
+                                <th>Paid Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Replace with dynamic data using Razor -->
+                            @if (Model.GIROPaymentCounts != null && Model.GIROPaymentCounts.Any())
+                            {
+                                foreach (var item in Model.GIROPaymentCounts)
+                                {
+                                    <tr>
+                                        <td>@item.SaledId</td>
+                                        <td>@item.PaymentDate</td>
+                                        <td>@item.TotalPaid</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="2" class="total-label">Total:</td>
+                                <td class="total-amount">@Model.BalAmt</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            }
+        </div>
+        </div>
+    </div>
+</body>
+
