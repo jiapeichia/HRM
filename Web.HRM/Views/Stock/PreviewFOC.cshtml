@@ -1,0 +1,187 @@
+﻿@model Meo.Web.ViewModels.FocSalon
+
+@{
+    ViewBag.Title = "FOC / Salon";
+    var index = 1;
+    var Products = ViewBag.Products;
+    var productsJson = Newtonsoft.Json.JsonConvert.SerializeObject(Products);
+}
+
+<body>
+    <div class="page-content">
+        <div class="col-md-12 mx-0">
+            <div align="right" style="width:100%">
+                <input type="button" value="BACK" class="btn btn-default" id="close" style="width:100px" />
+            </div>
+            <br />
+
+            @*// Sales Info*@
+            <div class="sub-content" style="margin-top: 0px; padding-top: 20px">
+                <div class="card px-0 pt-4 pb-0 mt-3 mb-3" style="text-align: center">
+                    <h2><strong>Foc / Salon</strong></h2>
+                </div>
+                <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
+                <br />
+
+                <!-- Header -->
+                <table>
+                    <tr>
+                        <td style="border-top:none; text-align:left; padding:3px">
+                            <strong>Customer Name </strong>
+                        </td>
+                        <td style="border-top:none; text-align:left; padding:3px">
+                            :
+                           @Model.cusName
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="border-top: none; text-align: left; padding: 3px"><strong>Date </strong></td>
+                        <td style="border-top: none; text-align: left; padding: 3px">: @Model.AddDate.ToShortDateString() </td>
+                    </tr>
+                </table>
+
+                <br />
+                <!-- Body [Sales Item] -->
+                <table id="tblSalesItem" style="width:100%">
+                    <tr>
+                        <th>
+                            No
+                        </th>
+                        <th>
+                            Item
+                        </th>
+                        <th>
+                            Qty
+                        </th>
+                        <th>
+                            Unit Price
+                        </th>
+                        <th>
+                            Total
+                        </th>
+                        <th>
+                            Sales By
+                        </th>
+                    </tr>
+                    @if (Model.FocDetails != null && Model.FocDetails.Any())
+                    {
+                        foreach (var item in Model.FocDetails)
+                        {
+                            <tr>
+                                <td class="detailsid" style="display:none"><span>@item.Id</span></td>
+                                <td style="width:5%">@index</td>
+                                <td style="width:20%; text-align:left">
+                                    @Html.DisplayFor(modelItem => item.ProductName)
+                                </td>
+                                <td class="quantity" style="width:5%">
+                                    @if (Model.CusId == 0)
+                                    {
+                                        <span>@item.Qty</span>
+                                        <input type="text" value="@item.Qty" style="display:none; width:100%" />
+                                    }
+                                    else
+                                    {
+                                        @Html.DisplayFor(modelItem => item.Qty)
+                                    }
+                                </td>
+                                <td class="unitprice" style="width:10%">
+                                    <span>@item.UnitPrice</span>
+                                </td>
+                                <td class="linetotal" style="width:10%">
+                                    <span>@item.LineTotal</span>
+                                </td>
+                                <td style="width:10%">
+                                    <span>@item.EmpName</span>
+                                </td>
+                            </tr>
+
+                            index++;
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="8">No sales details available.</td></tr>
+                    }
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </table>
+                <br />
+            </div>
+        </div>
+    </div>
+</body>
+<style>
+    th, td {
+        border-top: 1px solid #ddd;
+        text-align: center;
+    }
+
+    legend {
+        padding: 0.2em 0.5em;
+        color: grey;
+        font-size: 130%;
+    }
+
+    fieldset {
+        border: 1px solid grey;
+        padding: 1em;
+        font: 100%/1 sans-serif;
+    }
+
+    label {
+        float: left;
+        width: 25%;
+        margin-right: 0.5em;
+        padding-top: 0.2em;
+        text-align: right;
+        font-weight: bold;
+    }
+
+    td {
+        padding-left: 20px;
+    }
+
+    .k-upload .k-upload-button {
+        min-width: 7.167em;
+        margin-right: 0em;
+    }
+
+    .k-dropzone {
+        border-style: solid;
+        border-width: 0;
+        padding: .2em;
+        background-color: white;
+    }
+
+    .k-dropdown, .k-textbox {
+        /*width: 100%;*/
+        max-width: 100%;
+        width: 18.4em;
+    }
+
+    .fontsize {
+        font-size: 25px;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(function () {
+            $("#close").click(function () {
+                   $("#SearchContent").val('').trigger("change");
+             window.open('@Url.Action("FocIndex", "Stock")', "_self");
+                  //window.history.back();
+            });
+        });
+
+            $("html, body").animate({
+                scrollTop: 0
+            }, 200);
+    </script>
+}

@@ -1466,7 +1466,7 @@ namespace Web.HRM.Controllers
                                     {
                                         SalesItemId = pack.SalesItemId,
                                         ProductId = svc.ItemId,
-                                        Quantity = svc.Qty,
+                                        Quantity = svc.Qty * pack.Quantity,
                                         ExpiryPeriod = main_p.ExpiryPeriod,
                                         //ExpiryDate = DateTime.Now.AddMonths(main_p.ExpiryPeriod).AddDays(-1),
                                         ExpiryDate = main_p.ExpiryPeriod.HasValue && main_p.ExpiryPeriod.Value > 0

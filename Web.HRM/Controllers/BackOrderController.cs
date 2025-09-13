@@ -288,6 +288,7 @@ namespace Web.HRM.Controllers
             return proList;
         }
 
+        #region Add/Remove in Back Order form
         [HttpPost]
         public ActionResult AddSalesItem(string salesid, int pid, int qty, decimal price, decimal disc, decimal total, string empno, string cusid)
         {
@@ -360,6 +361,20 @@ namespace Web.HRM.Controllers
                 throw new Exception(ex.ToString());
             }
         }
+        [HttpPost]
+        public ActionResult DeleteSales(int detailsid)
+        {
+            FocDetails item = (from i in db.FocDetails
+                               where i.Id == detailsid
+                               select i).FirstOrDefault();
+
+            db.FocDetails.Remove(item);
+            db.SaveChanges();
+
+            return new EmptyResult();
+        }
+        #endregion
+
         //public ActionResult ProductHistory(int? id)
         //{
         //    try

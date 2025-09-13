@@ -1,25 +1,14 @@
-﻿using DocumentFormat.OpenXml.VariantTypes;
-using Kendo.Mvc.Extensions;
+﻿using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using Meo.Web.DBContext;
 using Meo.Web.ViewModels;
 using Microsoft.Ajax.Utilities;
-using Microsoft.Office.Interop.Excel;
-using NPOI.SS.Formula.Functions;
-using PdfSharp.Pdf;
 using System;
-using System.CodeDom;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Data.Entity.Migrations;
 using System.Linq;
 using System.Net;
 using System.Web.Mvc;
-using System.Windows.Interop;
-using static ICSharpCode.SharpZipLib.Zip.ExtendedUnixData;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Tab;
 
 namespace Web.HRM.Controllers
 {
@@ -1119,6 +1108,337 @@ namespace Web.HRM.Controllers
             db.SaveChanges();
 
             return new EmptyResult();
+        }
+        #endregion
+
+        #region -------------- Stock Deduct [FOC / Salon] -------------- 
+        [HttpGet]
+        public ActionResult FocSalon(int? id, string flag)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(Session["EmpNo"] as string))
+                {
+                    ViewBag.Employees = db.Employees.Where(e => e.Active.Equals(false) && e.Status.Equals(false) && !e.FullName.Contains("Admin") && !e.FullName.Contains("Service")).ToList();
+                    ProductList();
+                    CustomerList();
+                    ViewBag.Id = id ?? 0;
+
+                    FocSalon focsalon = new FocSalon();
+
+                    focsalon.FocDetails = GetFocDetailList(0);
+
+                    // when it's "NEW" make sure clear existing one
+                    if (flag == "new")
+                    {
+                        foreach (var item in focsalon.FocDetails)
+                        {
+                            var toDlt = db.FocDetails.FirstOrDefault(x => x.FocId == 0);
+
+                            db.FocDetails.Remove(toDlt);
+                            db.SaveChanges();
+                        }
+
+                        focsalon.FocDetails = new List<FocDetailsUpdate>();
+                    }
+
+                    focsalon.AddDate = DateTime.Now;
+                    focsalon.CusId = id ?? 0;
+                    //test.FocDetails = new List<FocDetails>();
+                    return View(focsalon);
+                }
+
+                return RedirectToAction("Login", "Account");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.ToString());
+            }
+        }
+
+        public List<FocDetailsUpdate> GetFocDetailList(int focId)
+        {
+            List<FocDetailsUpdate> focdetails = (from si in db.FocDetails
+                                                 join emp in db.Employees on si.EmpNo equals emp.EmpNo into empGroup
+                                                 from employee in empGroup.DefaultIfEmpty()
+                                                 join pro in db.Products on si.ProductId equals pro.ProductId
+                                                 where si.FocId.Equals(focId)
+                                                 select new FocDetailsUpdate
+                                                 {
+                                                     Id = si.Id,
+                                                     FocId = si.FocId,
+                                                     EmpName = employee.FullName ?? "",
+                                                     ProductName = pro.ProductName,
+                                                     Qty = si.Qty,
+                                                     UnitPrice = si.UnitPrice,
+                                                     LineTotal = si.LineTotal,
+                                                     Remarks = si.Remarks,
+                                                 }).ToList();
+
+            return focdetails;
+        }
+
+        public ActionResult FocIndex()
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(Session["EmpNo"] as string))
+                {
+                    CustomerList();
+                    return View();
+                }
+                return RedirectToAction("Login", "Account");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.ToString());
+            }
+        }
+
+        public ActionResult _SearchFoc()
+        {
+            CustomerList();
+            ProductList();
+            return PartialView();
+        }
+
+        public virtual ActionResult Read_Foc([DataSourceRequest] DataSourceRequest request, string searchContent)
+        {
+            //var test = Json(db.foc.Where(o => o.Status.Equals(false) && o.Active.Equals(false)).ToDataSourceResult(request, o => new Foc()
+            //{
+            //    Id = o.Id,
+            //    CusId = o.CusId,
+            //    //ProductId = o.ProductId,
+            //    //EmpNo = o.EmpNo,
+            //    //Qty = o.Qty,
+            //    //UnitPrice = o.UnitPrice,
+            //    //LineTotal = o.LineTotal,
+            //    Remarks = o.Remarks,
+            //    Active = o.Active,
+            //    Status = o.Status,
+            //    AddBy = o.AddBy,
+            //    ModBy = o.ModBy,
+            //    AddDate = o.AddDate,
+            //    ModDate = o.ModDate,
+            //}), JsonRequestBehavior.AllowGet);
+            var result = db.Focs.Where(o => o.Status.Equals(false)).ToList();
+
+            //if (!string.IsNullOrEmpty(searchContent))
+            //{
+            //    searchContent = searchContent.ToLower();
+            //    //result = result.Where(x => x.Code.ToLower().Contains(searchContent)).ToList();
+            //}
+
+            return Json(result.ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
+        }
+        #endregion
+
+        // currently use for Foc 
+        public void ProductList()
+        {
+            var proList = (from p in db.Products
+                           join t in db.Types on p.TypeId equals t.TypeId
+                           join s in db.Stock on p.ProductId equals s.ProductId into proGroup
+                           from stk in proGroup.DefaultIfEmpty()
+                           where p.Active == false && p.Status == false && (stk == null || stk.Status == false)
+                           && t.Module == "Product" && t.TypeName == "Product"
+                           select new ProductGIRO
+                           {
+                               ProductId = p.ProductId,
+                               ProductCode = p.ProductCode,
+                               ProductName = p.ProductCode + " (" + p.ProductName + ")",
+                               TypeName = t.TypeName,
+                               Cost = p.Cost,
+                               Price = p.Price,
+                               QtyAvailable = stk.QtyAvailable ?? 0,
+                               //CreditBuy = p.CreditBuy,
+                               GIROBuy = false,
+                               FirstPayAmt = 0,
+                           }).ToList();
+
+            ViewBag.Products = proList;
+
+            //var typeid = db.Types.FirstOrDefault(e => e.Active.Equals(false) && e.Status.Equals(false) && e.Module == "Product" && e.TypeName == "Product").TypeId;
+            //ViewBag.Products = db.Products.Where(x => x.Status == false && x.Active == false && x.TypeId == typeid).ToList();
+            ViewData["Products"] = ViewBag.Products;
+        }
+
+        public void CustomerList()
+        {
+            var cus = (from e in db.Customers
+                       where e.Active == false && e.Status == false
+                       select new Customer
+                       {
+                           CusId = e.CusId,
+                           CardNo = e.CardNo,
+                           FullName = e.CardNo + " : " + e.FullName + " (TEL: " + e.ContactNo + ")",//+ " / IC: " + e.IcNo,
+                       }).ToList();
+
+            ViewData["Customer"] = cus;
+        }
+
+        #region Add/Remove stick in FOC / Salon form
+        [HttpPost]
+        public ActionResult AddFocProduct(int pid, int qty, decimal price, decimal total, string empno, string cusid)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(Session["EmpNo"] as string))
+                {
+                    return RedirectToAction("Login", "Account");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    // Sum up if duplicate foc choose
+                    var focdetail = db.FocDetails.FirstOrDefault(x => x.FocId == 0 && x.ProductId == pid);
+                    if (focdetail != null)
+                    {
+                        focdetail.Qty += qty;
+                        focdetail.ModBy = Session["EmpNo"].ToString() + "|" + Session["EmpName"].ToString();
+                        focdetail.ModDate = DateTime.Now;
+                        db.FocDetails.Attach(focdetail);
+                        db.Entry(focdetail).State = EntityState.Modified;
+                    }
+                    else
+                    {
+                        var item = new FocDetails
+                        {
+                            FocId = 0,
+                            EmpNo = empno,
+                            ProductId = pid,
+                            Qty = qty,
+                            UnitPrice = price,
+                            LineTotal = total,
+
+                            Active = false,
+                            Status = false,
+                            AddBy = Session["EmpNo"].ToString() + "|" + Session["EmpName"].ToString(),
+                            ModBy = Session["EmpNo"].ToString() + "|" + Session["EmpName"].ToString(),
+                            AddDate = DateTime.Now,
+                            ModDate = DateTime.Now
+                        };
+
+                        db.FocDetails.Add(item);
+                    }
+
+                    db.SaveChanges();
+                }
+
+                var currentUrl = Request.Url.AbsoluteUri;
+                int lastSlashIndex = currentUrl.LastIndexOf('/');
+                var baseUrl = currentUrl.Substring(0, lastSlashIndex);
+                lastSlashIndex = baseUrl.LastIndexOf('/');
+                baseUrl = baseUrl.Substring(0, lastSlashIndex);
+
+                if (int.TryParse(cusid, out int parsedCusId))
+                {
+                    ViewBag.CusId = parsedCusId;
+                    return JavaScript($"window.location.href = '{baseUrl}/Stock/FocSalon/{parsedCusId}';");
+                }
+
+                return JavaScript($"window.location.href = '{baseUrl}/Stock/FocSalon';");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.ToString());
+            }
+        }
+
+        [HttpPost]
+        public ActionResult DeleteForProduct(int detailsid)
+        {
+            FocDetails item = (from i in db.FocDetails
+                               where i.Id == detailsid
+                               select i).FirstOrDefault();
+
+            db.FocDetails.Remove(item);
+            db.SaveChanges();
+
+            return new EmptyResult();
+        }
+        #endregion
+
+        #region FOC / Salon confirmation
+        [HttpPost]
+        public ActionResult ConfirmationFoc(int cusid)
+        {
+            if (string.IsNullOrEmpty(Session["EmpNo"] as string))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            try
+            {
+                var item = new Foc
+                {
+                    CusId = cusid,
+                    Active = false,
+                    Status = false,
+                    AddBy = Session["EmpNo"].ToString() + "|" + Session["EmpName"].ToString(),
+                    ModBy = Session["EmpNo"].ToString() + "|" + Session["EmpName"].ToString(),
+                    AddDate = DateTime.Now,
+                    ModDate = DateTime.Now
+                };
+
+                // must create header first
+                db.Focs.Add(item);
+                db.SaveChanges();
+
+                // update the line item
+                var focList = db.FocDetails.Where(x => x.FocId == 0).ToList();
+                foreach (var i in focList)
+                {
+                    i.FocId = item.Id;
+
+                    // Deduct stock
+                    var pro = db.Stock.FirstOrDefault(x => x.ProductId == i.ProductId);
+                    if (pro == null)
+                    {
+                        throw new Exception($"Stock not found for product {i.ProductId}");
+                    }
+
+                    if (pro.QtyAvailable < i.Qty)
+                    {
+                        throw new Exception($"Insufficient stock for product {i.ProductId}");
+                    }
+
+                    pro.QtyAvailable -= i.Qty;
+                }
+
+                db.SaveChanges();
+                return Json(new { success = true, data = item });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { error = true, messages = ex.Message, inner = ex.InnerException?.InnerException?.Message });
+            }
+        }
+
+        public ActionResult PreviewFOC(int id)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(Session["EmpNo"] as string))
+                {
+                    return RedirectToAction("Login", "Account");
+                }
+
+                FocSalon focsalon = new FocSalon();
+
+                var item = db.Focs.Find(id);
+                focsalon.CusId = item.CusId;
+                focsalon.AddDate = item.AddDate;
+                focsalon.FocDetails = GetFocDetailList(id);
+
+                focsalon.cusName = db.Customers.FirstOrDefault(x => x.CusId == item.CusId).FullName;
+                return View(focsalon);
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.ToString());
+            }
         }
         #endregion
     }

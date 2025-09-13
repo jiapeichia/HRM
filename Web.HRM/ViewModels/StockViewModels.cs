@@ -419,4 +419,147 @@ namespace Meo.Web.ViewModels
 
         public List<UpdateItemReturn> ItemReturns { get; set; }
     }
+
+    [Table("dbo.Foc")]
+    public class Foc
+    {
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Display(Name = "ID")]
+        public int Id { get; set; }
+
+        [Display(Name = "Customer")]
+        public int CusId { get; set; }
+
+        [Display(Name = "Remarks")]
+        public string Remarks { get; set; }
+
+        [Display(Name = "Active")]
+        public bool Active { get; set; }
+
+        [Display(Name = "Status")]
+        public bool Status { get; set; }
+
+        [Display(Name = "Add By")]
+        public string AddBy { get; set; }
+
+        [Display(Name = "Mod By")]
+        public string ModBy { get; set; }
+
+        [Display(Name = "Add Date")]
+        [DataType(DataType.Date)]
+        public DateTime AddDate { get; set; }
+
+        [Display(Name = "Last Update")]
+        [DataType(DataType.Date)]
+        public DateTime ModDate { get; set; }
+    }
+
+    [Table("dbo.FocDetails")]
+    public class FocDetails
+    {
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Display(Name = "ID")]
+        public int Id { get; set; }
+        
+        [Display(Name = "Foc ID")]
+
+        public int FocId { get; set; }
+
+        [Display(Name = "Employee")]
+        public string EmpNo { get; set; }
+
+        [Display(Name = "Product")]
+        public int ProductId { get; set; }
+
+        [Display(Name = "Qty")]
+        public int Qty { get; set; }
+
+        [Display(Name = "Unit Price")]
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        public decimal UnitPrice { get; set; }
+
+        [Display(Name = "Line Total")]
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        public decimal LineTotal { get; set; }
+
+        [Display(Name = "Remarks")]
+        public string Remarks { get; set; }
+
+        [Display(Name = "Active")]
+        public bool Active { get; set; }
+
+        [Display(Name = "Status")]
+        public bool Status { get; set; }
+
+        [Display(Name = "Add By")]
+        public string AddBy { get; set; }
+
+        [Display(Name = "Mod By")]
+        public string ModBy { get; set; }
+
+        [Display(Name = "Add Date")]
+        [DataType(DataType.Date)]
+        public DateTime AddDate { get; set; }
+
+        [Display(Name = "Last Update")]
+        [DataType(DataType.Date)]
+        public DateTime ModDate { get; set; }
+    }
+
+    public class FocDetailsUpdate
+    {
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Display(Name = "ID")]
+        public int Id { get; set; }
+
+        [Display(Name = "Foc ID")]
+
+        public int FocId { get; set; }
+
+        [Display(Name = "Employee")]
+        public string EmpName { get; set; }
+
+        [Display(Name = "Product")]
+        public string ProductName { get; set; }
+
+        [Display(Name = "Qty")]
+        public int Qty { get; set; }
+
+        [Display(Name = "Unit Price")]
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        public decimal UnitPrice { get; set; }
+
+        [Display(Name = "Line Total")]
+        [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
+        public decimal LineTotal { get; set; }
+
+        [Display(Name = "Remarks")]
+        public string Remarks { get; set; }
+    }
+
+    public class FocSalon //: Foc
+    {
+        public int totalQty { get; set; }
+        public string cusName { get; set; }
+        public int Id { get; set; }
+
+        public int CusId { get; set; }
+
+        public string Remarks { get; set; }
+
+        public bool Active { get; set; }
+
+        public bool Status { get; set; }
+
+        public string AddBy { get; set; }
+
+        public string ModBy { get; set; }
+
+        [DataType(DataType.Date)]
+        public DateTime AddDate { get; set; }
+
+        [DataType(DataType.Date)]
+        public DateTime ModDate { get; set; }
+        public List<FocDetailsUpdate> FocDetails { get; set; }
+    }
 }

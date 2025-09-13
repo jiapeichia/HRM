@@ -1,0 +1,74 @@
+﻿@using Meo.Web.ViewModels
+@using Kendo.Mvc.UI
+
+@{
+    ViewBag.Title = "Foc / Salon History";
+}
+
+@(Html.Kendo().Grid<Foc>()
+        .Name("GridForFoc")
+        .HtmlAttributes(new { style = "width:100%;" })
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.Id).Title("").ClientTemplate("<a href='" + @Url.Action("PreviewFOC", "Stock", new { id = "#=Id#" }) + "' ><span class='k-button k-button-icontext k-grid-edit'>Preview</span></a>").Width(90);
+            columns.ForeignKey(c => c.CusId, (System.Collections.IEnumerable)ViewData["Customer"], "CusId", "FullName").Title("Customer").Width(220);
+            columns.Bound(c => c.Remarks).Width(380);
+        })
+        .Pageable(pageable => pageable
+        .Refresh(true).Messages(m => m.Refresh(string.Empty)))
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(10)
+        .Events(events => events.Error("error_handler").Sync("sync_handler").RequestEnd("onRequestEnd"))
+        .ServerOperation(true)
+        .Read(read => read.Action("Read_Foc", "Stock", new { searchContent = ViewBag.searchContent }))
+        .Sort(sort =>
+        {
+            sort.Add(c => c.ModDate).Descending();
+        })
+        .Model(model =>
+        {
+            model.Id(e => e.Id);
+        }))
+        .Resizable(resize => resize.Columns(true))
+        .NoRecords("No Records Found"))
+
+@* Error msg to be shown & sync grid table automatically *@
+<script type="text/javascript">
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+
+    function sync_handler(e) {
+        this.read();
+    }
+
+    function onRequestEnd(e) {
+        var notificationWidget = $("#notification").kendoNotification(
+            {
+                position: {
+                    pinned: true,
+                    top: 100,
+                    right: 50
+                },
+            }).data("kendoNotification");
+
+        if (e.type == "create" && !e.response.Errors) {
+            notificationWidget.show("New Record created!", "success");
+        } else if (e.type == "update" && !e.response.Errors) {
+            notificationWidget.show("Update Successfully", "success");
+        } else if (e.response.Errors) {
+            notificationWidget.show("Fail to update", "warning");
+        }
+    }
+</script>

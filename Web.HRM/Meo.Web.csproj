@@ -476,6 +476,11 @@
     <Content Include="Views\BackOrder\PaymentPopUp.cshtml" />
     <Content Include="Views\Report\_SearchAllInvoice - Copy.cshtml" />
     <Content Include="Views\Sales\PreviewINV - Copy.cshtml" />
+    <Content Include="Views\Stock\FocIndex.cshtml" />
+    <Content Include="Views\Stock\_SearchFoc.cshtml" />
+    <Content Include="Views\Stock\FocSalon.cshtml" />
+    <Content Include="Views\Stock\ConfirmationPopUp.cshtml" />
+    <Content Include="Views\Stock\PreviewFOC.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff" />

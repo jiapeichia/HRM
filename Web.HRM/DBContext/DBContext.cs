@@ -36,6 +36,8 @@ namespace Meo.Web.DBContext
         public DbSet<ItemReceive> ItemReceives { get; set; }
         public DbSet<StockReturns> StockReturns { get; set; }
         public DbSet<ItemReturn> ItemReturns { get; set; }
+        public DbSet<Foc> Focs { get; set; }
+        public DbSet<FocDetails> FocDetails { get; set; }
 
         // Master Settings
         public DbSet<CompanyProfile> CompanyProfile { get; set; }
