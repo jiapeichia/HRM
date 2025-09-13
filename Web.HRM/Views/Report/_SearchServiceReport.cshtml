@@ -41,7 +41,7 @@
         .HtmlAttributes(new { style = "100%" })
         .Columns(columns =>
         {
-            columns.Bound(c => c.CusId).Title("").ClientTemplate(
+            columns.Bound(c => c.CardNo).Title("").ClientTemplate(
                 "# if (data.ImagePath != null) { #"
                 + "<div class='small-photo' style='background-image: url(" + @Url.Content("~/Images/Customer/#:data.ImagePath#") + ");'></div>"
                 + "# } else { #"
