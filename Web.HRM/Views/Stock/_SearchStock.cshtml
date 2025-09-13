@@ -18,12 +18,12 @@
                 .Width(100);
             columns.Command(command =>
             {
-                command.Custom("Edit")
-                .Click("onEditClick")
-                .HtmlAttributes(new { @class = "k-button k-button-icontext k-grid-edit" })
-                .Text("<span class='k-icon k-i-edit'></span>Edit");
+                //command.Custom("Edit")
+                //.Click("onEditClick")
+                //.HtmlAttributes(new { @class = "k-button k-button-icontext k-grid-edit" })
+                //.Text("<span class='k-icon k-i-edit'></span>Edit");
                 command.Destroy(); // Keep the delete functionality
-            }).Width(180);
+            }).Width(100);
         })
         .Pageable(pageable => pageable
             .Refresh(true)
