@@ -254,9 +254,9 @@
                         <th>
                             Unit Price
                         </th>
-                        @*<th>
-                                Discount
-                            </th>*@
+                        <th>
+                            Discount
+                        </th>
                         <th>
                             Total
                         </th>
@@ -333,17 +333,17 @@
                                 <td class="unitprice" style="width:10%">
                                     <span>@item.UnitPrice</span>
                                 </td>
-                                @*<td class="linediscount" style="width:10%">
-                                        @if (Model.PaidAmt == null)
-                                        {
-                                            <span>@item.LineDiscAmt</span>
-                                            <input type="text" value="@item.LineDiscAmt" style="display: none; width: 100%" />
-                                        }
-                                        else
-                                        {
-                                            @Html.DisplayFor(modelItem => item.LineDiscAmt)
-                                        }
-                                    </td>*@
+                                <td class="linediscount" style="width:10%">
+                                    @if (Model.PaidAmt == null)
+                                    {
+                                        <span>@item.LineDiscAmt</span>
+                                        <input type="text" value="@item.LineDiscAmt" style="display: none; width: 100%" />
+                                    }
+                                    else
+                                    {
+                                        @Html.DisplayFor(modelItem => item.LineDiscAmt)
+                                    }
+                                </td>
                                 <td class="linetotal" style="width:10%">
                                     <span>@item.LineTotal</span>
                                 </td>
@@ -363,7 +363,7 @@
                         <td></td>
                         <td><strong>@Model.totalQty</strong></td>
                         <td></td>
-                        @*<td><strong>@Model.totalDisc</strong></td>*@
+                        <td><strong>@Model.totalDisc</strong></td>
                         <td><strong>@Model.subtotal</strong></td>
                         <td></td>
                     </tr>

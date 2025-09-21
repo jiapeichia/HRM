@@ -123,6 +123,10 @@ namespace Meo.Web.ViewModels
         [Display(Name = "Line Total")]
         [DisplayFormat(DataFormatString = "{0:N2}")]
         public decimal LineTotal { get; set; }
+
+        [Display(Name = "Line Discount")]
+        [DisplayFormat(DataFormatString = "{0:N2}")]
+        public decimal LineDiscount { get; set; }
     }
 
     public class ReceiptAmountItem

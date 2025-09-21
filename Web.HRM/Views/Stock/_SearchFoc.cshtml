@@ -12,7 +12,7 @@
         {
             columns.Bound(c => c.Id).Title("").ClientTemplate("<a href='" + @Url.Action("PreviewFOC", "Stock", new { id = "#=Id#" }) + "' ><span class='k-button k-button-icontext k-grid-edit'>Preview</span></a>").Width(90);
             columns.ForeignKey(c => c.CusId, (System.Collections.IEnumerable)ViewData["Customer"], "CusId", "FullName").Title("Customer").Width(220);
-            columns.Bound(c => c.Remarks).Width(380);
+            //columns.Bound(c => c.Remarks).Width(380);
         })
         .Pageable(pageable => pageable
         .Refresh(true).Messages(m => m.Refresh(string.Empty)))

@@ -99,10 +99,16 @@
                 <th style="text-align: right">
                     Price(RM)
                 </th>
-                <th style="text-align: right; padding-left: 2px;">
+                <th style="text-align: right; padding-left: 1px;">
                     Qty
                 </th>
-                <th style="text-align: right; padding-left: 2px;">
+                if (Model.ReceiptHeader.Equals("SALES"))
+                {
+                    <th style="text-align: right; padding-left: 1px;">
+                        Disc(RM)
+                    </th>
+                }
+                <th style="text-align: right; padding-left: 1px;">
                     Amt(RM)
                 </th>
             }
@@ -119,6 +125,12 @@
                 <td style="text-align: right">
                     *@item.Quantity
                 </td>
+                @if (Model.ReceiptHeader.Equals("SALES"))
+                {
+                    <td style="text-align: right">
+                        @item.LineDiscount
+                    </td>
+                }
                 <td style="text-align: right">
                     @item.LineTotal
                 </td>
@@ -166,7 +178,7 @@
                 </tr>
                 <tr style="border-bottom: 1px darkgrey dotted;">
                     <td colspan="3" style="font-size: 11px">
-                        DISCOUNT (RM)
+                        ADDITIONAL DISC (RM)
                     </td>
                     <td style="font-size: 11px; text-align: right ">
                         (@Model.TotalDisc)

@@ -265,7 +265,8 @@ namespace Web.HRM.Controllers
                      ProductName = pro.ProductName,
                      UnitPrice = si.UnitPrice,
                      Quantity = si.Quantity,
-                     LineTotal = si.LineTotal
+                     LineTotal = si.LineTotal,
+                     LineDiscount = si.LineDiscAmt,
                  }).ToList();
 
             var recpt2 =
@@ -278,7 +279,8 @@ namespace Web.HRM.Controllers
                      ProductName = pack.Description,
                      UnitPrice = si.UnitPrice,
                      Quantity = si.Quantity,
-                     LineTotal = si.LineTotal
+                     LineTotal = si.LineTotal,
+                     LineDiscount = si.LineDiscAmt,
                  }).ToList();
 
             sales.ReceiptItems = exchange.Concat(recpt1).Concat(recpt2).ToList();
@@ -455,12 +457,14 @@ namespace Web.HRM.Controllers
             var paymentType = db.Types.Find(sales.PaymentMethodId).TypeName;
 
             ReceiptModel receipt = new ReceiptModel();
+            var lineDisc = 0;
 
             if (paymentType.Equals("Credit Balance"))
             {
                 sales.ReceiptItems.ForEach(item =>
                 {
                     item.LineTotal = Math.Round(item.LineTotal, 0);
+                    item.LineDiscount = Math.Round(item.LineDiscount, 0);
                     item.UnitPrice = Math.Round(item.UnitPrice, 0);
                 });
 

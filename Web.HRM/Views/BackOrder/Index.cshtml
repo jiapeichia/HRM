@@ -75,7 +75,7 @@
     }
     </script>
 </head>
-<div class="page-content">
+    <div class="page-content">
         <table style="width:100%">
             <tr>
                 <td>
@@ -92,9 +92,14 @@
                 </td>
             </tr>
         </table>
-
-    <hr />
-    <div id="saveDiv">
-        @{ Html.RenderAction("_SearchBackOrder", new { searchContent = "" }); }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <script>
+                 alert('@TempData["ErrorMessage"]');
+            </script>
+        }
+        <hr />
+        <div id="saveDiv">
+            @{ Html.RenderAction("_SearchBackOrder", new { searchContent = "" }); }
+        </div>
     </div>
-</div>

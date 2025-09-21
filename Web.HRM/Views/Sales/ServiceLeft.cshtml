@@ -69,6 +69,14 @@
             columns.Bound(c => c.PurchaseDate).Width("180px");
             columns.Bound(c => c.ExpiryDate).Width("100px");
             columns.Bound(c => c.SalesId).Title("")
+
+            //.ClientTemplate("# if (FreeService == false || FreeService == true && DueFlag == false) { #" +
+            //            "<a href='javascript:void(0)' class='k-button k-button-icontext k-grid-edit' " +
+            //            "onclick='openEmployeeSelection(#=Id#, #=DueFlag#, #=CourseBal#, #=Course#, \"#=SalesId#\")'>PROCEED</a>" +
+            //            "# } else { #" +
+            //            "<a href='javascript:void(0)' class='k-button k-button-icontext k-grid-edit disabled' " +
+            //            "title='Full payment required'>PROCEED</a>" +
+            //            "# } #").Width(100);
             .ClientTemplate("# if (FreeService == false || FreeService == true && DueFlag == false) { #" +
                         "<a href='javascript:void(0)' class='k-button k-button-icontext k-grid-edit' " +
                         "onclick='openEmployeeSelection(#=Id#, #=DueFlag#, #=CourseBal#, #=Course#, \"#=SalesId#\")'>PROCEED</a>" +
@@ -76,6 +84,11 @@
                         "<a href='javascript:void(0)' class='k-button k-button-icontext k-grid-edit disabled' " +
                         "title='Full payment required'>PROCEED</a>" +
                         "# } #").Width(100);
+            columns.Bound(c => c.SalesId).Title("")
+            .ClientTemplate("# if (FreeService == false && DueFlag == true) { #" +
+                        "<a href='javascript:void(0)' class='k-button k-button-icontext k-grid-edit' " +
+                        "onclick='openServiceDialog(#=Id#, \"#=SalesId#\")'>SKIP</a>" +
+                        "# } #").Width(80);
             //.ClientTemplate("<a href='javascript:void(0)' class='k-button k-button-icontext k-grid-edit' onclick='openEmployeeSelection(#=Id#, #=DueFlag#, #=CourseBal#, #=Course#, \"#=SalesId#\")'>PROCEED</a>").Width(100);
         })
         .Pageable(pageable => pageable

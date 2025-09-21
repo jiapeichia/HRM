@@ -317,6 +317,7 @@
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Attachment\SamplePDF.pdf" />
     <Content Include="Content\variables.scss" />
+    <None Include="Properties\PublishProfiles\BeYou.pubxml" />
     <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <Content Include="Report\Receipt.xlsx" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />

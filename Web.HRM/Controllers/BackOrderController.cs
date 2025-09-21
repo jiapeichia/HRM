@@ -621,12 +621,26 @@ namespace Web.HRM.Controllers
                 if (!string.IsNullOrEmpty(Session["EmpNo"] as string))
                 {
                     var salesitem = db.SalesItems.FirstOrDefault(x => x.SalesItemId == salesitemid);
-                    var salesCusId = db.Saless.FirstOrDefault(x => x.SalesId == salesitem.SalesId)?.CusId;
                     salesitem.IsBackordered = false;
-                    salesitem.Remarks = "Collected!";
+                    salesitem.Remarks = "Collected! On" + DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
 
                     db.SalesItems.Attach(salesitem);
                     db.Entry(salesitem).State = EntityState.Modified;
+
+                    //deduct stock
+                    var stock = db.Stock.FirstOrDefault(x => x.ProductId == salesitem.ProductId);
+
+                    TempData["ErrorMessage"] = null;
+                    if (stock.QtyAvailable <= 0)
+                    {
+                        TempData["ErrorMessage"] = "Insufficient stock to collect.";
+                        return RedirectToAction("Index", new { salesitemid = salesitemid });
+                    }
+
+                    stock.QtyAvailable -= salesitem.Quantity;
+
+                    db.Stock.Attach(stock);
+                    db.Entry(stock).State = EntityState.Modified;
                     db.SaveChanges();
 
                     var currentUrl = Request.Url.AbsoluteUri;
@@ -634,6 +648,8 @@ namespace Web.HRM.Controllers
                     var baseUrl = currentUrl.Substring(0, lastSlashIndex);
                     lastSlashIndex = baseUrl.LastIndexOf('/');
                     baseUrl = baseUrl.Substring(0, lastSlashIndex);
+
+                    var salesCusId = db.Saless.FirstOrDefault(x => x.SalesId == salesitem.SalesId)?.CusId;
                     return RedirectToAction("CusPurchaseHistory", "Sales", new { id = salesCusId });
                 }
 

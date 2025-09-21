@@ -112,6 +112,24 @@
         </div>
     </div>
 
+    @*// Product FOC/Salon *@
+    <div class="row">
+        <div class="col-md-12" style="padding-bottom:15px">
+            <div class="sub-content">
+                <div class="bar-title"><span>PRODUCT FOC</span></div>
+                <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
+                <br />
+                <table style="width:100%">
+                    <tr>
+                        <td>
+                            @Html.Action("_SearchFoc", "Stock", new { searchContent = ViewBag.CusId })
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-md-12" style="padding-bottom:15px">
             <div class="sub-content">
@@ -172,5 +190,5 @@
             </div>
         </div>
     </div>
-    </div>
+</div>
 

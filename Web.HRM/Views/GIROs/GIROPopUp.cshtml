@@ -40,9 +40,9 @@
                 else if (paymethod === "") {
                     return alert("Payment method is required.");
                 }
-                else if (payamt < minAmount) {
-                    return alert("Minimum amount to pay is RM" + @ViewBag.minAmount);
-                }
+                @*else if (payamt < minAmount) {
+                    return alert("Minimum amount to pay is RM" + ViewBag.minAmount);
+                }*@
                 
                 $.ajax({
                     url: @Model.IsTopUp.ToString().ToLower() ? '@Url.Action("UpdatePaymentTopUp", "GIROs")' : '@Url.Action("UpdatePayment", "GIROs")',

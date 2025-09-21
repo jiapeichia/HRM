@@ -1195,8 +1195,10 @@ namespace Web.HRM.Controllers
             }
         }
 
-        public ActionResult _SearchFoc()
+        public ActionResult _SearchFoc(string searchContent)
         {
+            ViewBag.searchContent = searchContent;
+
             CustomerList();
             ProductList();
             return PartialView();
@@ -1204,30 +1206,18 @@ namespace Web.HRM.Controllers
 
         public virtual ActionResult Read_Foc([DataSourceRequest] DataSourceRequest request, string searchContent)
         {
-            //var test = Json(db.foc.Where(o => o.Status.Equals(false) && o.Active.Equals(false)).ToDataSourceResult(request, o => new Foc()
-            //{
-            //    Id = o.Id,
-            //    CusId = o.CusId,
-            //    //ProductId = o.ProductId,
-            //    //EmpNo = o.EmpNo,
-            //    //Qty = o.Qty,
-            //    //UnitPrice = o.UnitPrice,
-            //    //LineTotal = o.LineTotal,
-            //    Remarks = o.Remarks,
-            //    Active = o.Active,
-            //    Status = o.Status,
-            //    AddBy = o.AddBy,
-            //    ModBy = o.ModBy,
-            //    AddDate = o.AddDate,
-            //    ModDate = o.ModDate,
-            //}), JsonRequestBehavior.AllowGet);
-            var result = db.Focs.Where(o => o.Status.Equals(false)).ToList();
+            List<Foc> result = new List<Foc>();
 
-            //if (!string.IsNullOrEmpty(searchContent))
-            //{
-            //    searchContent = searchContent.ToLower();
-            //    //result = result.Where(x => x.Code.ToLower().Contains(searchContent)).ToList();
-            //}
+            var cusId = !string.IsNullOrEmpty(searchContent) ? Convert.ToInt32(searchContent) : 0;
+
+            if (cusId > 0)
+            {
+                result = db.Focs.Where(o => o.CusId == cusId && o.Status.Equals(false) && o.Active.Equals(false)).ToList();
+            }
+            else
+            {
+                result = db.Focs.Where(o => o.Status.Equals(false)).ToList();
+            }
 
             return Json(result.ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
         }

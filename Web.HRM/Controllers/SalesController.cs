@@ -740,7 +740,7 @@ namespace Web.HRM.Controllers
                                 PaymentDate = salesVM.PaymentDate,
                                 TotalAmt = salesVM.TotalAmt,
                                 PaidAmt = salesVM.PaidAmt,
-                                DiscAmt = salesVM.DiscAmt + salesVM.DiscPercentageAmt,
+                                DiscAmt = salesVM.DiscAmt + salesVM.DiscPercentageAmt + salesitem.Sum(item => item.LineDiscAmt),
                                 BalAmt = salesVM.BalAmt,
                                 Remarks = salesVM.Remarks,
                                 Active = salesVM.Active,

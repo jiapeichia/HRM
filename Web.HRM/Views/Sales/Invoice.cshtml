@@ -302,8 +302,14 @@
                                 }
                                 else
                                 {
-                                    <input type="number" id="UnitPrice" placeholder="0.00" style="width: 100%" disabled = "disabled"/>
+                                    <input type="number" id="UnitPrice" placeholder="0.00" style="width: 100%" disabled="disabled" />
                                 }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;">Discount</td>
+                            <td>
+                                <input type="number" id="Discount" placeholder="0.00" style="width: 100%" />
                             </td>
                         </tr>
                         <tr>
@@ -405,6 +411,7 @@
         var productDropdown = $("#ProductDropdown").data("kendoDropDownList");
         var qtyInput = document.getElementById("Qty");
         var unitPriceInput = document.getElementById("UnitPrice");
+        var discountInput = document.getElementById("Discount") ?? 0;
         var salesPerson = document.getElementById("SalesPerson"); // Assuming you have an element with ID 'SalesPerson'
         var cusId = document.getElementById("CusId").value;
 
@@ -425,9 +432,10 @@
 
         var orig_unitprice = parseFloat(selectedProduct.Price).toFixed(2);
         var unitprice = parseFloat(unitPriceInput.value).toFixed(2);
+        var disc = parseFloat(discountInput.value).toFixed(2);
         var qty = parseInt(qtyInput.value);
-        var disc = orig_unitprice - unitprice;
-        var total = qty * unitprice;
+
+        var total = qty * unitprice - disc;
         var backorder = false;
 
         if (selectedProduct.QtyAvailable < qty && selectedProduct.TypeName == "Product") {
