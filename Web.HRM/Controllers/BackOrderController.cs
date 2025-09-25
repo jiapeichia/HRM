@@ -622,7 +622,7 @@ namespace Web.HRM.Controllers
                 {
                     var salesitem = db.SalesItems.FirstOrDefault(x => x.SalesItemId == salesitemid);
                     salesitem.IsBackordered = false;
-                    salesitem.Remarks = "Collected! On" + DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
+                    salesitem.Remarks = "Collected! On " + DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
 
                     db.SalesItems.Attach(salesitem);
                     db.Entry(salesitem).State = EntityState.Modified;
