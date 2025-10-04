@@ -12,7 +12,7 @@
         {
             columns.Bound(c => c.Id).Title("").ClientTemplate("<a href='" + @Url.Action("PreviewFOC", "Stock", new { id = "#=Id#" }) + "' ><span class='k-button k-button-icontext k-grid-edit'>Preview</span></a>").Width(90);
             columns.ForeignKey(c => c.CusId, (System.Collections.IEnumerable)ViewData["Customer"], "CusId", "FullName").Title("Customer").Width(220);
-            //columns.Bound(c => c.Remarks).Width(380);
+            columns.Bound(c => c.ModDate).Title("Date").ClientTemplate("#= kendo.toString(kendo.parseDate(ModDate), 'dd/MM/yyyy') #").Width(120);
         })
         .Pageable(pageable => pageable
         .Refresh(true).Messages(m => m.Refresh(string.Empty)))
@@ -21,7 +21,7 @@
         .PageSize(10)
         .Events(events => events.Error("error_handler").Sync("sync_handler").RequestEnd("onRequestEnd"))
         .ServerOperation(true)
-        .Read(read => read.Action("Read_Foc", "Stock", new { searchContent = ViewBag.searchContent }))
+        .Read(read => read.Action("Read_Foc", "Stock", new { cusId = ViewBag.cusId, searchContent = ViewBag.searchContent }))
         .Sort(sort =>
         {
             sort.Add(c => c.ModDate).Descending();

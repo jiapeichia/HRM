@@ -562,4 +562,104 @@ namespace Meo.Web.ViewModels
         public DateTime ModDate { get; set; }
         public List<FocDetailsUpdate> FocDetails { get; set; }
     }
+
+    [Table("dbo.PreOrder")]
+    public class PreOrder
+    {
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Display(Name = "ID")]
+        public int Id { get; set; }
+
+        [Display(Name = "Purchase Date")]
+        [DataType(DataType.Date)]
+        public DateTime? PurchaseDate { get; set; }
+
+        [Display(Name = "Collect Date")]
+        [DataType(DataType.Date)]
+        public DateTime? CollectDate { get; set; }
+
+        [Display(Name = "Customer")]
+        public int CusId{ get; set; }
+
+        [Display(Name = "Customer")]
+        public string CusName { get; set; }
+
+        [Display(Name = "Product")]
+        public int ProductId { get; set; }
+
+        [Display(Name = "Product")]
+        public string ProductName { get; set; }
+
+        [Display(Name = "Quantity")]
+        public int Quantity { get; set; }
+
+        [Display(Name = "Remarks")]
+        public string Remarks { get; set; }
+
+        [Display(Name = "Status")]
+        public bool Status { get; set; }
+
+        [Display(Name = "Add By")]
+        public string AddBy { get; set; }
+
+        [Display(Name = "Mod By")]
+        public string ModBy { get; set; }
+
+        [Display(Name = "Add Date")]
+        [DataType(DataType.Date)]
+        public DateTime? AddDate { get; set; }
+
+        [Display(Name = "Last Update")]
+        [DataType(DataType.Date)]
+        public DateTime ModDate { get; set; }
+    }
+
+    public class PreOrderVMs
+    {
+        [Display(Name = "ID")]
+        public int Id { get; set; }
+
+        [Display(Name = "Purchase Date")]
+        [DataType(DataType.Date)]
+        public DateTime? PurchaseDate { get; set; }
+
+        [Display(Name = "Collect Date")]
+        [DataType(DataType.Date)]
+        public DateTime? CollectDate { get; set; }
+
+        [Display(Name = "Customer")]
+        public int CusId { get; set; }
+
+        [Display(Name = "Customer")]
+        public string CusName { get; set; }
+
+        [Display(Name = "Product")]
+        public int ProductId { get; set; }
+
+        [Display(Name = "Product")]
+        public string ProductName { get; set; }
+
+        [Display(Name = "Quantity")]
+        public int Quantity { get; set; }
+
+        [Display(Name = "Remarks")]
+        public string Remarks { get; set; }
+
+        [Display(Name = "Status")]
+        public bool Status { get; set; }
+
+        [Display(Name = "Add By")]
+        public string AddBy { get; set; }
+
+        [Display(Name = "Mod By")]
+        public string ModBy { get; set; }
+
+        [Display(Name = "Add Date")]
+        [DataType(DataType.Date)]
+        public DateTime? AddDate { get; set; }
+
+        [Display(Name = "Last Update")]
+        [DataType(DataType.Date)]
+        public DateTime ModDate { get; set; }
+    }
 }

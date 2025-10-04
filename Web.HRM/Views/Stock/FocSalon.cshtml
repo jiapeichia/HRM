@@ -1,7 +1,7 @@
 ﻿@model Meo.Web.ViewModels.FocSalon
 
 @{
-    ViewBag.Title = "Foc / Salon";
+    ViewBag.Title = "Foc";
     var index = 1;
     var Products = ViewBag.Products;
     var productsJson = Newtonsoft.Json.JsonConvert.SerializeObject(Products);
@@ -80,7 +80,7 @@
             @*// Sales Info*@
             <div class="sub-content" style="margin-top: 0px; padding-top: 20px">
                 <div class="card px-0 pt-4 pb-0 mt-3 mb-3" style="text-align: center">
-                    <h2><strong>Foc / Salon</strong></h2>
+                    <h2><strong>Foc </strong></h2>
                 </div>
                 <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
                 <br />
@@ -309,6 +309,15 @@
     });
 
     function ShowModelPopUp() {
+        var cusid = document.getElementById("CusId").value;
+
+        if (cusid == "")
+            return window.alert("Please select Customer.");
+
+        if (@Model.totalQty == 0) {
+            return window.alert("Nothing to process to payment.");
+        }
+
         var passcode = prompt("Enter Passcode:");
         if (!passcode) return;
 
@@ -327,7 +336,10 @@
 
                     alert("Access Granted ✅");
 
-                    window.location.href = '@Url.Action("PreviewFOC", "Stock")' + '?id=' + response.data.Id;
+                    var basePath = window.location.pathname.includes('/BeYou') ? '/BeYou/Stock/PreviewFOC' : '/Stock/PreviewFOC';
+                    window.location.href = basePath + '?id=' + response.data.Id;
+
+                    @*window.location.href = '@Url.Action("PreviewFOC", "Stock")' + '?id=' + response.data.Id;*@
                 },
                 error: function () {
                     alert("⚠️ Something went wrong, please try again.");

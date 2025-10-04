@@ -4,7 +4,7 @@
     ViewBag.Title = "Back Order List";
     var ActiveList = ViewBag.ActiveList;
 }
-    <head>
+<head>
     <style>
         .customer-name {
             display: inline-block;
@@ -27,33 +27,35 @@
     </style>
 
     <script>
-    $(function () {
-        $('#search').click(function () {
-            var searchContent = $('#SearchContent').val();
-            var url = "@Html.Raw(Url.Action("_SearchBackOrder", "BackOrder", new { searchContent = "searchcontent" }))";
-            url = url.replace("searchcontent", searchContent.replace(" ", ""));
-            $('#saveDiv').load(url);
+        $(function () {
+            $('#search').click(function () {
+            let searchContent = $('#SearchContent').val().trim();
+
+            let url1 = '@Url.Action("_SearchBackOrder", "BackOrder")';
+            let url2 = '@Url.Action("_SearchPreOrder", "BackOrder")';
+
+            $('#backOrderDiv').load(url1, { searchContent: searchContent });
+            $('#preOrderDiv').load(url2, { searchContent: searchContent });
         });
 
         $('#clear').click(function () {
             $("#SearchContent").val('').trigger("change");
-            var url = "@Html.Raw(Url.Action("_SearchBackOrder", "BackOrder", new { searchContent = "" }))";
-            $('#saveDiv').load(url);
+
+            let url1 = '@Url.Action("_SearchBackOrder", "BackOrder")';
+            let url2 = '@Url.Action("_SearchPreOrder", "BackOrder")';
+
+            $('#backOrderDiv').load(url1);
+            $('#preOrderDiv').load(url2);
         });
 
          $('#newbo').click(function () {
              $("#SearchContent").val('').trigger("change");
              window.open('@Url.Action("BackOrderSales", "BackOrder", new { flag = "new" })', "_self");
-             @*var url = "@Html.Raw(Url.Action("BackOrderSales", "BackOrder", new { flag = "new" }))";
-            $('#saveDiv').load(url);*@
          });
 
         $("#close").click(function () {
             window.open('@Url.Action("Index", "Home")', "_self");
         });
-        @*$(".close-button").click(function () {
-            window.open('@Url.Action("Index", "Home", new { id = ViewBag.CusId })', "_self");
-        });*@
     });
 
     function error_handler(e) {
@@ -75,31 +77,46 @@
     }
     </script>
 </head>
-    <div class="page-content">
-        <table style="width:100%">
-            <tr>
-                <td>
-                    <h2 class="pagetitle">Back Order List</h2>
-                </td>
-                <td align="right">
-                    @Html.TextBox("SearchContent", "", new { @class = "k-textbox fa fa-search", @style = "width: 350px", @placeholder = HttpUtility.HtmlDecode("&#xf002;") + " Search By Customer info" })
-                </td>
-                <td align="right" style="width:450px">
-                    <input type="button" value="SEARCH" class="btn btn-primary" id="search" style="width:100px" />
-                    <input type="button" value="CLEAR" class="btn btn-primary" id="clear" style="width:100px" />
-                    <input type="button" value="BACK" class="btn btn-default" id="close" style="width:100px" />
-                    <input type="button" value="NEW" class="btn btn-success" id="newbo" style="width:100px" />
-                </td>
-            </tr>
-        </table>
-        @if (TempData["ErrorMessage"] != null)
-        {
-            <script>
+<div class="page-content">
+    <table style="width:100%">
+        <tr>
+            <td>
+                <h2 class="pagetitle">Back Order List</h2>
+            </td>
+            <td align="right">
+                @Html.TextBox("SearchContent", "", new { @class = "k-textbox fa fa-search", @style = "width: 350px", @placeholder = HttpUtility.HtmlDecode("&#xf002;") + " Search By Customer info" })
+            </td>
+            <td align="right" style="width:450px">
+                <input type="button" value="SEARCH" class="btn btn-primary" id="search" style="width:100px" />
+                <input type="button" value="CLEAR" class="btn btn-primary" id="clear" style="width:100px" />
+                <input type="button" value="NEW" class="btn btn-success" id="newbo" style="width:100px" />
+                <input type="button" value="BACK" class="btn btn-default" id="close" style="width:100px" />
+            </td>
+        </tr>
+    </table>
+    @*@if (TempData["ErrorMessage"] != null)
+    {
+        <script>
                  alert('@TempData["ErrorMessage"]');
-            </script>
-        }
-        <hr />
-        <div id="saveDiv">
-            @{ Html.RenderAction("_SearchBackOrder", new { searchContent = "" }); }
+        </script>
+    }
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
         </div>
+    }*@
+
+    <hr />
+    <div id="backOrderDiv">
+        @{ Html.RenderAction("_SearchBackOrder", new { searchContent = "" }); }
     </div>
+    <br />
+
+    <h2 class="pagetitle">Pre Order List</h2>
+    <div id="preOrderDiv">
+        @{ Html.RenderAction("_SearchPreOrder", new { searchContent = "" }); }
+    </div>
+</div>
+

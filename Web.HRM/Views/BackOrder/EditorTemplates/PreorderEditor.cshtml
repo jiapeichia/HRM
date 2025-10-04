@@ -1,0 +1,71 @@
+﻿@model Meo.Web.ViewModels.PreOrder
+
+@{
+    ViewBag.Title = "Pre-Order Editor";
+}
+
+<style>
+    .k-edit-form-container {
+        width: 500px;
+    }
+</style>
+
+<table>
+    <tbody>
+        <tr>
+            <td>
+                @Html.Label("Purchase Date", new { @style = "width : 100px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @(Html.Kendo().DatePickerFor(m => m.PurchaseDate)
+                    .Culture("en-IE")
+                    .Max(DateTime.Today)
+                    .ParseFormats(new string[] { "dd/MM/yyyy" })
+                    .HtmlAttributes(new { @class = "form-control", @style = "width: 250px;" }))
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.CusId, new { @style = "width : 100px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @(Html.Kendo().DropDownListFor(m => m.CusId)
+                  .DataTextField("FullName")
+                  .DataValueField("CusId")
+                  .BindTo((System.Collections.IEnumerable)ViewData["Customer"])
+                  .Filter(FilterType.Contains)
+                  .HtmlAttributes(new { style = "width:250px;" }))
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.ProductId, new { @style = "width : 100px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @(Html.Kendo().DropDownListFor(m => m.ProductId)
+                  .DataTextField("ProductName")
+                  .DataValueField("ProductId")
+                  .BindTo((System.Collections.IEnumerable)ViewData["Product"])
+                  .Filter(FilterType.Contains)
+                  .HtmlAttributes(new { style = "width:250px;" }))
+            </td>
+        </tr>
+        @*<tr>
+            <td>
+                @Html.LabelFor(model => model.Quantity, new { @style = "width : 100px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                <input type="text" value="Quantity" style="display:none; width:100%" />
+            </td>
+        </tr>*@
+        <tr>
+            <td>
+                @Html.LabelFor(model => model.Remarks, new { @style = "width : 100px", @class = "control-label col-md-2" })
+            </td>
+            <td>
+                @Html.TextAreaFor(model => model.Remarks, new { @style = "width : 100%,", rows = 6, @id = "Remarks" })
+                @Html.ValidationMessageFor(model => model.Remarks)
+            </td>
+        </tr>
+    </tbody>
+</table>

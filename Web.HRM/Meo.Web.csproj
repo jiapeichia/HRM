@@ -459,7 +459,6 @@
     <Content Include="Views\Setting\ServiceIndex.cshtml" />
     <Content Include="Views\Setting\TopupIndex.cshtml" />
     <Content Include="Views\Package\AllPackageIndex.cshtml" />
-    <Content Include="Views\Package\_PackageDetails - Copy.cshtml" />
     <Content Include="Views\Sales\ServiceExpired.cshtml" />
     <Content Include="Views\Sales\GIROSales.cshtml" />
     <Content Include="Views\Sales\GIROPopUp.cshtml" />
@@ -482,6 +481,8 @@
     <Content Include="Views\Stock\FocSalon.cshtml" />
     <Content Include="Views\Stock\ConfirmationPopUp.cshtml" />
     <Content Include="Views\Stock\PreviewFOC.cshtml" />
+    <Content Include="Views\BackOrder\_SearchPreOrder.cshtml" />
+    <Content Include="Views\BackOrder\EditorTemplates\PreorderEditor.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff" />

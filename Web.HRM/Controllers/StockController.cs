@@ -1144,6 +1144,9 @@ namespace Web.HRM.Controllers
 
                     focsalon.AddDate = DateTime.Now;
                     focsalon.CusId = id ?? 0;
+
+                    focsalon.totalQty = focsalon.FocDetails.Sum(x => x.Qty);
+
                     //test.FocDetails = new List<FocDetails>();
                     return View(focsalon);
                 }
@@ -1204,15 +1207,25 @@ namespace Web.HRM.Controllers
             return PartialView();
         }
 
-        public virtual ActionResult Read_Foc([DataSourceRequest] DataSourceRequest request, string searchContent)
+        public virtual ActionResult Read_Foc([DataSourceRequest] DataSourceRequest request, string cusId, string searchContent)
         {
             List<Foc> result = new List<Foc>();
 
-            var cusId = !string.IsNullOrEmpty(searchContent) ? Convert.ToInt32(searchContent) : 0;
+            var cusid = !string.IsNullOrEmpty(cusId) ? Convert.ToInt32(cusId) : 0;
 
-            if (cusId > 0)
+            if (cusid > 0)
             {
-                result = db.Focs.Where(o => o.CusId == cusId && o.Status.Equals(false) && o.Active.Equals(false)).ToList();
+                result = db.Focs.Where(o => o.CusId == cusid && o.Status.Equals(false) && o.Active.Equals(false)).ToList();
+            }
+            else if (!string.IsNullOrEmpty(searchContent))
+            {
+                result = (from foc in db.Focs
+                          join c in db.Customers on foc.CusId equals c.CusId
+                          where foc.Status.Equals(false) &&
+                              (c.IcNo.Contains(searchContent) || c.CardNo.Contains(searchContent) ||
+                              c.ContactNo.Contains(searchContent) || c.FullName.Replace(" ", "").ToLower().Contains(searchContent)
+                              && c.Active.Equals(false) && c.Status.Equals(false))
+                          select foc).ToList();
             }
             else
             {

@@ -57,6 +57,18 @@
 
 <body>
     <div class="nav navbar-nav navbar-right">
+        <div class="dropdown">
+            <button onclick="myFunction2()" class="dropbtn">Quick Access  &#x25bc;</button>
+            <div id="myCustomer" class="dropdown-content">
+                <a href="~/Sales/Invoice?flag=new#">New Sales Order</a>
+                <a href="~/Report/AllInvoice#">All Invoice</a>
+                <a href="~/Exchange/Exchange#">Exchange</a>
+                <a href="~/Sales/GIROSales?flag=new#">GIRO</a>
+                <a href="~/BackOrder/Index#">Back Order</a>
+                <a href="~/Stock/FocIndex#">FOC</a>
+            </div>
+        </div>
+
         @*@if (Session["RoleName"].ToString().Equals("SuperAdmin"))
         {*@
         @*<a href="~/Home/Index#"><img style="padding:8px" src="~/Images/home30x30.png" alt=""></a>*@

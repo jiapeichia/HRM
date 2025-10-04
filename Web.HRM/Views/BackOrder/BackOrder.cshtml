@@ -11,8 +11,8 @@
         .Columns(columns =>
         {
             columns.Bound(c => c.SalesItemId).Title("Back Order")
-    .ClientTemplate("#= CollectButtonTemplate(SalesItemId) #")
-    .Width(100);
+            .ClientTemplate("#= CollectButtonTemplate(SalesItemId) #")
+            .Width(100);
             //columns.Bound(c => c.SalesItemId).Title("Back Order")
             //.ClientTemplate("<a href='" + @Url.Action("Collect", "Sales", new { salesitemid = "#=SalesItemId#" }) + "' ><span class='k-button k-button-icontext k-grid-edit'>Collect</span></a>").Width(100);
             columns.Bound(c => c.SalesId).Width(130);

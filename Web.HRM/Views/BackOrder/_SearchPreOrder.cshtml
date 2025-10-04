@@ -1,0 +1,149 @@
+﻿@using Meo.Web.ViewModels
+@using Kendo.Mvc.UI
+
+@(Html.Kendo().Grid<PreOrder>()
+        .Name("GridForPreOrder")
+        .HtmlAttributes(new { style = "width:100%;" })
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.Id).Title("Pre Order")
+            .ClientTemplate("#= CollectButton(Id) #")
+            .Width(100);
+            columns.ForeignKey(c => c.CusId, (System.Collections.IEnumerable)ViewData["Customer"], "CusId", "FullName").Title("Customer").Width(220);
+            columns.ForeignKey(c => c.ProductId, (System.Collections.IEnumerable)ViewData["Product"], "ProductId", "ProductName").Title("Product").Width(220);
+            columns.Bound(c => c.Quantity).Width(80);
+            columns.Bound(c => c.PurchaseDate).Title("Purchase Date").Width(130);
+            columns.Bound(c => c.Remarks).Width(380);
+            columns.Command(c => { c.Edit(); c.Destroy(); }).Width(180);
+        })
+        .Pageable(pageable => pageable
+        .Refresh(true).Messages(m => m.Refresh(string.Empty)))
+        .Events(e => e.Edit("onRequest"))
+        .Editable(editable => editable.Mode(GridEditMode.PopUp).TemplateName("PreOrderEditor"))
+        .ToolBar(toolbar => toolbar.Template("<a id='Create' class='k-button k-button-icontext k-grid-add' href='#'> + Create New </a>"))
+        .Sortable()
+        .Resizable(resize => resize.Columns(true))
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(10)
+        .Events(events => events.Error("error_handler").Sync("sync_handler").RequestEnd("onRequestEnd"))
+        .ServerOperation(true)
+        .Read(read => read.Action("Read_PreOrderHistory", "BackOrder", new { searchContent = ViewBag.searchContent }))
+        .Create(update => update.Action("Create_PreOrder", "BackOrder"))
+        .Update(update => update.Action("Update_PreOrder", "BackOrder"))
+        .Destroy(update => update.Action("Destroy_PreOrder", "BackOrder"))
+        .Sort(sort =>
+        {
+            sort.Add(c => c.ModDate);
+        })
+        .Model(model =>
+        {
+            model.Id(e => e.Id);
+        }))
+        .Resizable(resize => resize.Columns(true))
+        .NoRecords("No Records Found"))
+
+<span id="notification" style="display:none;"></span>
+
+@* Error msg to be shown & sync grid table automatically *@
+<script type="text/javascript">
+
+    function CollectButton(id) {
+        return "<a href='javascript:void(0);' onclick='confirmCollectPreOrder(\"" + id + "\")'>" +
+            "<span class='k-button k-button-icontext k-grid-edit'>Collect</span></a>";
+    }
+
+    function confirmCollectPreOrder(id) {
+        if (confirm("Are you sure you want to collect this item?")) {
+            var basePath = window.location.pathname.includes('/BeYou')
+                ? '/BeYou/BackOrder/CollectPreOrder'
+                : '/BackOrder/CollectPreOrder';
+
+            //window.location.href = basePath + '?id=' + id;
+
+            $.ajax({
+                url: basePath,
+                type: 'POST',
+                data: { id: id },
+                success: function (response) {
+                    if (response.success) {
+                        showNotification(response.message, "success");
+
+                        if (response.redirectUrl) {
+                            // delay a bit so user can see the notification
+                            setTimeout(function () {
+                                window.location.href = response.redirectUrl;
+                            }, 1200);
+                        }
+                    } else {
+                        showNotification(response.message || "Failed to collect item.", "error");
+                    }
+                },
+                error: function () {
+                    showNotification("Error occurred while collecting.", "error");
+                }
+            });
+        }
+    }
+
+     @* Set window header *@
+    function onRequest(e) {
+        $(".k-window-title").text("Pre-Order Editor");
+             $('.k-widget.k-window .k-window-titlebar').css({
+                 'background-color': 'white'
+             });
+         $('.k-header').css({
+             'border-color': 'white'
+         });
+
+         @* Auto Focus on selected field
+         var arg = e;
+         arg.container.data('kendoWindow').bind('activate', function () {
+             arg.container.find("input[name='RoleName']").focus();
+         }) *@
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+
+    function sync_handler(e) {
+        this.read();
+    }
+
+    // global notification setup
+    function showNotification(message, type) {
+        var notificationWidget = $("#notification").kendoNotification({
+            position: {
+                pinned: true,
+                top: 100,
+                right: 50
+            }
+        }).data("kendoNotification");
+
+        notificationWidget.show(message, type);
+    }
+
+    // fired by Kendo Grid's DataSource
+    function onRequestEnd(e) {
+        if (!e.response) return;
+
+        if (e.type === "create" && !e.response.Errors) {
+            showNotification("New Record created!", "success");
+        } else if (e.type === "update" && !e.response.Errors) {
+            showNotification("Update Successfully", "success");
+        } else if (e.response.Errors) {
+            showNotification("Fail to update", "warning");
+        }
+    }
+</script>

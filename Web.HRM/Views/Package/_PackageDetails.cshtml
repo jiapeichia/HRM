@@ -1,47 +1,6 @@
 ﻿@using Meo.Web.ViewModels
 @using Kendo.Mvc.UI
 
-<head>
-    @*@section Scripts {
-        @Scripts.Render("~/bundles/jqueryval")
-
-        <script>
-        //function error_handler(e) {
-        //    if (e.errors) {
-        //        var message = "Errors:\n";
-        //        $.each(e.errors, function (key, value) {
-        //            if ('errors' in value) {
-        //                $.each(value.errors, function () {
-        //                    message += this + "\n";
-        //                });
-        //            }
-        //        });
-        //        alert(message);
-        //    }
-        //}
-
-        //function sync_handler(e) {
-        //    this.read();
-        //}
-
-        $(".close-button").click(function () {
-            window.open('@Url.Action("AllPackage", "Package")', "_self");
-        });
-
-        //// --- collapse all group grid ---
-        //var collapseAllGroups = function (grid) {
-        //    grid.table.find(".k-grouping-row").each(function () {
-        //        grid.collapseGroup(this);
-        //    });
-        //}
-
-        ////On the grid
-        //function dataBound() {
-        //    collapseAllGroups(this);
-        //}
-        </script>
-    }*@
-</head>
 <div>
     @(Html.Kendo().Grid<PackageDetailsViewModels>()
         .Name("GridForPackageDetails")

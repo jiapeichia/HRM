@@ -2,10 +2,6 @@
 using Meo.Web.ViewModels;
 using System;
 using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
-using System.Data.Entity.ModelConfiguration;
-using System.Data.Entity.ModelConfiguration.Conventions;
-using System.Linq;
 
 namespace Meo.Web.DBContext
 {
@@ -38,6 +34,7 @@ namespace Meo.Web.DBContext
         public DbSet<ItemReturn> ItemReturns { get; set; }
         public DbSet<Foc> Focs { get; set; }
         public DbSet<FocDetails> FocDetails { get; set; }
+        public DbSet<PreOrder> PreOrders { get; set; }
 
         // Master Settings
         public DbSet<CompanyProfile> CompanyProfile { get; set; }

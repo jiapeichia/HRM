@@ -422,7 +422,7 @@ namespace Web.HRM.Controllers
                     DateTime today = DateTime.Now.Date.AddMilliseconds(1);
                     DateTime tmr = DateTime.Now.Date.AddDays(1).AddMilliseconds(-1);
                     var sales = (from sa in db.Saless
-                                 where sa.PaymentDate > today && sa.PaymentDate < tmr
+                                 where (sa.PaymentDate > today && sa.PaymentDate < tmr) && sa.Active.Equals(false) && sa.Status.Equals(false) 
                                  select sa).ToList();
 
                     var totalAmount = sales.Sum(x => x.TotalAmt);
@@ -458,7 +458,7 @@ namespace Web.HRM.Controllers
             var start_date = DateTime.Parse(startDate);
             var end_date = DateTime.Parse(endDate).AddDays(1).AddMilliseconds(-1);
 
-            var sales = db.Saless.ToList();
+            var sales = db.Saless.Where(x => x.Active.Equals(false) && x.Status.Equals(false)).ToList();
             var paymentType = db.Types.Where(o => o.Status.Equals(false) && o.Active.Equals(false) && o.Module == "PaymentType");
             var byCash = paymentType.FirstOrDefault(x => x.TypeName == "Cash")?.TypeId;
             var byCard = paymentType.FirstOrDefault(x => x.TypeName == "Card")?.TypeId;

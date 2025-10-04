@@ -68,7 +68,6 @@
             columns.Bound(c => c.Course).Width("30px");
             columns.Bound(c => c.PurchaseDate).Width("180px");
             columns.Bound(c => c.ExpiryDate).Width("100px");
-            columns.Bound(c => c.SalesId).Title("")
 
             //.ClientTemplate("# if (FreeService == false || FreeService == true && DueFlag == false) { #" +
             //            "<a href='javascript:void(0)' class='k-button k-button-icontext k-grid-edit' " +
@@ -77,6 +76,8 @@
             //            "<a href='javascript:void(0)' class='k-button k-button-icontext k-grid-edit disabled' " +
             //            "title='Full payment required'>PROCEED</a>" +
             //            "# } #").Width(100);
+
+            columns.Bound(c => c.SalesId).Title("")
             .ClientTemplate("# if (FreeService == false || FreeService == true && DueFlag == false) { #" +
                         "<a href='javascript:void(0)' class='k-button k-button-icontext k-grid-edit' " +
                         "onclick='openEmployeeSelection(#=Id#, #=DueFlag#, #=CourseBal#, #=Course#, \"#=SalesId#\")'>PROCEED</a>" +
