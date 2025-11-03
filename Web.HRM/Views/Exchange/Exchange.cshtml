@@ -323,17 +323,17 @@
                 if (tablesDiv) {
                     if (enable) {
                         tablesDiv.classList.remove("disabled-section");
-                        if (customerId) {
-                            // Call API to get data when tables are enabled
-                            fetchExchangeData(customerId);
-                        }
+                        //if (customerId) {
+                        //    // Call API to get data when tables are enabled
+                        //    fetchExchangeData(customerId);
+                        //}
                     } else {
                         tablesDiv.classList.add("disabled-section");
                     }
                 }
             }
 
-            // Function to call API and retrieve exchange data for the selected customer
+            @*// Function to call API and retrieve exchange data for the selected customer
             function fetchExchangeData(customerId) {
                 $.ajax({
                     url: '@Url.Action("GetCustomerProduct", "Exchange")',
@@ -346,7 +346,7 @@
                         console.error("Failed to retrieve data: " + error);
                     }
                 });
-            }
+            }*@
 
             // Initially disable the tables
             toggleTables(false);

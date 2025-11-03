@@ -52,7 +52,7 @@ namespace Web.HRM.Controllers
                         (from si in db.SalesItems
                          join s in db.Saless on si.SalesId equals s.SalesId
                          join c in db.Customers on s.CusId equals c.CusId
-                         where !si.Status && si.IsBackordered && !si.Active &&
+                         where !si.Status && si.IsBackordered && !si.Active && si.QtyBalance > 0 &&
                              (c.IcNo.Contains(searchContent) || c.CardNo.Contains(searchContent) ||
                              c.ContactNo.Contains(searchContent) || c.FullName.Replace(" ", "").ToLower().Contains(searchContent)
                              && c.Active.Equals(false) && c.Status.Equals(false))
@@ -63,6 +63,7 @@ namespace Web.HRM.Controllers
                              EmpNo = si.EmpNo,
                              ProductId = si.ProductId,
                              Quantity = si.Quantity,
+                             QtyBalance = si.QtyBalance,
                              UnitPrice = si.UnitPrice,
                              LineTotal = si.LineTotal,
                              LineDiscAmt = si.LineDiscAmt,
@@ -84,7 +85,7 @@ namespace Web.HRM.Controllers
                         (from si in db.SalesItems
                          join s in db.Saless on si.SalesId equals s.SalesId
                          join c in db.Customers on s.CusId equals c.CusId
-                         where !si.Status && si.IsBackordered && !si.Active
+                         where !si.Status && si.IsBackordered && !si.Active && si.QtyBalance > 0
                          select new BackOrderVMs
                          {
                              SalesItemId = si.SalesItemId,
@@ -92,6 +93,7 @@ namespace Web.HRM.Controllers
                              EmpNo = si.EmpNo,
                              ProductId = si.ProductId,
                              Quantity = si.Quantity,
+                             QtyBalance = si.QtyBalance,
                              UnitPrice = si.UnitPrice,
                              LineTotal = si.LineTotal,
                              LineDiscAmt = si.LineDiscAmt,
@@ -313,6 +315,7 @@ namespace Web.HRM.Controllers
                             SalesId = salesid,
                             ProductId = pid,
                             Quantity = qty,
+                            QtyBalance = qty,
                             UnitPrice = price,
                             LineDiscAmt = disc,
                             LineTotal = total,
@@ -333,6 +336,7 @@ namespace Web.HRM.Controllers
                     {
                         // if duplicate product, add quantity
                         pro.Quantity += qty;
+                        pro.QtyBalance += qty;
                         pro.LineTotal = pro.Quantity * price;
                         pro.LineDiscAmt += disc;
                         pro.EmpNo = empno;
@@ -620,42 +624,55 @@ namespace Web.HRM.Controllers
         {
             try
             {
-                if (!string.IsNullOrEmpty(Session["EmpNo"] as string))
+                if (string.IsNullOrEmpty(Session["EmpNo"] as string))
                 {
-                    var salesitem = db.SalesItems.FirstOrDefault(x => x.SalesItemId == salesitemid);
-                    salesitem.IsBackordered = false;
-                    salesitem.Remarks = "Collected! On " + DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
-
-                    db.SalesItems.Attach(salesitem);
-                    db.Entry(salesitem).State = EntityState.Modified;
-
-                    //deduct stock
-                    var stock = db.Stock.FirstOrDefault(x => x.ProductId == salesitem.ProductId);
-
-                    TempData["ErrorMessage"] = null;
-                    if (stock.QtyAvailable <= 0)
-                    {
-                        TempData["ErrorMessage"] = "Insufficient stock to collect.";
-                        return RedirectToAction("Index", new { salesitemid = salesitemid });
-                    }
-
-                    stock.QtyAvailable -= salesitem.Quantity;
-
-                    db.Stock.Attach(stock);
-                    db.Entry(stock).State = EntityState.Modified;
-                    db.SaveChanges();
-
-                    var currentUrl = Request.Url.AbsoluteUri;
-                    int lastSlashIndex = currentUrl.LastIndexOf('/');
-                    var baseUrl = currentUrl.Substring(0, lastSlashIndex);
-                    lastSlashIndex = baseUrl.LastIndexOf('/');
-                    baseUrl = baseUrl.Substring(0, lastSlashIndex);
-
-                    var salesCusId = db.Saless.FirstOrDefault(x => x.SalesId == salesitem.SalesId)?.CusId;
-                    return RedirectToAction("CusPurchaseHistory", "Sales", new { id = salesCusId });
+                    return RedirectToAction("Login", "Account");
                 }
 
-                return RedirectToAction("Login", "Account");
+                TempData["ErrorMessage"] = null;
+
+                var salesitem = db.SalesItems.FirstOrDefault(x => x.SalesItemId == salesitemid);
+                if (salesitem == null)
+                {
+                    TempData["ErrorMessage"] = "Records not found.";
+                    return RedirectToAction("Index", new { salesitemid = salesitemid });
+                }
+
+                    //salesitem.IsBackordered = false;
+                    salesitem.Remarks = salesitem.QtyBalance == 1 ? salesitem.Remarks + " Collected all On " + DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") : salesitem.Remarks;
+
+                salesitem.QtyBalance -= 1;
+                db.SalesItems.Attach(salesitem);
+                db.Entry(salesitem).State = EntityState.Modified;
+
+                //deduct stock
+                var stock = db.Stock.FirstOrDefault(x => x.ProductId == salesitem.ProductId);
+
+                if (stock.QtyAvailable <= 0)
+                {
+                    TempData["ErrorMessage"] = "Insufficient stock to collect.";
+                    return RedirectToAction("Index", new { salesitemid = salesitemid });
+                }
+
+                stock.QtyAvailable -= 1;
+
+                db.Stock.Attach(stock);
+                db.Entry(stock).State = EntityState.Modified;
+                db.SaveChanges();
+
+                var currentUrl = Request.Url.AbsoluteUri;
+                int lastSlashIndex = currentUrl.LastIndexOf('/');
+                var baseUrl = currentUrl.Substring(0, lastSlashIndex);
+                lastSlashIndex = baseUrl.LastIndexOf('/');
+                baseUrl = baseUrl.Substring(0, lastSlashIndex);
+
+                if (currentUrl.Contains("BackOrder"))
+                {
+                    return RedirectToAction("Index", "BackOrder");
+                }
+
+                var salesCusId = db.Saless.FirstOrDefault(x => x.SalesId == salesitem.SalesId)?.CusId;
+                return RedirectToAction("CusPurchaseHistory", "Sales", new { id = salesCusId });
             }
             catch (Exception ex)
             {
@@ -697,7 +714,7 @@ namespace Web.HRM.Controllers
                 int prodId = productType.TypeId;
 
                 var query = db.SalesItems
-                    .Where(o => !o.Status && o.TypeId == prodId && db.Saless.Any(s => s.CusId == cusId && s.SalesId == o.SalesId && o.IsBackordered && !o.Status && !o.Active))
+                    .Where(o => !o.Status && o.TypeId == prodId && db.Saless.Any(s => s.CusId == cusId && s.SalesId == o.SalesId && o.IsBackordered && !o.Status && !o.Active && o.QtyBalance > 0))
                     .AsEnumerable()
                     .Select(o => new SalesItemViewModels
                     {
@@ -706,6 +723,7 @@ namespace Web.HRM.Controllers
                         EmpNo = o.EmpNo,
                         ProductId = o.ProductId,
                         Quantity = o.Quantity,
+                        QtyBalance = o.QtyBalance,
                         UnitPrice = o.UnitPrice,
                         LineTotal = o.LineTotal,
                         LineDiscAmt = o.LineDiscAmt,
@@ -780,7 +798,7 @@ namespace Web.HRM.Controllers
                     query =
                         (from p in db.PreOrders
                          join c in db.Customers on p.CusId equals c.CusId
-                         where p.Status.Equals(false) && p.CollectDate == null  
+                         where p.Status.Equals(false) && p.CollectDate == null
                          select new PreOrderVMs
                          {
                              Id = p.Id,

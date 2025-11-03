@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -28,6 +27,9 @@ namespace Meo.Web.ViewModels
 
         [Display(Name = "Quantity")]
         public int Quantity { get; set; }
+
+        [Display(Name = "QtyBalance")]
+        public int? QtyBalance { get; set; }
 
         [Display(Name = "Unit Price")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]

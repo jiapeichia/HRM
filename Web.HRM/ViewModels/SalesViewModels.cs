@@ -111,6 +111,9 @@ namespace Meo.Web.ViewModels
         [Display(Name = "Quantity")]
         public int Quantity { get; set; }
 
+        [Display(Name = "Qty Balance")]
+        public int? QtyBalance { get; set; }
+
         [Display(Name = "Unit Price")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal UnitPrice { get; set; }

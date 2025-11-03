@@ -24,6 +24,18 @@
             max-width: 100%;
             width: 200px;
         }
+
+        /* green count */
+        .green-count {
+            background-color: green;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+        }
     </style>
 
     <script>
@@ -94,7 +106,7 @@
             </td>
         </tr>
     </table>
-    @*@if (TempData["ErrorMessage"] != null)
+    @if (TempData["ErrorMessage"] != null)
     {
         <script>
                  alert('@TempData["ErrorMessage"]');
@@ -106,7 +118,7 @@
         <div class="alert alert-success">
             @TempData["SuccessMessage"]
         </div>
-    }*@
+    }
 
     <hr />
     <div id="backOrderDiv">

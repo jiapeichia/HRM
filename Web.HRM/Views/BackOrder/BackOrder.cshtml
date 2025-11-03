@@ -17,7 +17,8 @@
             //.ClientTemplate("<a href='" + @Url.Action("Collect", "Sales", new { salesitemid = "#=SalesItemId#" }) + "' ><span class='k-button k-button-icontext k-grid-edit'>Collect</span></a>").Width(100);
             columns.Bound(c => c.SalesId).Width(130);
             columns.ForeignKey(c => c.ProductId, (System.Collections.IEnumerable)ViewData["Product"], "ProductId", "ProductName").Title("Product").Width(220);
-            columns.Bound(c => c.Quantity).Width(80);
+            columns.Bound(c => c.QtyBalance).Width("30px").ClientTemplate("<div class='green-count'>#=QtyBalance#</div>");
+            columns.Bound(c => c.Quantity).Width("30px");
             columns.Bound(c => c.UnitPrice).Width(150);
             columns.Bound(c => c.Remarks).Width(380);
             columns.Bound(c => c.ModDate).Title("Purchase Date").Width(130);
@@ -52,7 +53,11 @@
     function confirmCollect(salesitemid) {
         var confirmation = confirm("Are you sure you want to collect this item?");
         if (confirmation) {
-            window.location.href = '/BackOrder/Collect?salesitemid=' + salesitemid;
+            var basePath = window.location.pathname.includes('/BeYou')
+                ? '/BeYou/BackOrder/Collect'
+                : '/BackOrder/Collect';
+
+            window.location.href = basePath + '?salesitemid=' + salesitemid;
         }
     }
 

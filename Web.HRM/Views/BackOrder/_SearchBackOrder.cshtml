@@ -5,6 +5,20 @@
     ViewBag.Title = "Back Order History";
 }
 
+<style>
+    /* green count */
+    .green-count {
+        background-color: green;
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        text-align: center;
+        color: white;
+        font-weight: bold;
+        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+</style>
+
 @(Html.Kendo().Grid<BackOrderVMs>()
         .Name("GridForBackOrder")
         .HtmlAttributes(new { style = "width:100%;" })
@@ -18,7 +32,8 @@
             columns.Bound(c => c.SalesId).Width(130);
             columns.Bound(c => c.CusName).Width(130);
             columns.ForeignKey(c => c.ProductId, (System.Collections.IEnumerable)ViewData["Product"], "ProductId", "ProductName").Title("Product").Width(220);
-            columns.Bound(c => c.Quantity).Width(80);
+            columns.Bound(c => c.QtyBalance).Width("30px").ClientTemplate("<div class='green-count'>#=QtyBalance#</div>");
+            columns.Bound(c => c.Quantity).Width("30px");
             columns.Bound(c => c.UnitPrice).Width(150);
             columns.Bound(c => c.Remarks).Width(380);
             columns.Bound(c => c.ModDate).Title("Purchase Date").Width(130);
