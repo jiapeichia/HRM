@@ -474,7 +474,6 @@
     <Content Include="Views\BackOrder\_SearchBackOrder.cshtml" />
     <Content Include="Views\BackOrder\Index.cshtml" />
     <Content Include="Views\BackOrder\PaymentPopUp.cshtml" />
-    <Content Include="Views\Report\_SearchAllInvoice - Copy.cshtml" />
     <Content Include="Views\Sales\PreviewINV - Copy.cshtml" />
     <Content Include="Views\Stock\FocIndex.cshtml" />
     <Content Include="Views\Stock\_SearchFoc.cshtml" />
@@ -483,6 +482,8 @@
     <Content Include="Views\Stock\PreviewFOC.cshtml" />
     <Content Include="Views\BackOrder\_SearchPreOrder.cshtml" />
     <Content Include="Views\BackOrder\EditorTemplates\PreorderEditor.cshtml" />
+    <Content Include="Views\Customer\ExpiringList.cshtml" />
+    <Content Include="Views\Customer\_SearchExpiringList.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff" />

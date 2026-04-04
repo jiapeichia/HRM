@@ -1826,7 +1826,14 @@ namespace Web.HRM.Controllers
         {
             try
             {
-                return Json(db.Services.Where(x => x.CusId == cusid && x.Status.Equals(false) && x.CourseBal > 0 && (x.ExpiryDate > DateTime.Now || x.ExpiryDate == null)).ToDataSourceResult(request, o => new Service()
+                var query = db.Services
+                        .Where(x => x.CusId == cusid
+                        && x.Status == false
+                        && x.CourseBal > 0
+                        && (x.ExpiryDate > DateTime.Now || x.ExpiryDate == null))
+                        .OrderBy(x => x.ExpiryDate ?? DateTime.MaxValue); // ⭐ Sort NULL last
+
+                return Json(query.ToDataSourceResult(request, o => new Service()
                 {
                     Id = o.Id,
                     SalesItemId = o.SalesItemId,

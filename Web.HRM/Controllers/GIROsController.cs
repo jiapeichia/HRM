@@ -79,7 +79,7 @@ namespace Web.HRM.Controllers
         //}
         //#endregion
 
-        public ActionResult ReturnGIROsTopUp(int cusId, decimal dueAmt)
+        public ActionResult GIROsTopUp(int cusId, decimal dueAmt)
         {
             var sales2 = db.Saless.Where(x => x.CusId == cusId && x.GIRO &&
                 x.Status == false && x.Active == false && x.BalAmt == dueAmt && x.Remarks == "GIRO TopUp").ToList();

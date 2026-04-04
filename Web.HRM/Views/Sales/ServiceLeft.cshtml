@@ -101,10 +101,10 @@
         .ServerOperation(true)
         .Read(read => read.Action("Read_Service", "Sales", new { cusid = @ViewBag.CusId }))
         .Update(update => update.Action("Update_SalesItem", "Sales"))
-        .Sort(sort =>
-        {
-            sort.Add(c => c.PurchaseDate).Descending();
-        })
+        //.Sort(sort =>
+        //{
+        //    sort.Add(c => c.PurchaseDate).Descending();
+        //})
         .Model(model =>
         {
             model.Id(e => e.Id);

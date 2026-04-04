@@ -109,153 +109,168 @@
         <div class="col-md-12 mx-0">
             <div align="right" style="width:100%">
                 @*<input type="button" value="PRINT" class="btn btn-default" id="PrintReceipt" style="width:100px" />*@
-                    <input type="button" value="GO SERVICE" class="btn btn-default" id="cusservice" style="width:100px" />
-                    <input type="button" value="GO HISTORY" class="btn btn-default" id="gohistory" style="width:100px" />
-                    <input type="button" value="BACK" class="btn btn-default" id="close" style="width:100px" />
+                <input type="button" value="GO SERVICE" class="btn btn-default" id="cusservice" style="width:100px" />
+                <input type="button" value="GO HISTORY" class="btn btn-default" id="gohistory" style="width:100px" />
+                <input type="button" value="BACK" class="btn btn-default" id="close" style="width:100px" />
             </div>
             <br />
 
             @*// Sales Info*@
-        <div class="sub-content" style="margin-top: 0px; padding-top: 20px">
-            <div class="card px-0 pt-4 pb-0 mt-3 mb-3" style="text-align: center">
-                <h2><strong>Sales Order By Credit</strong></h2>
-            </div>
-            <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
-            <br />
-            @Html.HiddenFor(m => m.SalesId)
-            @Html.AntiForgeryToken()
-            <!-- Header -->
-            <table>
-                <tr>
-                    <td style="border-top:none; text-align:left; padding:3px">
-                        <strong>Customer Name </strong>
-                    </td>
-                    <td style="border-top:none; text-align:left; padding:3px">
-                        :
-                        @ViewData["CustomerName"].ToString()
-                        <input id="CusId" type="text" value="@Model.CusId" style="display:none; width:100%" />
-                    </td>
-                </tr>
-                <tr>
-                    <td style="border-top:none; text-align:left; padding:3px">
-                        <strong>Credit Balance </strong>
-                    </td>
-                    <td style="border-top:none; text-align:left; padding:3px">
-                        :
-                        @ViewData["CreaditBalance"].ToString()
-                        <input id="CusId" type="text" value="@Model.CreditBal" style="display:none; width:100%" />
-                    </td>
-                </tr>
-                @*<tr>
-                <td style="border-top: none; text-align: left; padding: 3px"><strong>Invoice No </strong></td>
-                <td style="border-top: none; text-align: left; padding: 3px">: @Model.SalesId</td>
-            </tr>*@
-                <tr>
-                    <td style="border-top: none; text-align: left; padding: 3px"><strong>Date </strong></td>
-                    <td style="border-top: none; text-align: left; padding: 3px">: @Model.OrderDate.ToShortDateString() </td>
-                </tr>
-            </table>
-            <br />
-            <!-- Body [Sales Item] -->
-            <table id="tblSalesItem" style="width:100%">
-                <tr>
-                    <th>
-                        No
-                    </th>
-                    <th>
-                        Item
-                    </th>
-                    <th>
-                        Qty
-                    </th>
-                    <th>
-                        Unit Price
-                    </th>
-                    <th>
-                        Total
-                    </th>
-                    <th>
-                        Sales By
-                    </th>
-                    @if (Model.PaidAmt == null)
-                    {
+            <div class="sub-content" style="margin-top: 0px; padding-top: 20px">
+                <div class="card px-0 pt-4 pb-0 mt-3 mb-3" style="text-align: center">
+                    <h2><strong>Sales Order By Credit</strong></h2>
+                </div>
+                <hr style="height:1px;border-width:0;color:gray;background-color:gray; margin:0px">
+                <br />
+                @Html.HiddenFor(m => m.SalesId)
+                @Html.AntiForgeryToken()
+                <!-- Header -->
+                <table>
+                    <tr>
+                        <td style="border-top:none; text-align:left; padding:3px">
+                            <strong>Customer Name </strong>
+                        </td>
+                        <td style="border-top:none; text-align:left; padding:3px">
+                            :
+                            @ViewData["CustomerName"].ToString()
+                            <input id="CusId" type="text" value="@Model.CusId" style="display:none; width:100%" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="border-top:none; text-align:left; padding:3px">
+                            <strong>Credit Balance </strong>
+                        </td>
+                        <td style="border-top:none; text-align:left; padding:3px">
+                            :
+                            @ViewData["CreaditBalance"].ToString()
+                            <input id="CusId" type="text" value="@Model.CreditBal" style="display:none; width:100%" />
+                        </td>
+                    </tr>
+                    @*<tr>
+                            <td style="border-top: none; text-align: left; padding: 3px"><strong>Invoice No </strong></td>
+                            <td style="border-top: none; text-align: left; padding: 3px">: @Model.SalesId</td>
+                        </tr>*@
+                    <tr>
+                        <td style="border-top: none; text-align: left; padding: 3px"><strong>Date </strong></td>
+                        <td style="border-top: none; text-align: left; padding: 3px">: @Model.OrderDate.ToShortDateString() </td>
+                    </tr>
+                </table>
+                <br />
+                <!-- Body [Sales Item] -->
+                <table id="tblSalesItem" style="width:100%">
+                    <tr>
                         <th>
-                            Action
+                            No
                         </th>
-                    }
-                </tr>
-                @if (Model.SalesDetails != null && Model.SalesDetails.Any())
-                {
-                    foreach (var item in Model.SalesDetails)
+                        <th>
+                            Item
+                        </th>
+                        <th>
+                            Qty
+                        </th>
+                        <th>
+                            Unit Price
+                        </th>
+                        <th>
+                            Discount
+                        </th>
+                        <th>
+                            Total
+                        </th>
+                        <th>
+                            Sales By
+                        </th>
+                        @if (Model.PaidAmt == null)
+                        {
+                            <th>
+                                Action
+                            </th>
+                        }
+                    </tr>
+                    @if (Model.SalesDetails != null && Model.SalesDetails.Any())
                     {
-                        <tr>
-                            <td class="salesitemid" style="display:none"><span>@item.SalesItemId</span></td>
-                            <td style="width:5%">@index</td>
-                            <td style="width:20%; text-align:left">
-                                @Html.DisplayFor(modelItem => item.ProductName)
-                            </td>
-                            <td class="quantity" style="width:5%">
+                        foreach (var item in Model.SalesDetails)
+                        {
+                            <tr>
+                                <td class="salesitemid" style="display:none"><span>@item.SalesItemId</span></td>
+                                <td style="width:5%">@index</td>
+                                <td style="width:20%; text-align:left">
+                                    @Html.DisplayFor(modelItem => item.ProductName)
+                                </td>
+                                <td class="quantity" style="width:5%">
+                                    @if (Model.PaidAmt == null)
+                                    {
+                                        <span>@item.Quantity</span>
+                                        <input type="text" value="@item.Quantity" style="display:none; width:100%" />
+                                    }
+                                    else
+                                    {
+                                        @Html.DisplayFor(modelItem => item.Quantity)
+                                    }
+                                </td>
+                                <td class="unitprice" style="width:10%">
+                                    <span>@item.UnitPrice</span>
+                                </td>
+                                <td class="linediscount" style="width:10%">
+                                    @if (Model.PaymentMethod == 0)
+                                    {
+                                        <span>@item.LineDiscAmt</span>
+                                        <input type="text" value="@item.LineDiscAmt" style="display: none; width: 100%" />
+                                    }
+                                    else
+                                    {
+                                        @Html.DisplayFor(modelItem => item.LineDiscAmt)
+                                    }
+                                </td>
+                                <td class="linetotal" style="width:10%">
+                                    <span>@item.LineTotal</span>
+                                </td>
+                                <td style="width:10%">
+                                    <span>@item.EmpName</span>
+                                </td>
                                 @if (Model.PaidAmt == null)
                                 {
-                                    <span>@item.Quantity</span>
-                                    <input type="text" value="@item.Quantity" style="display:none; width:100%" />
+                                    <td style="text-align:center; width:10%">
+                                        <a class="Delete" href="javascript:;"><img src="~/Images/dustbin.png" style="width:25px" /></a>
+                                    </td>
                                 }
-                                else
-                                {
-                                    @Html.DisplayFor(modelItem => item.Quantity)
-                                }
-                            </td>
-                            <td class="unitprice" style="width:10%">
-                                <span>@item.UnitPrice</span>
-                            </td>
-                            <td class="linetotal" style="width:10%">
-                                <span>@item.LineTotal</span>
-                            </td>
-                            <td style="width:10%">
-                                <span>@item.EmpName</span>
-                            </td>
-                            @if (Model.PaidAmt == null)
-                            {
-                                <td style="text-align:center; width:10%">
-                                    <a class="Delete" href="javascript:;"><img src="~/Images/dustbin.png" style="width:25px" /></a>
-                                </td>
-                            }
-                        </tr>
+                            </tr>
 
-                        index++;
+                            index++;
+                        }
                     }
-                }
-                else
-                {
-                    <tr><td colspan="8">No sales details available.</td></tr>
-                }
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td><strong>@Model.totalQty</strong></td>
-                    <td></td>
-                    <td><strong>@Model.subtotal</strong></td>
-                    <td></td>
+                    else
+                    {
+                        <tr><td colspan="8">No sales details available.</td></tr>
+                    }
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td><strong>@Model.totalQty</strong></td>
+                        <td></td>
+                        <td><strong>@Model.totalDisc</strong></td>
+                        <td><strong>@Model.subtotal</strong></td>
+                        <td></td>
+                        @if (Model.PaidAmt == null)
+                        {
+                            <td></td>
+                        }
+                    </tr>
+                </table>
+                <br />
+                <div style="float:right; padding-top:100px">
                     @if (Model.PaidAmt == null)
                     {
-                        <td></td>
+                        <input type="button" value="PAYMENT" onclick="ShowModelPopUp();" class="btn btn-success fontsize" style="width:250px; height:100px; float:right" />
                     }
-                </tr>
-            </table>
-            <br />
-            <div style="float:right; padding-top:100px">
+                </div>
                 @if (Model.PaidAmt == null)
                 {
-                    <input type="button" value="PAYMENT" onclick="ShowModelPopUp();" class="btn btn-success fontsize" style="width:250px; height:100px; float:right" />
-                }
-            </div>
-            @if (Model.PaidAmt == null)
-            {
-                <table id="Addtable">
-                    <tr>
-                        <td style="text-align: left;">Product</td>
-                        <td class="Product" style="text-align: left;">
-                            @(Html.Kendo().DropDownList()
+                    <table id="Addtable">
+                        <tr>
+                            <td style="text-align: left;">Product</td>
+                            <td class="Product" style="text-align: left;">
+                                @(Html.Kendo().DropDownList()
                             .Name("Products")
                             .HtmlAttributes(new { id = "ProductDropdown", @class = "form-control col-md-2", style = "width: 450px;" })
                             .BindTo((System.Collections.IEnumerable)ViewData["Products"])
@@ -263,43 +278,49 @@
                             .DataValueField("ProductId")
                             .OptionLabel(" -- Select Products -- ")
                             .Filter(FilterType.Contains))
-                            @*@Html.DropDownList("Products", new SelectList(Products, "ProductId", "ProductName"), "----- Select -----", new { @class = "form-control col-md-2", @style = "width : 100%;" })*@
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="text-align: left;">Qty</td>
-                        <td>
-                            <input type="text" id="Qty" placeholder="0" style="width: 100%" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="text-align: left;">Unit Price</td>
-                        <td>
-                            @if (Session["Discount"] != null)
-                            {
-                                <input type="number" id="UnitPrice" placeholder="0.00" style="width: 100%" />
-                            }
-                            else
-                            {
-                                <input type="number" id="UnitPrice" placeholder="0.00" style="width: 100%" disabled="disabled" />
-                            }
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="text-align: left;">Sales Person</td>
-                        <td>
-                            @Html.DropDownList("SalesPerson", new SelectList(Employee, "EmpNo", "DisplayName"), "----- Select -----", new { @class = "form-control col-md-2", @style = "width : 100%;" })
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                        <td style="text-align:right">
-                            <a class="Add" href="javascript:;"><img src="~/Images/cart.png" style="width: 30px" /></a>
-                        </td>
-                    </tr>
-                </table>
-            }
-        </div>
+                                @*@Html.DropDownList("Products", new SelectList(Products, "ProductId", "ProductName"), "----- Select -----", new { @class = "form-control col-md-2", @style = "width : 100%;" })*@
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;">Qty</td>
+                            <td>
+                                <input type="text" id="Qty" placeholder="0" style="width: 100%" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;">Unit Price</td>
+                            <td>
+                                @if (Session["Discount"] != null)
+                                {
+                                    <input type="number" id="UnitPrice" placeholder="0.00" style="width: 100%" />
+                                }
+                                else
+                                {
+                                    <input type="number" id="UnitPrice" placeholder="0.00" style="width: 100%" disabled="disabled" />
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;">Discount</td>
+                            <td>
+                                <input type="number" id="Discount" value=0.00 placeholder="0.00" style="width: 100%" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;">Sales Person</td>
+                            <td>
+                                @Html.DropDownList("SalesPerson", new SelectList(Employee, "EmpNo", "DisplayName"), "----- Select -----", new { @class = "form-control col-md-2", @style = "width : 100%;" })
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                            <td style="text-align:right">
+                                <a class="Add" href="javascript:;"><img src="~/Images/cart.png" style="width: 30px" /></a>
+                            </td>
+                        </tr>
+                    </table>
+                }
+            </div>
         </div>
     </div>
 </body>
@@ -422,7 +443,8 @@
             });
 
             var qtyInput = document.getElementById("Qty");
-            var unitPriceInput = document.getElementById("UnitPrice");
+         var unitPriceInput = document.getElementById("UnitPrice");
+         var discountInput = document.getElementById("Discount") ?? 0;
             var salesPerson = document.getElementById("SalesPerson"); // Assuming you have an element with ID 'SalesPerson'
             var cusId = document.getElementById("CusId").value;
 
@@ -433,8 +455,8 @@
             var unitprice = parseFloat(unitPriceInput.value).toFixed(2);
             var qty = parseInt(qtyInput.value);
             var orig_unitprice = parseFloat(selectedProduct.Price).toFixed(2);
-            var disc = orig_unitprice - unitprice;
-            var total = qty * unitprice;
+         var disc = parseFloat(discountInput.value).toFixed(2);
+         var total = qty * unitprice - disc;
 
             if (selectedProduct.QtyAvailable < qty && selectedProduct.TypeName == "Product") {
                 return alert("\nFailed to Insert! \n" + selectedProduct.ProductName + " insufficient stock.");

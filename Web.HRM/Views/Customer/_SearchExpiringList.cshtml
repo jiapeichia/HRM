@@ -1,101 +1,120 @@
-﻿<head>
+﻿@model Meo.Web.ViewModels.CustomerDetailsViewModel
+<head>
     @section Scripts {
         @Scripts.Render("~/bundles/jqueryval")
+
         <script>
-            function error_handler(e) {
-                if (e.errors) {
-                    var message = "Errors:\n";
-                    $.each(e.errors, function (key, value) {
-                        if ('errors' in value) {
-                            $.each(value.errors, function () {
-                                message += this + "\n";
-                            });
-                        }
-                    });
-                    alert(message);
-                }
-            }
-
-            function sync_handler(e) {
-                this.read();
-            }
-
-            // --- collapse all group grid ---
-            var collapseAllGroups = function (grid) {
-                grid.table.find(".k-grouping-row").each(function () {
-                    grid.collapseGroup(this);
+        function error_handler(e) {
+            if (e.errors) {
+                var message = "Errors:\n";
+                $.each(e.errors, function (key, value) {
+                    if ('errors' in value) {
+                        $.each(value.errors, function () {
+                            message += this + "\n";
+                        });
+                    }
                 });
+                alert(message);
             }
+        }
 
-            //On the grid
-            function dataBound() {
-                collapseAllGroups(this);
-            }
+        function sync_handler(e) {
+            this.read();
+        }
+
+        $(".close-button").click(function () {
+            window.open('@Url.Action("Index", "Home")', "_self");
+            //window.close();
+        });
+
+        // --- collapse all group grid ---
+        var collapseAllGroups = function (grid) {
+            grid.table.find(".k-grouping-row").each(function () {
+                grid.collapseGroup(this);
+            });
+        }
+
+        //On the grid
+        function dataBound() {
+            collapseAllGroups(this);
+        }
         </script>
     }
+
+    <style>
+        .payment-required {
+            display: inline-block;
+            background-color: #f44336; /* Softer red for warning */
+            color: white; /* Text color for contrast */
+            font-size: 13px; /* Smaller and neat font */
+            font-weight: bold; /* Make it stand out */
+            padding: 5px 10px; /* Add spacing inside the box */
+            border-radius: 5px; /* Rounded corners */
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+            text-transform: uppercase; /* Optional: Make text uppercase */
+            cursor: pointer;
+        }
+
+        .green {
+            display: inline-block;
+            background-color: green; /* Softer red for warning */
+            color: white; /* Text color for contrast */
+            font-size: 13px; /* Smaller and neat font */
+            font-weight: bold; /* Make it stand out */
+            padding: 5px 10px; /* Add spacing inside the box */
+            border-radius: 5px; /* Rounded corners */
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+            text-transform: uppercase; /* Optional: Make text uppercase */
+            cursor: pointer;
+        }
+    </style>
 </head>
 <div>
-    @(Html.Kendo().Grid<Meo.Web.ViewModels.SalesViewModels>()
-        .Name("GridForInvoice")
+    @(Html.Kendo().Grid<Meo.Web.ViewModels.ExpiringListModel>()
+        .Name("GridForExpiringList")
         .HtmlAttributes(new { style = "100%" })
         .Columns(columns =>
         {
-            columns.Bound(c => c.SalesId).Title("Invoice No")
-            .ClientTemplate("# if (GIRO == true) { #" + "<a href='" + @Url.Action("GIROReceipt", "GIROs", new { salesid = "#=SalesId#" }) + "' ><span class='k-button k-button-icontext k-grid-edit'>#=SalesId#</span></a>" +
-            "# } else { #" + "<a href='" + @Url.Action("PreviewINV", "Sales", new { salesid = "#=SalesId#", from = "allinvoice" }) + "' ><span class='k-button k-button-icontext k-grid-edit'>#=SalesId#</span></a>" +
-            "# } #").Width(100);
-            columns.ForeignKey(c => c.CusId, (System.Collections.IEnumerable)ViewData["Customer"], "CusId", "FullName").Title("Customer").Width(200);
-            columns.Bound(c => c.TotalAmt).Width(130);
-            //columns.Bound(c => c.DiscAmt).Width(130);
-            columns.Bound(c => c.PaidAmt).Width(130);
-            columns.Bound(c => c.BalAmt).Width(130);
-            columns.ForeignKey(c => c.PaymentMethod, (System.Collections.IEnumerable)ViewData["PaymentType"], "TypeId", "TypeName").Width(150);
-            columns.Bound(c => c.PaymentDate).Width(200);
-            columns.Bound(c => c.OrderDate).Width(200);
+            columns.Bound(c => c.CusId).Title("").ClientTemplate("<a href='" + @Url.Action("SalesByCus", "Sales", new { id = "#=CusId#" }) + "' ><span class='k-button k-button-icontext k-grid-edit'>User Profile</span></a>").Width(110);
+            columns.Bound(c => c.CardNo).ClientTemplate(
+           "# if (data.ImagePath != null) { #"
+           + "<div class='small-photo' style='background-image: url(" + @Url.Content("~/Images/Customer/#:data.ImagePath#") + ");'></div>"
+           + "# } else { #"
+           + "<div class='small-photo' style='background-image: url(" + @Url.Content("~/Images/Employee/user.png") + ");'></div>"
+           + "# } #"
+           + "<div class='customer-name'>#: CardNo #</div>").Width("120px");
+            columns.Bound(c => c.FullName);
+            columns.Bound(c => c.SalesId);
+            columns.Bound(c => c.Service);
+            columns.Bound(c => c.CourseBal).Width("30px");
+            columns.Bound(c => c.ExpiryDate);
         })
-        .ToolBar(t => t.Excel().HtmlAttributes(new { style = "float: right" }))
+        .Sortable()
+        .ToolBar(toolbar =>
+        {
+            toolbar.Template("<a id='Create' class='k-button k-button-icontext k-add' href='" + @Url.Action("NewCustomer", "Customer") + "'style='float:right'> + Create New </a>");
+        })
         .Excel(excel => excel
         .AllPages(true)
-        .FileName("SalesReport" + ".xlsx")
+        .FileName("CustomerList.xlsx")
         )
-        .Sortable()
         .Pageable(pageable => pageable
         .Refresh(true).Messages(m => m.Refresh(string.Empty)))
         .DataSource(source => source
         .Ajax()
-        //.Group(g => g.Add(c => c.SalesId))
-        //.Aggregates(aggregates =>
-        //{
-        //    aggregates.Add(c => c.TotalAmt).Sum();
-        //})
-        //.PageSize(10)
+        .PageSize(10)
         .Events(events => events.Error("error_handler").Sync("sync_handler"))
-        .Sort(sort => sort.Add("PaymentDate").Descending())
         .Model(model =>
         {
-            model.Id(tc => tc.SalesId);
+            model.Id(tc => tc.CusId);
+            model.Field(item => item.CusId).Editable(false);
         })
-        .Read(read => read.Action("GetInvoiceData", "Report", new { empNo = ViewBag.empNo, period = ViewBag.period, startDate = ViewBag.startDate, endDate = ViewBag.endDate }))
+        .Sort(sort => sort.Add(x => x.ExpiryDate).Ascending())
+        .Read(read => read.Action("GetExpiringList", "Customer", new { searchContent = ViewBag.searchContent }))
         )
-        //.Resizable(resize => resize.Columns(true))
+        .Resizable(resize => resize.Columns(true))
         .NoRecords("No Records Found")
-    //.Events(events => events.ExcelExport("exportToExcel"))
     )
-</div>
-
-<div id="cancelPopup" style="display:none;">
-    <form id="cancelForm">
-        <label for="employee">Employee:</label>
-        <input id="employeeDropdown" name="EmployeeId" required style="width:100%;" />
-
-        <label for="passport">Passport No:</label>
-        <input type="text" id="passportInput" name="PassportNo" class="k-textbox" required style="width:100%;" />
-
-        <input type="hidden" id="cancelSalesId" name="SalesId" />
-    </form>
-
-    <br />
-    <button type="button" class="k-button k-primary" onclick="submitCancel()">Confirm Cancel</button>
 </div>
 
 <script>

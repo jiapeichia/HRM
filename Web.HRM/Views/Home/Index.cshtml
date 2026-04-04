@@ -93,6 +93,15 @@
                                     </a>
                                 </td>
                             }
+                            @if (Session["ExpiringList"] != null)
+                            {
+                                <td>
+                                    <a class="btn btn-silver btn-admin" href="~/Customer/ExpiringList#">
+                                        <img style="width:50px;" src="@Url.Content("~/Images/employee.png")" alt="" />
+                                        <br /><strong>Expiring Service</strong>
+                                    </a>
+                                </td>
+                            }
                         </tr>
                         <tr>
                             @if (Session["PackageSold"] != null)

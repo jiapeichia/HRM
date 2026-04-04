@@ -362,5 +362,78 @@ namespace Web.HRM.Controllers
 
             return items;
         }
+
+
+        #region -------------- Expiring treatment / service -------------- 
+        public ActionResult ExpiringList()
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(Session["EmpNo"] as string))
+                {
+                    ViewData["Customer"] = db.Customers.Where(e => e.Active.Equals(false)).ToList();
+                    return View();
+                }
+
+                return RedirectToAction("Login", "Account");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.ToString());
+            }
+        }
+        public ActionResult _SearchExpiringList(string searchContent)
+        {
+            ViewBag.searchContent = searchContent;
+            return PartialView();
+        }
+        public ActionResult GetExpiringList(string searchContent, [DataSourceRequest] DataSourceRequest request)
+        {
+            List<ExpiringListModel> service = new List<ExpiringListModel>();
+            if (!searchContent.IsNullOrWhiteSpace())
+            {
+                searchContent = searchContent.Trim();
+
+                service = (from cus in db.Customers
+                           join sv in db.Services on cus.CusId equals sv.CusId
+                            where (cus.IcNo.Contains(searchContent) || cus.CardNo.Contains(searchContent) ||
+                            cus.ContactNo.Contains(searchContent) || cus.FullName.Replace(" ", "").ToLower().Contains(searchContent))
+                            && cus.Active.Equals(false) && cus.Status.Equals(false) && sv.ExpiryDate != null && sv.CourseBal > 0
+                            select new ExpiringListModel
+                            {
+                                CusId = cus.CusId,
+                                CardNo = cus.CardNo,
+                                ImagePath = cus.ImagePath,
+                                FullName = cus.FullName,
+                                SalesId = sv.SalesId,
+                                Service = sv.ServiceName,
+                                CourseBal = sv.CourseBal ?? 0,
+                                ExpiryDate = sv.ExpiryDate,
+                                PurchaseDate = sv.PurchaseDate,
+                            }).ToList();
+            }
+            else
+            {
+                service = (from cus in db.Customers
+                           join sv in db.Services on cus.CusId equals sv.CusId
+                           where cus.Active.Equals(false) && cus.Status.Equals(false)
+                           && sv.ExpiryDate != null && sv.CourseBal > 0
+                           select new ExpiringListModel
+                            {
+                                CusId = cus.CusId,
+                                CardNo = cus.CardNo,
+                                ImagePath = cus.ImagePath,
+                                FullName = cus.FullName,
+                                SalesId = sv.SalesId,
+                                Service = sv.ServiceName,
+                                CourseBal = sv.CourseBal ?? 0,
+                                ExpiryDate = sv.ExpiryDate,
+                               PurchaseDate = sv.PurchaseDate,
+                           }).ToList();
+            }
+
+            return Json(service.ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
+        }
+        #endregion
     }
 }

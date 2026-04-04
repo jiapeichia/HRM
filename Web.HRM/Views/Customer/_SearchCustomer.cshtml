@@ -70,7 +70,7 @@
     </style>
 </head>
 <div>
-    @(Html.Kendo().Grid<Meo.Web.ViewModels.CustomerDetailsViewModel>()
+    @(Html.Kendo().Grid<Meo.Web.ViewModels.CustomerDetailsViewModel>() // ReturnGIROsTopUp  //GIROPopUp
         .Name("GridForCustomer")
         .HtmlAttributes(new { style = "100%" })
         .Columns(columns =>
@@ -93,8 +93,8 @@
             );
             columns.Bound(c => c.TPDueAmt).Width("110px")
                 .ClientTemplate(
-                    "# if (TPDueAmt < 0) { #" +
-                    "<a href='" + @Url.Action("ReturnGIROsTopUp", "GIROs", new { cusId = "#=CusId#", dueAmt = "#=TPDueAmt#" }) + "' ><span class='payment-required' title='Outstanding'>#= kendo.toString(TPDueAmt, 'n2') #</span>" +
+                    "# if (TPDueAmt < 0) { #" + 
+                    "<a href='" + @Url.Action("GIROsTopUp", "GIROs", new { cusId = "#=CusId#", dueAmt = "#=TPDueAmt#" }) + "' ><span class='payment-required' title='Outstanding'>#= kendo.toString(TPDueAmt, 'n2') #</span>" +
                     "# } else { #" +
                     "#= kendo.toString(TPDueAmt, 'n2') #" +
                     "# } #"

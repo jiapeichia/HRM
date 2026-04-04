@@ -206,4 +206,37 @@ namespace Meo.Web.ViewModels
         [Display(Name = "Credit")]
         public decimal CreditBal { get; set; }
     }
+
+    public class ExpiringListModel
+    {
+        [Display(Name = "Customer ID")]
+        public int CusId { get; set; }
+
+        [Display(Name = "Card No")]
+        public string CardNo { get; set; }
+
+        //[UIHint("FileUpload")]
+        [Display(Name = "Upload Image")]
+        public string ImagePath { get; set; }
+
+        [Display(Name = "Full Name")]
+        public string FullName { get; set; }
+
+        [Display(Name = "Invoice")]
+        public string SalesId { get; set; }
+
+        [Display(Name = "Service")]
+        public string Service { get; set; }
+
+        [Display(Name = "Course Balance")]
+        public int CourseBal { get; set; }
+
+        [Display(Name = "Expiry Date")]
+        [DataType(DataType.Date)]
+        public DateTime? ExpiryDate { get; set; }
+
+        [Display(Name = "Purchase Date")]
+        [DataType(DataType.Date)]
+        public DateTime? PurchaseDate { get; set; }
+    }
 }
