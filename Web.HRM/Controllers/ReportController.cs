@@ -477,13 +477,13 @@ namespace Web.HRM.Controllers
                     (date, salesForDate) => new DailySalesReport
                     {
                         SalesDate = date,
-                        CashTotal = salesForDate.Where(item => item.PaymentMethod == byCash).Sum(item => item?.TotalAmt ?? 0),
-                        CardTotal = salesForDate.Where(item => item.PaymentMethod == byCard).Sum(item => item?.TotalAmt ?? 0),
-                        BankTotal = salesForDate.Where(item => item.PaymentMethod == byBank).Sum(item => item?.TotalAmt ?? 0),
-                        EWalletTotal = salesForDate.Where(item => item.PaymentMethod == byEWallet).Sum(item => item?.TotalAmt ?? 0),
+                        CashTotal = salesForDate.Where(item => item.PaymentMethod == byCash).Sum(item => item?.PaidAmt ?? 0),
+                        CardTotal = salesForDate.Where(item => item.PaymentMethod == byCard).Sum(item => item?.PaidAmt ?? 0),
+                        BankTotal = salesForDate.Where(item => item.PaymentMethod == byBank).Sum(item => item?.PaidAmt ?? 0),
+                        EWalletTotal = salesForDate.Where(item => item.PaymentMethod == byEWallet).Sum(item => item?.PaidAmt ?? 0),
                         OthersTotal = salesForDate.Where(item => item.PaymentMethod != byCash && item.PaymentMethod != byCard
-                        && item.PaymentMethod != byEWallet && item.PaymentMethod != byBank).Sum(item => item?.TotalAmt ?? 0),
-                        Total = salesForDate.Sum(item => item?.TotalAmt ?? 0),
+                        && item.PaymentMethod != byEWallet && item.PaymentMethod != byBank).Sum(item => item?.PaidAmt ?? 0),
+                        Total = salesForDate.Sum(item => item?.PaidAmt ?? 0),
                     }).ToList();
             }
 
