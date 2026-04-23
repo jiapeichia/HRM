@@ -1,12 +1,8 @@
-﻿using Kendo.Mvc.Extensions;
-using Kendo.Mvc.UI;
-using Meo.Web.DBContext;
-using Meo.Web.Model;
-using Meo.Web.ViewModels;
+﻿using Meo.Web.Model;
 using System;
 using System.Data;
-using System.Linq;
 using System.Web.Mvc;
+using Web.HRM.Controllers;
 
 namespace Meo.Web.Controllers
 {

@@ -226,6 +226,9 @@
     <Compile Include="Controllers\CustomerController.cs" />
     <Compile Include="Controllers\ReceiptController.cs" />
     <Compile Include="Controllers\DBBackupController.cs" />
+    <Compile Include="Controllers\AuthController.cs" />
+    <Compile Include="Controllers\PosController.cs" />
+    <Compile Include="Controllers\UploadController.cs" />
     <Compile Include="Controllers\ReportController.cs" />
     <Compile Include="Controllers\EmployeeController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
@@ -264,6 +267,9 @@
     <Compile Include="ViewModels\CustomerViewModels.cs" />
     <Compile Include="ViewModels\EmployeeViewModels.cs" />
     <Compile Include="ViewModels\SalesViewModels.cs" />
+    <Compile Include="ViewModels\PosViewModels.cs" />
+    <Compile Include="ViewModels\PosTransactionViewModel.cs" />
+    <Compile Include="Common\AuditLogger.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\donut_chart.css" />
@@ -317,6 +323,7 @@
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Attachment\SamplePDF.pdf" />
     <Content Include="Content\variables.scss" />
+    <None Include="Database\pos_schema.sql" />
     <None Include="Properties\PublishProfiles\BeYou.pubxml" />
     <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <Content Include="Report\Receipt.xlsx" />
@@ -396,6 +403,9 @@
     <Content Include="Views\Admin\EditorTemplates\TypeEditor.cshtml" />
     <Content Include="Views\Setting\EditorTemplates\ProductEditor.cshtml" />
     <Content Include="Views\Sales\SalesByCus.cshtml" />
+    <Content Include="Views\Pos\NewSale.cshtml" />
+    <Content Include="Views\Pos\Receipt.cshtml" />
+    <Content Include="Views\Pos\GiroLedger.cshtml" />
     <Content Include="Views\Sales\_SearchSalesByCus.cshtml" />
     <Content Include="Views\Sales\SalesItem.cshtml" />
     <Content Include="Views\Sales\Invoice.cshtml" />
@@ -484,6 +494,7 @@
     <Content Include="Views\BackOrder\EditorTemplates\PreorderEditor.cshtml" />
     <Content Include="Views\Customer\ExpiringList.cshtml" />
     <Content Include="Views\Customer\_SearchExpiringList.cshtml" />
+    <Content Include="settings.json" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff" />

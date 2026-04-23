@@ -77,20 +77,24 @@ namespace Web.HRM.Controllers
                     // ── 1. INSERT s_Sales ────────────────────────────────────
                     var sale = new SalesViewModels
                     {
-                        SalesId       = invoiceNo,
-                        CusId         = model.CusId,
-                        PaymentMethod = model.PaymentMethodTypeId,
-                        OrderDate     = DateTime.Now,
-                        PaymentDate   = DateTime.Now,
-                        SubTotal      = model.SubTotal,
-                        DiscAmt       = model.DiscAmt,
+                        SalesId        = invoiceNo,
+                        CusId          = model.CusId,
+                        PaymentMethod  = model.PaymentMethodTypeId,
+                        OrderDate      = DateTime.Now,
+                        PaymentDate    = DateTime.Now,
+                        SubTotal       = model.SubTotal,
+                        DiscAmt        = model.DiscAmt,
                         DiscPercentage = model.DiscPercentage,
-                        TotalAmt      = model.TotalAmt,
-                        PaidAmt       = model.TotalAmt,
-                        BalAmt        = 0,
-                        Remarks       = model.Remarks,
-                        Active        = false,   // false = active (project convention)
-                        Status        = false
+                        TotalAmt       = model.TotalAmt,
+                        PaidAmt        = model.TotalAmt,
+                        BalAmt         = 0,
+                        Remarks        = model.Remarks,
+                        Active         = false,
+                        Status         = false,
+                        AddBy          = empNo,
+                        ModBy          = empNo,
+                        AddDate        = DateTime.Now,
+                        ModDate        = DateTime.Now
                     };
                     db.Saless.Add(sale);
                     db.SaveChanges();
@@ -100,16 +104,20 @@ namespace Web.HRM.Controllers
                     {
                         var item = new SalesItemViewModels
                         {
-                            SalesId      = invoiceNo,
-                            ProductId    = line.ProductId,
-                            Quantity     = line.Qty,
-                            UnitPrice    = line.UnitPrice,
-                            LineDiscAmt  = line.DiscAmt,
-                            LineTotal    = line.TotalAmt,
-                            EmpNo        = line.EmpNo,
-                            Remarks      = line.Remarks,
-                            Active       = false,
-                            Status       = false
+                            SalesId     = invoiceNo,
+                            ProductId   = line.ProductId,
+                            Quantity    = line.Qty,
+                            UnitPrice   = line.UnitPrice,
+                            LineDiscAmt = line.DiscAmt,
+                            LineTotal   = line.TotalAmt,
+                            EmpNo       = line.EmpNo,
+                            Remarks     = line.Remarks,
+                            Active      = false,
+                            Status      = false,
+                            AddBy       = empNo,
+                            ModBy       = empNo,
+                            AddDate     = DateTime.Now,
+                            ModDate     = DateTime.Now
                         };
                         db.SalesItems.Add(item);
 
@@ -208,7 +216,10 @@ namespace Web.HRM.Controllers
                 catch (Exception ex)
                 {
                     transaction.Rollback();
-                    return Json(new { success = false, message = ex.Message });
+                    var msg = ex.Message;
+                    if (ex.InnerException != null) msg += " | INNER: " + ex.InnerException.Message;
+                    if (ex.InnerException?.InnerException != null) msg += " | " + ex.InnerException.InnerException.Message;
+                    return Json(new { success = false, message = msg });
                 }
             }
         }
@@ -228,18 +239,48 @@ namespace Web.HRM.Controllers
             var customer = db.Customers.Find(sale.CusId);
             var company  = db.CompanyProfile.FirstOrDefault();
 
+            // Resolve payment method name
+            var paymentTypeName = "";
+            if (payment != null)
+            {
+                var payType = db.Types.FirstOrDefault(x => x.TypeId == payment.PaymentMethod);
+                paymentTypeName = payType?.TypeName ?? payment.PaymentMethod.ToString();
+            }
+
+            // Build receipt line items
+            var receiptItems = items.Select(i => {
+                var product = db.Products.FirstOrDefault(x => x.ProductId == i.ProductId);
+                return new ReceiptItem
+                {
+                    ProductId    = i.ProductId,
+                    ProductCode  = product?.ProductCode ?? i.ProductId.ToString(),
+                    ProductName  = product?.ProductName ?? "",
+                    UnitPrice    = i.UnitPrice,
+                    Quantity     = i.Quantity,
+                    LineTotal    = i.LineTotal,
+                    LineDiscount = i.LineDiscAmt
+                };
+            }).ToList();
+
             var vm = new ReceiptModel
             {
-                SalesId       = sale.SalesId,
-                StoreName     = company?.Name,
-                Tel           = company?.Tel,
-                Date          = sale.OrderDate.ToString("dd/MM/yyyy"),
-                PaymentMethod = payment?.PaymentMethod.ToString(),
-                TotalAmount   = sale.TotalAmt ?? 0,
-                TotalPaid     = sale.PaidAmt ?? 0,
-                TotalBalance  = sale.BalAmt ?? 0,
-                SubTotal      = sale.SubTotal ?? 0,
-                TotalDisc     = sale.DiscAmt ?? 0
+                SalesId        = sale.SalesId,
+                StoreName      = company?.Name,
+                RegNo          = company?.RegNo,
+                Address1       = company?.Address1,
+                Address2       = company?.Address2,
+                Address3       = company?.Address3,
+                Tel            = company?.Tel,
+                Date           = sale.OrderDate.ToString("dd/MM/yyyy"),
+                CardNo         = customer?.CardNo,
+                PaymentMethod  = paymentTypeName,
+                TotalAmount    = sale.TotalAmt ?? 0,
+                TotalPaid      = sale.PaidAmt ?? 0,
+                TotalBalance   = sale.BalAmt ?? 0,
+                SubTotal       = sale.SubTotal ?? 0,
+                TotalDisc      = (sale.DiscAmt ?? 0) + (sale.DiscPercentageAmt ?? 0),
+                CreditBal      = customer?.CreditBal ?? 0,
+                ReceiptItems   = receiptItems
             };
 
             return View(vm);

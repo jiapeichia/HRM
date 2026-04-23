@@ -25,7 +25,7 @@
         .grand-total { font-size: 13px; font-weight: bold; }
         .footer { text-align: center; margin-top: 10px; font-size: 10px; color: #555; }
 
-        @media print {
+        @@media print {
             body { margin: 0; }
             .no-print { display: none; }
         }
@@ -99,7 +99,7 @@
                     <tr>
                         <td colspan="4" class="item-name">@item.ProductName</td>
                     </tr>
-                    @if (item.LineDiscount > 0)
+                    if (item.LineDiscount > 0)
                     {
                         <tr>
                             <td colspan="3" class="item-name">  Disc</td>
