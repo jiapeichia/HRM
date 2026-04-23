@@ -17,7 +17,7 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 
 namespace Web.HRM.Controllers
 {
-    public class PackageController : Controller
+    public class PackageController : AuthController
     {
         DBContext db = new DBContext();
 

@@ -13,7 +13,7 @@ using System.Web.Mvc;
 
 namespace Web.HRM.Controllers
 {
-    public class SupplierController : Controller
+    public class SupplierController : AuthController
     {
         DBContext db = new DBContext();
 

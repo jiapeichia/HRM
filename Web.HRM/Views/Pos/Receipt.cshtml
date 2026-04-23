@@ -1,0 +1,193 @@
+@model Meo.Web.ViewModels.ReceiptModel
+
+@{
+    ViewBag.Title = "Receipt";
+    Layout = null;   // standalone printable page — no nav chrome
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Receipt — @Model.SalesId</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Courier New', monospace; font-size: 11px; width: 80mm; margin: 0 auto; padding: 8px; }
+        .center { text-align: center; }
+        .right  { text-align: right; }
+        .bold   { font-weight: bold; }
+        .divider-solid  { border-top: 1px solid #000; margin: 4px 0; }
+        .divider-dotted { border-top: 1px dotted #000; margin: 4px 0; }
+        table { width: 100%; border-collapse: collapse; }
+        td, th { font-size: 11px; padding: 2px 0; vertical-align: top; }
+        th { border-top: 1px solid #000; border-bottom: 1px solid #000; }
+        .item-name { padding-left: 4px; color: #444; }
+        .totals td { padding: 1px 0; }
+        .grand-total { font-size: 13px; font-weight: bold; }
+        .footer { text-align: center; margin-top: 10px; font-size: 10px; color: #555; }
+
+        @media print {
+            body { margin: 0; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    @* ── Store header ── *@
+    <div class="center">
+        <div class="bold" style="font-size:13px">@Model.StoreName</div>
+        @if (!string.IsNullOrEmpty(Model.RegNo))   { <div>@Model.RegNo</div> }
+        @if (!string.IsNullOrEmpty(Model.Address1)) { <div>@Model.Address1</div> }
+        @if (!string.IsNullOrEmpty(Model.Address2)) { <div>@Model.Address2</div> }
+        @if (!string.IsNullOrEmpty(Model.Address3)) { <div>@Model.Address3</div> }
+        <div>TEL: @Model.Tel</div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.ReceiptHeader))
+    {
+        <div class="center bold" style="margin-top:4px">@Model.ReceiptHeader</div>
+    }
+
+    <div class="divider-solid"></div>
+
+    @* ── Invoice info ── *@
+    <table>
+        <tr>
+            <td>Invoice No.</td>
+            <td>: <strong>@Model.SalesId</strong></td>
+        </tr>
+        <tr>
+            <td>Date</td>
+            <td>: @Model.Date</td>
+        </tr>
+        <tr>
+            <td>Paid By</td>
+            <td>: @Model.PaymentMethod</td>
+        </tr>
+        @if (!string.IsNullOrEmpty(Model.CardNo))
+        {
+            <tr>
+                <td>Card No.</td>
+                <td>: @Model.CardNo</td>
+            </tr>
+        }
+    </table>
+
+    <div class="divider-solid"></div>
+
+    @* ── Line items ── *@
+    @if (Model.ReceiptItems != null && Model.ReceiptItems.Count > 0)
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th class="right">Price</th>
+                    <th class="right">Qty</th>
+                    <th class="right">Amt</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.ReceiptItems)
+                {
+                    <tr>
+                        <td>@item.ProductCode</td>
+                        <td class="right">@item.UnitPrice.ToString("N2")</td>
+                        <td class="right">@item.Quantity</td>
+                        <td class="right">@item.LineTotal.ToString("N2")</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="item-name">@item.ProductName</td>
+                    </tr>
+                    @if (item.LineDiscount > 0)
+                    {
+                        <tr>
+                            <td colspan="3" class="item-name">  Disc</td>
+                            <td class="right">-@item.LineDiscount.ToString("N2")</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    }
+
+    <div class="divider-dotted"></div>
+
+    @* ── Totals ── *@
+    <table class="totals">
+        <tr>
+            <td colspan="3">Sub Total (RM)</td>
+            <td class="right">@Model.SubTotal.ToString("N2")</td>
+        </tr>
+        @if (Model.TotalDisc > 0)
+        {
+            <tr>
+                <td colspan="3">Discount (RM)</td>
+                <td class="right">-@Model.TotalDisc.ToString("N2")</td>
+            </tr>
+        }
+        <tr class="grand-total">
+            <td colspan="3">TOTAL (RM)</td>
+            <td class="right">@Model.TotalAmount.ToString("N2")</td>
+        </tr>
+
+        @if (Model.GIROPaymentCounts != null && Model.GIROPaymentCounts.Count > 0)
+        {
+            foreach (var g in Model.GIROPaymentCounts)
+            {
+                <tr>
+                    <td colspan="3">@g.PaidCount time(s) paid (RM)</td>
+                    <td class="right">@(g.TotalPaid.HasValue ? g.TotalPaid.Value.ToString("N2") : "-")</td>
+                </tr>
+            }
+        }
+
+        <tr>
+            <td colspan="3">Paid Amount (RM)</td>
+            <td class="right">@Model.TotalPaid.ToString("N2")</td>
+        </tr>
+        <tr>
+            <td colspan="3">
+                @(Model.IsGIRO ? "Outstanding (RM)" : "Balance (RM)")
+            </td>
+            <td class="right">
+                @if (!string.IsNullOrEmpty(Model.TotalBalanceString))
+                {
+                    @Model.TotalBalanceString
+                }
+                else
+                {
+                    @Model.TotalBalance.ToString("N2")
+                }
+            </td>
+        </tr>
+
+        @if (Model.CreditBal > 0)
+        {
+            <tr>
+                <td colspan="3">Credit Balance (RM)</td>
+                <td class="right">@Model.CreditBal.ToString("N2")</td>
+            </tr>
+        }
+    </table>
+
+    <div class="divider-solid"></div>
+
+    <div class="footer">
+        Thank you for choosing <strong>BeYou</strong><br />
+        @DateTime.Now.ToString("dd/MM/yyyy HH:mm")
+    </div>
+
+    @* ── Print controls (hidden when printing) ── *@
+    <div class="no-print" style="margin-top:16px; text-align:center">
+        <button onclick="window.print()" class="btn btn-primary" style="width:120px">PRINT</button>
+        &nbsp;
+        <button onclick="window.close()" class="btn btn-default" style="width:120px">CLOSE</button>
+    </div>
+
+    <script>
+        window.onload = function () { window.print(); };
+    </script>
+
+</body>
+</html>

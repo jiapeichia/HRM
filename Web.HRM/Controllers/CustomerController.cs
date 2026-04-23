@@ -16,7 +16,7 @@ using NPOI.SS.Formula.Functions;
 
 namespace Web.HRM.Controllers
 {
-    public class CustomerController : Controller
+    public class CustomerController : AuthController
     {
         DBContext db = new DBContext();
 

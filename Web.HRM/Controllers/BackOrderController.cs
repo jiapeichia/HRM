@@ -12,7 +12,7 @@ using System.Web.Mvc;
 
 namespace Web.HRM.Controllers
 {
-    public class BackOrderController : Controller
+    public class BackOrderController : AuthController
     {
         private readonly DBContext db = new DBContext();
 

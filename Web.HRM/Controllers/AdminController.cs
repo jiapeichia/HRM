@@ -18,7 +18,7 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Web.HRM.Controllers
 {
-    public class AdminController : Controller
+    public class AdminController : AuthController
     {
         DBContext db = new DBContext();
 

@@ -10,7 +10,7 @@ using System.Web.Mvc;
 
 namespace Web.HRM.Controllers
 {
-    public class ExchangeController : Controller
+    public class ExchangeController : AuthController
     {
         DBContext db = new DBContext();
 

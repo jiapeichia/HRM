@@ -12,7 +12,7 @@ using System.Web.Mvc;
 
 namespace Web.HRM.Controllers
 {
-    public class SalesController : Controller
+    public class SalesController : AuthController
     {
         private readonly DBContext db = new DBContext();
 

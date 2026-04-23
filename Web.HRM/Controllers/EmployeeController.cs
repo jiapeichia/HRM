@@ -14,7 +14,7 @@ using Microsoft.Ajax.Utilities;
 
 namespace Web.HRM.Controllers
 {
-    public class EmployeeController : Controller
+    public class EmployeeController : AuthController
     {
         DBContext db = new DBContext();
 

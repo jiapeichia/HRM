@@ -10,7 +10,7 @@ using System.Web.Mvc;
 
 namespace Meo.Web.Controllers
 {
-    public class PageController : Controller
+    public class PageController : AuthController
     {
         public ActionResult PageValid(string empno, string pageid)
         {

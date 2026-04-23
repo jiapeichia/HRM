@@ -16,7 +16,7 @@ using System.Windows;
 
 namespace Web.HRM.Controllers
 {
-    public class GIROsController : Controller
+    public class GIROsController : AuthController
     {
         private readonly DBContext db = new DBContext();
 
