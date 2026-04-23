@@ -6,7 +6,7 @@ using System;
 
 namespace Web.HRM.Controllers
 {
-    public class DBBackupController : Controller
+    public class DBBackupController : AuthController
     {
         public void BackupDatabase()
         {

@@ -1,0 +1,437 @@
+@{
+    ViewBag.Title = "New Sale";
+    var products     = ViewBag.Products     as List<Meo.Web.ViewModels.ProductViewModels>;
+    var packages     = ViewBag.Packages     as List<Meo.Web.ViewModels.PackageViewModels>;
+    var paymentTypes = ViewBag.PaymentTypes as List<Meo.Web.ViewModels.TypeViewModels>;
+    var employees    = ViewBag.Employees    as List<Meo.Web.ViewModels.EmployeeViewModels>;
+}
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+
+    <script>
+    // ── line item state ──────────────────────────────────────────────────────
+    var lineItems = [];       // { productId, productName, qty, unitPrice, discAmt, totalAmt, empNo }
+    var serviceItems = [];    // { productId, productName, sessionQty, empNo }
+    var lineCounter = 0;
+
+    // ── helpers ──────────────────────────────────────────────────────────────
+    function fmt(n) { return parseFloat(n || 0).toFixed(2); }
+
+    function recalcTotals() {
+        var sub = lineItems.reduce(function (s, r) { return s + r.totalAmt; }, 0);
+        var disc = parseFloat($("#discAmt").val()) || 0;
+        var pct  = parseFloat($("#discPct").val())  || 0;
+        var pctAmt = sub * pct / 100;
+        var total = sub - disc - pctAmt;
+
+        $("#subTotalDisplay").text(fmt(sub));
+        $("#discPctAmtDisplay").text(fmt(pctAmt));
+        $("#totalDisplay").text(fmt(total));
+        $("#hidSubTotal").val(fmt(sub));
+        $("#hidTotal").val(fmt(total));
+        $("#hidDiscAmt").val(fmt(disc));
+        $("#hidDiscPct").val(pct);
+    }
+
+    function renderLineGrid() {
+        var tbody = $("#lineGrid tbody");
+        tbody.empty();
+        if (lineItems.length === 0) {
+            tbody.append('<tr><td colspan="8" style="text-align:center;color:#aaa;">No items added yet.</td></tr>');
+        }
+        $.each(lineItems, function (i, r) {
+            tbody.append(
+                '<tr>' +
+                '<td>' + r.productName + '</td>' +
+                '<td style="text-align:right">' + r.qty + '</td>' +
+                '<td style="text-align:right">' + fmt(r.unitPrice) + '</td>' +
+                '<td style="text-align:right">' + fmt(r.discAmt) + '</td>' +
+                '<td style="text-align:right">' + fmt(r.totalAmt) + '</td>' +
+                '<td>' + r.empName + '</td>' +
+                '<td style="text-align:center">' +
+                  '<button type="button" class="btn btn-xs btn-danger" onclick="removeLine(' + i + ')">✕</button>' +
+                '</td>' +
+                '</tr>'
+            );
+        });
+        recalcTotals();
+    }
+
+    function renderServiceGrid() {
+        var tbody = $("#serviceGrid tbody");
+        tbody.empty();
+        if (serviceItems.length === 0) {
+            tbody.append('<tr><td colspan="4" style="text-align:center;color:#aaa;">No treatments added.</td></tr>');
+        }
+        $.each(serviceItems, function (i, r) {
+            tbody.append(
+                '<tr>' +
+                '<td>' + r.productName + '</td>' +
+                '<td style="text-align:right">' + r.sessionQty + '</td>' +
+                '<td>' + r.empName + '</td>' +
+                '<td style="text-align:center">' +
+                  '<button type="button" class="btn btn-xs btn-danger" onclick="removeService(' + i + ')">✕</button>' +
+                '</td>' +
+                '</tr>'
+            );
+        });
+    }
+
+    // ── add product line ──────────────────────────────────────────────────────
+    function addLine() {
+        var productId  = parseInt($("#selProduct").val());
+        var productName = $("#selProduct option:selected").text();
+        var qty        = parseInt($("#txtQty").val()) || 1;
+        var unitPrice  = parseFloat($("#txtUnitPrice").val()) || 0;
+        var discAmt    = parseFloat($("#txtLineDisc").val()) || 0;
+        var empNo      = $("#selEmpLine").val();
+        var empName    = $("#selEmpLine option:selected").text();
+
+        if (!productId) { alert("Please select a product."); return; }
+        if (!empNo)     { alert("Please select a staff member."); return; }
+
+        var totalAmt = (qty * unitPrice) - discAmt;
+
+        lineItems.push({ productId: productId, productName: productName,
+                         qty: qty, unitPrice: unitPrice, discAmt: discAmt,
+                         totalAmt: totalAmt, empNo: empNo, empName: empName });
+
+        // reset row inputs
+        $("#selProduct").val(""); $("#txtQty").val(1);
+        $("#txtUnitPrice").val(""); $("#txtLineDisc").val(0);
+        $("#selEmpLine").val("");
+
+        renderLineGrid();
+    }
+
+    function removeLine(i) { lineItems.splice(i, 1); renderLineGrid(); }
+
+    // ── add service ───────────────────────────────────────────────────────────
+    function addService() {
+        var productId   = parseInt($("#selPackage").val());
+        var productName = $("#selPackage option:selected").text();
+        var sessionQty  = parseInt($("#txtSession").val()) || 1;
+        var empNo       = $("#selEmpService").val();
+        var empName     = $("#selEmpService option:selected").text();
+
+        if (!productId) { alert("Please select a package/treatment."); return; }
+        if (!empNo)     { alert("Please select a staff member."); return; }
+
+        serviceItems.push({ productId: productId, productName: productName,
+                            sessionQty: sessionQty, empNo: empNo, empName: empName });
+
+        $("#selPackage").val(""); $("#txtSession").val(1); $("#selEmpService").val("");
+        renderServiceGrid();
+    }
+
+    function removeService(i) { serviceItems.splice(i, 1); renderServiceGrid(); }
+
+    // ── payment method toggle ─────────────────────────────────────────────────
+    $(document).on("change", "#selPaymentMethod", function () {
+        var name = $(this).find("option:selected").text().toUpperCase();
+        $("#refRow").toggle(name !== "CASH");
+    });
+
+    // ── submit ────────────────────────────────────────────────────────────────
+    function submitSale() {
+        if (lineItems.length === 0) {
+            alert("Please add at least one product line."); return;
+        }
+        var payMethodId = parseInt($("#selPaymentMethod").val());
+        if (!payMethodId) { alert("Please select a payment method."); return; }
+
+        // Build flat form-encoded payload MVC default binder can read
+        var data = {
+            CusId:               @ViewBag.CusId,
+            SubTotal:            parseFloat($("#hidSubTotal").val()),
+            DiscAmt:             parseFloat($("#hidDiscAmt").val()),
+            DiscPercentage:      parseInt($("#hidDiscPct").val()) || 0,
+            TotalAmt:            parseFloat($("#hidTotal").val()),
+            PaymentMethodTypeId: payMethodId,
+            PaymentMethodName:   $("#selPaymentMethod option:selected").text(),
+            PaymentReferenceNo:  $("#txtRef").val(),
+            ApplyCredit:         $("#chkCredit").is(":checked"),
+            CreditUsed:          parseFloat($("#txtCreditUsed").val()) || 0,
+            Remarks:             $("#txtRemarks").val()
+        };
+        // Append indexed arrays for Items[] and Services[]
+        $.each(lineItems, function (i, r) {
+            data["Items[" + i + "].ProductId"] = r.productId;
+            data["Items[" + i + "].Qty"]       = r.qty;
+            data["Items[" + i + "].UnitPrice"] = r.unitPrice;
+            data["Items[" + i + "].DiscAmt"]   = r.discAmt;
+            data["Items[" + i + "].TotalAmt"]  = r.totalAmt;
+            data["Items[" + i + "].EmpNo"]     = r.empNo;
+        });
+        $.each(serviceItems, function (i, r) {
+            data["Services[" + i + "].ProductId"]  = r.productId;
+            data["Services[" + i + "].SessionQty"] = r.sessionQty;
+            data["Services[" + i + "].EmpNo"]      = r.empNo;
+        });
+
+        $("#btnSubmit").prop("disabled", true).val("Processing…");
+
+        $.ajax({
+            url:  '@Url.Action("CreateSale", "Pos")',
+            type: "POST",
+            data: data,
+            success: function (res) {
+                if (res.success) {
+                    window.open('@Url.Action("Receipt", "Pos")' + '?id=' + res.invoiceNo, '_blank');
+                    window.location.href = '@Url.Action("Index", "Customer")';
+                } else {
+                    alert("Error: " + res.message);
+                    $("#btnSubmit").prop("disabled", false).val("CONFIRM & PAY");
+                }
+            },
+            error: function () {
+                alert("Server error. Please try again.");
+                $("#btnSubmit").prop("disabled", false).val("CONFIRM & PAY");
+            }
+        });
+    }
+
+    $(function () {
+        renderLineGrid();
+        renderServiceGrid();
+        recalcTotals();
+
+        $("#discAmt, #discPct").on("input", recalcTotals);
+        $("#refRow").hide();
+    });
+    </script>
+}
+
+<style>
+    .pos-section { background:#fff; border-radius:8px; padding:16px; margin-bottom:16px; box-shadow:0 1px 3px rgba(0,0,0,.1); }
+    .bar-title   { font-weight:bold; font-size:14px; color:#555; margin-bottom:8px; }
+    .pos-grid    { width:100%; border-collapse:collapse; }
+    .pos-grid th { background:#f5f5f5; padding:7px 10px; font-size:12px; border-bottom:2px solid #ddd; text-align:left; }
+    .pos-grid td { padding:6px 10px; font-size:12px; border-bottom:1px solid #eee; }
+    .total-row   { font-size:15px; font-weight:bold; }
+    .cus-header  { background:#fff; border-radius:8px; padding:16px; margin-bottom:16px; box-shadow:0 1px 3px rgba(0,0,0,.1); display:flex; justify-content:space-between; align-items:center; }
+</style>
+
+<div class="page-content">
+
+    @Html.AntiForgeryToken()
+
+    @* ── Customer header ── *@
+    <div class="cus-header">
+        <div>
+            <h3 style="margin:0">@ViewBag.CusName</h3>
+            <small style="color:#888">Customer ID: @ViewBag.CusId</small>
+        </div>
+        <div style="text-align:right">
+            <span style="color:#555; font-size:13px">Credit Balance: </span>
+            <strong style="color:#e67e22; font-size:16px">RM @String.Format("{0:N2}", ViewBag.CreditBal)</strong>
+            @if ((decimal)(ViewBag.TPDueAmt ?? 0) > 0)
+            {
+                <br /><small style="color:#e74c3c">Outstanding: RM @String.Format("{0:N2}", ViewBag.TPDueAmt)</small>
+            }
+        </div>
+        <div>
+            <a href="@Url.Action("Index", "Customer")" class="btn btn-default">BACK</a>
+        </div>
+    </div>
+
+    @* ── Add product line ── *@
+    <div class="pos-section">
+        <div class="bar-title">ADD PRODUCT / SERVICE</div>
+        <div class="row">
+            <div class="col-md-3">
+                <label>Product</label>
+                <select id="selProduct" class="form-control">
+                    <option value="">-- Select --</option>
+                    @foreach (var p in products)
+                    {
+                        <option value="@p.ProductId" data-price="@p.Price">@p.ProductName</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-1">
+                <label>Qty</label>
+                <input id="txtQty" type="number" class="form-control" value="1" min="1" />
+            </div>
+            <div class="col-md-2">
+                <label>Unit Price (RM)</label>
+                <input id="txtUnitPrice" type="number" class="form-control" step="0.01" placeholder="0.00" />
+            </div>
+            <div class="col-md-2">
+                <label>Line Disc (RM)</label>
+                <input id="txtLineDisc" type="number" class="form-control" step="0.01" value="0" />
+            </div>
+            <div class="col-md-2">
+                <label>Staff</label>
+                <select id="selEmpLine" class="form-control">
+                    <option value="">-- Select --</option>
+                    @foreach (var e in employees)
+                    {
+                        <option value="@e.EmpNo">@e.DisplayName</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2" style="padding-top:25px">
+                <button type="button" class="btn btn-primary" onclick="addLine()">+ Add Line</button>
+            </div>
+        </div>
+
+        <script>
+            // auto-fill unit price from product selection
+            $("#selProduct").on("change", function () {
+                var price = $(this).find("option:selected").data("price") || "";
+                $("#txtUnitPrice").val(price);
+            });
+        </script>
+    </div>
+
+    @* ── Line items grid ── *@
+    <div class="pos-section">
+        <div class="bar-title">ORDER LINES</div>
+        <table class="pos-grid" id="lineGrid">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th style="text-align:right">Qty</th>
+                    <th style="text-align:right">Unit Price</th>
+                    <th style="text-align:right">Disc (RM)</th>
+                    <th style="text-align:right">Total (RM)</th>
+                    <th>Staff</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    @* ── Add treatment / package ── *@
+    <div class="pos-section">
+        <div class="bar-title">ADD TREATMENT / PACKAGE SESSION</div>
+        <div class="row">
+            <div class="col-md-4">
+                <label>Package / Treatment</label>
+                <select id="selPackage" class="form-control">
+                    <option value="">-- Select --</option>
+                    @foreach (var pk in packages)
+                    {
+                        <option value="@pk.ProductId">@pk.Description</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label>Sessions</label>
+                <input id="txtSession" type="number" class="form-control" value="1" min="1" />
+            </div>
+            <div class="col-md-3">
+                <label>Staff</label>
+                <select id="selEmpService" class="form-control">
+                    <option value="">-- Select --</option>
+                    @foreach (var e in employees)
+                    {
+                        <option value="@e.EmpNo">@e.DisplayName</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2" style="padding-top:25px">
+                <button type="button" class="btn btn-info" onclick="addService()">+ Add Treatment</button>
+            </div>
+        </div>
+        <br />
+        <table class="pos-grid" id="serviceGrid">
+            <thead>
+                <tr><th>Package / Treatment</th><th style="text-align:right">Sessions</th><th>Staff</th><th></th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    @* ── Totals + payment ── *@
+    <div class="pos-section">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="bar-title">DISCOUNT</div>
+                <table style="width:100%">
+                    <tr>
+                        <td style="width:180px"><label>Disc Amount (RM)</label></td>
+                        <td><input id="discAmt" type="number" class="form-control" step="0.01" value="0" style="width:150px" /></td>
+                    </tr>
+                    <tr>
+                        <td><label>Disc %</label></td>
+                        <td>
+                            <select id="discPct" class="form-control" style="width:150px" onchange="recalcTotals()">
+                                <option value="0">0%</option>
+                                <option value="5">5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label>Remarks</label></td>
+                        <td><input id="txtRemarks" type="text" class="form-control" style="width:250px" /></td>
+                    </tr>
+                </table>
+
+                @if ((decimal)(ViewBag.CreditBal ?? 0) > 0)
+                {
+                    <div style="margin-top:10px">
+                        <label><input id="chkCredit" type="checkbox" /> Use Credit Balance</label>
+                        <input id="txtCreditUsed" type="number" class="form-control" step="0.01"
+                               value="0" style="width:150px;display:inline-block;margin-left:10px"
+                               placeholder="Amount to use" />
+                    </div>
+                }
+            </div>
+
+            <div class="col-md-6">
+                <div class="bar-title">PAYMENT</div>
+                <table style="width:100%">
+                    <tr>
+                        <td style="width:180px"><label>Sub Total (RM)</label></td>
+                        <td><strong id="subTotalDisplay">0.00</strong></td>
+                    </tr>
+                    <tr>
+                        <td><label>Disc % Amount (RM)</label></td>
+                        <td><span id="discPctAmtDisplay" style="color:#e67e22">0.00</span></td>
+                    </tr>
+                    <tr class="total-row">
+                        <td><label>TOTAL (RM)</label></td>
+                        <td><strong id="totalDisplay" style="color:#27ae60; font-size:20px">0.00</strong></td>
+                    </tr>
+                    <tr>
+                        <td><label>Payment Method</label></td>
+                        <td>
+                            <select id="selPaymentMethod" class="form-control" style="width:200px">
+                                <option value="">-- Select --</option>
+                                @foreach (var pt in paymentTypes)
+                                {
+                                    <option value="@pt.TypeId">@pt.TypeName</option>
+                                }
+                            </select>
+                        </td>
+                    </tr>
+                    <tr id="refRow">
+                        <td><label>Reference No.</label></td>
+                        <td><input id="txtRef" type="text" class="form-control" style="width:200px" placeholder="Cheque / PayNow / Card last-4" /></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        @* hidden fields for form submission *@
+        <input type="hidden" id="hidSubTotal" />
+        <input type="hidden" id="hidTotal" />
+        <input type="hidden" id="hidDiscAmt" />
+        <input type="hidden" id="hidDiscPct" />
+
+        <hr />
+        <div style="text-align:right">
+            <a href="@Url.Action("Index", "Customer")" class="btn btn-default" style="width:120px">CANCEL</a>
+            &nbsp;
+            <input type="button" id="btnSubmit" value="CONFIRM &amp; PAY" class="btn btn-success" style="width:160px; font-size:15px" onclick="submitSale()" />
+        </div>
+    </div>
+
+</div>

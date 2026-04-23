@@ -7,7 +7,7 @@ using System.Web.Mvc;
 
 namespace Web.HRM.Controllers
 {
-    public class UploadController : Controller
+    public class UploadController : AuthController
     {
         // GET: Upload
        

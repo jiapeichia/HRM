@@ -1,0 +1,110 @@
+@using Kendo.Mvc.UI
+@using Meo.Web.ViewModels
+
+@{
+    ViewBag.Title = "GIRO Ledger";
+}
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+
+    <script>
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () { message += this + "\n"; });
+                }
+            });
+            alert(message);
+        }
+    }
+
+    function sync_handler(e) { this.read(); }
+
+    function markPaid(giroId) {
+        if (!confirm("Mark this GIRO entry as paid?")) return;
+
+        $.ajax({
+            url:  '@Url.Action("MarkGiroPaid", "Pos")',
+            type: "POST",
+            data: {
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
+                giroId: giroId
+            },
+            success: function (res) {
+                if (res.success) {
+                    $("#GiroGrid").data("kendoGrid").dataSource.read();
+                } else {
+                    alert("Error: " + res.message);
+                }
+            }
+        });
+    }
+    </script>
+}
+
+<style>
+    .unpaid  { color: #e74c3c; font-weight: bold; }
+    .paid    { color: #27ae60; }
+</style>
+
+<div class="page-content">
+    @Html.AntiForgeryToken()
+
+    <div style="margin-bottom:12px">
+        <a href="@Url.Action("Index", "Customer")" class="btn btn-default">← BACK</a>
+        <span style="font-size:18px; font-weight:bold; margin-left:16px">GIRO Ledger — Customer #@ViewBag.CusId</span>
+    </div>
+
+    <div class="sub-content">
+        <div class="bar-title"><span>GIRO ENTRIES</span></div>
+        <hr style="height:1px;border-width:0;color:gray;background-color:gray;margin:0" />
+        <br />
+
+        @(Html.Kendo().Grid<PosGiroBillingViewModel>()
+            .Name("GiroGrid")
+            .Columns(columns =>
+            {
+                columns.Bound(c => c.GiroId).Hidden();
+                columns.Bound(c => c.SalesId).Title("Invoice No").Width("140px");
+                columns.Bound(c => c.BillingMonth).Title("Billing Month")
+                    .Format("{0:MM/yyyy}").Width("120px");
+                columns.Bound(c => c.Amount).Title("Amount (RM)")
+                    .Format("{0:N2}").Width("130px");
+                columns.Bound(c => c.IsPaid).Title("Status").Width("100px")
+                    .ClientTemplate(
+                        "# if (IsPaid) { #" +
+                            "<span class='paid'>PAID</span>" +
+                        "# } else { #" +
+                            "<span class='unpaid'>UNPAID</span>" +
+                        "# } #");
+                columns.Bound(c => c.PaidDate).Title("Paid Date")
+                    .Format("{0:dd/MM/yyyy}").Width("120px");
+                columns.Bound(c => c.Remarks).Title("Remarks");
+                columns.Bound(c => c.CreatedBy).Title("Created By").Width("110px");
+                columns.Template(
+                    @<text>
+                        # if (!IsPaid) { #
+                        <button class="btn btn-xs btn-success"
+                                onclick="markPaid(#= GiroId #)">Mark Paid</button>
+                        # } #
+                    </text>).Title("Action").Width("110px");
+            })
+            .Sortable()
+            .Filterable()
+            .Pageable(p => p.Refresh(true).Messages(m => m.Refresh(string.Empty)))
+            .DataSource(ds => ds
+                .Ajax()
+                .PageSize(20)
+                .Events(e => e.Error("error_handler").Sync("sync_handler"))
+                .ServerOperation(true)
+                .Read(r => r.Action("GiroLedger_Read", "Pos").Data("function(){ return { cusId: " + ViewBag.CusId + " }; }"))
+                .Sort(s => s.Add(c => c.BillingMonth).Descending())
+            )
+            .Resizable(r => r.Columns(true))
+            .NoRecords("No GIRO records found.")
+        )
+    </div>
+</div>

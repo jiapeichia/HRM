@@ -58,6 +58,11 @@ namespace Meo.Web.DBContext
 
         // Exchange
         public DbSet<Exchange> Exchanges { get; set; }
+
+        // POS schema
+        public DbSet<PosPaymentViewModel> PosPayments { get; set; }
+        public DbSet<PosGiroBillingViewModel> PosGiroBillings { get; set; }
+        public DbSet<PosAuditLogViewModel> PosAuditLogs { get; set; }
     }
 }
 

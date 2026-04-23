@@ -15,7 +15,7 @@ using System.Web.Services.Description;
 
 namespace Web.HRM.Controllers
 {
-    public class SettingController : Controller
+    public class SettingController : AuthController
     {
         DBContext db = new DBContext();
 

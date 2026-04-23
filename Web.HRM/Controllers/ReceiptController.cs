@@ -11,7 +11,7 @@ using OfficeOpenXml.Style;
 
 namespace Web.HRM.Controllers
 {
-    public class ReceiptController : Controller
+    public class ReceiptController : AuthController
     {
         private const double size = 13.5;
         DBContext db = new DBContext();

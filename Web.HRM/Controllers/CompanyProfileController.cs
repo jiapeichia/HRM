@@ -10,7 +10,7 @@ using System.Web.Services.Description;
 
 namespace Web.HRM.Controllers
 {
-    public class CompanyProfileController : Controller
+    public class CompanyProfileController : AuthController
     {
         DBContext db = new DBContext();
 
