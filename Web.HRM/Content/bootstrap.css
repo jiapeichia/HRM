@@ -101,10 +101,10 @@ body {
     /*font-family: novel_sans_proregular,sans-serif;*/
 }
 
-/*/* Set padding to keep header from hitting the edges 
-.page-header{
-    padding:40px;
-}*/
+.page-header {
+    padding: 15px 50px 15px 50px !important;
+}
+
 
 /* Set padding to keep content from hitting the edges */
 .body-content {
@@ -625,12 +625,6 @@ h3 small,
 h4 small,
 .h4 small {
     font-size: 14px;
-}
-
-.page-header {
-    /*padding-bottom: 9px;*/
-    padding: 20px 50px 20px 50px;
-    /*border-bottom: 1px solid #eeeeee;*/
 }
 
 ul,

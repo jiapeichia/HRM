@@ -9,6 +9,7 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width" />
+    <meta charset="utf-8" />
     <title>Login</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
     <link rel="stylesheet" type="text/css" href="http://codeseven.github.com/toastr/toastr.css">
@@ -16,202 +17,393 @@
     <link href="~/Content/site.css" rel="stylesheet" type="text/css" />
 
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body, html {
-            /*min-height: 722px;*/
-            /* background: url('../images/login_bg.jpeg');
             width: 100%;
-            background-repeat: no-repeat;
-            background-color: #f5f5f5;
-            background-size: cover;
-            z-index: 3;
-            position: relative;
-            justify-content: center;
-            align-items: center;
-            min-height: 90vh;*/
-            width: 100%;
-            display: -webkit-box;
-            display: -webkit-flex;
-            display: -moz-box;
-            display: -ms-flexbox;
+            height: 100%;
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             align-items: center;
-            padding: 40px 10px 40px 0px;
-            /*background-image: linear-gradient(135deg, #E8DBFC 10%, #F8F9D2 100%);*/
-            background-image: linear-gradient(135deg, #C0C0C0 10%, #646464 100%);
-            /* background-image: linear-gradient(to right top, rgb(0, 0, 4), rgb(9, 8, 25), rgb(14, 16, 39), rgb(12, 22, 54), rgb(9, 26, 70), rgb(33, 42, 89), rgb(54, 59, 108), rgb(75, 77, 128), rgb(117, 115, 155), rgb(158, 155, 184), rgb(200, 198, 212), rgb(242, 242, 242));
-            */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #d4d4d4 0%, #808080 50%, #646464 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+            /* Animated background elements - subtle and transparent */
+            body::before {
+                content: '';
+                position: fixed;
+                width: 500px;
+                height: 500px;
+                background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+                border-radius: 50%;
+                top: -150px;
+                left: -150px;
+                animation: float 8s ease-in-out infinite;
+                z-index: 1;
+            }
+
+            body::after {
+                content: '';
+                position: fixed;
+                width: 400px;
+                height: 400px;
+                background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
+                border-radius: 50%;
+                bottom: -100px;
+                right: -100px;
+                animation: float 10s ease-in-out infinite reverse;
+                z-index: 1;
+            }
+
+        @@keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(20px);
+            }
         }
 
         .container {
-            margin-right: 10%;
-            margin-left: 10%;
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
         }
-      
+
         .card-container.card {
-            max-width: 400px;
-            padding: 55px 55px;
-            /*float: left;*/
-            background-color: rgba(255, 255, 255, 0.6);
+            width: 100%;
+            max-width: 420px;
+            padding: 60px 45px;
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25), 0 10px 30px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            animation: slideIn 0.6s ease-out;
+        }
+
+        @@keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .card-container h1 {
-            text-align: left;
-            font-size: 1.8em;
+            text-align: center;
+            font-size: 2em;
+            color: #444;
+            margin-bottom: 30px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
         }
 
-        /*
-         * Card component
-         */
-        .card {
-            background-color: #ffffff;
-            /* just in case there no content*/
-            padding: 20px 25px 30px;
-            margin: 0 auto 25px;
-            margin-top: 100px;
-            /* shadows and rounded borders */
-            -moz-border-radius: 6px;
-            -webkit-border-radius: 6px;
-            border-radius: 6px;
-            -moz-box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.16);
-            -webkit-box-shadow: 0px 10px 2px rgba(0, 0, 0, 0.16);
-            box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.16);
-            /*-moz-box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
-            -webkit-box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
-            box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
-            box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.16);*/
+        .logo {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 0px;
         }
 
-        /*
-         * Form styles
-         */
+            .logo img {
+                width: 250px;
+                height: auto;
+                /* border-radius: 12px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);*/
+            }
 
-        .form-signin #inputUsername,
-        .form-signin #inputPassword {
-            direction: ltr;
-            height: 44px;
-            font-size: 16px;
+        .divider {
+            height: 2px;
+            background: linear-gradient(to right, transparent, silver 20%, silver 80%, transparent);
+            margin: 20px 0 30px 0;
+        }
+
+        .form-signin {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
         }
 
         .form-signin input[type=email],
         .form-signin input[type=password],
-        .form-signin input[type=text],
-        .form-signin button {
+        .form-signin input[type=text] {
             width: 100%;
-            display: block;
-            margin-bottom: 10px;
-            z-index: 1;
-            position: relative;
-            -moz-box-sizing: border-box;
-            -webkit-box-sizing: border-box;
-            box-sizing: border-box;
+            padding: 14px 16px;
+            font-size: 15px;
+            border: 2px solid #d0d0d0;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            background-color: rgba(248, 248, 248, 0.8);
+            color: #333;
         }
 
-        .form-signin .form-control:focus {
-            /*border-color: rgb(104, 145, 162);*/
-            outline: 0;
-            -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgb(104, 145, 162);
-            box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgb(104, 145, 162);
+            .form-signin input[type=email]:focus,
+            .form-signin input[type=password]:focus,
+            .form-signin input[type=text]:focus {
+                outline: none;
+                border-color: #999;
+                background-color: #fff;
+                box-shadow: 0 0 0 3px rgba(153, 153, 153, 0.1);
+            }
+
+        .form-signin input::placeholder {
+            color: #888;
+            font-weight: 500;
         }
 
-        /* remove summary login bullet*/
-        .validation-summary-errors ul {
-            list-style: none;
-            margin-left: -40px
-        }
-
-        /*------------------------------------------------------------------
-[ Button ]*/
+        /* Button styles */
         .container-login100-form {
             width: 100%;
-            display: -webkit-box;
-            display: -webkit-flex;
-            display: -moz-box;
-            display: -ms-flexbox;
             display: flex;
-            flex-wrap: wrap;
             justify-content: center;
-            padding-top: 20px;
+            padding-top: 10px;
+            margin-top: 10px;
         }
 
         .login100-form-btn {
-            font-family: Montserrat-Bold;
+            font-family: inherit;
             font-size: 15px;
+            font-weight: 600;
             line-height: 1.5;
             color: #fff;
             text-transform: uppercase;
+            letter-spacing: 1px;
             width: 100%;
             height: 50px;
-            border-radius: 25px;
-            background: #646464; /*#57b846;*/
-            display: -webkit-box;
-            display: -webkit-flex;
-            display: -moz-box;
-            display: -ms-flexbox;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #8b8b8b 0%, #5a5a5a 100%);
+            border: none;
+            cursor: pointer;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 0 25px;
-            -webkit-transition: all 0.4s;
-            -o-transition: all 0.4s;
-            -moz-transition: all 0.4s;
-            transition: all 0.4s;
-            border-color: transparent;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
         }
 
-        .login100-form-btn:hover {
-            background: #333333;
-        }    
-    </style>    
+            .login100-form-btn:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                background: linear-gradient(135deg, #6a6a6a 0%, #424242 100%);
+            }
+
+            .login100-form-btn:active {
+                transform: translateY(-1px);
+            }
+
+            .login100-form-btn:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+            /* Loading state */
+            .login100-form-btn.loading {
+                pointer-events: none;
+            }
+
+                .login100-form-btn.loading::after {
+                    content: '';
+                    position: absolute;
+                    width: 16px;
+                    height: 16px;
+                    top: 50%;
+                    left: 50%;
+                    margin-left: -8px;
+                    margin-top: -8px;
+                    border: 2px solid rgba(255, 255, 255, 0.3);
+                    border-radius: 50%;
+                    border-top-color: #fff;
+                    animation: spinner 0.6s linear infinite;
+                }
+
+        @@keyframes spinner {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Validation styles */
+        .validation-summary-errors {
+            background-color: #fff5f5;
+            border: 1px solid #daa;
+            border-left: 4px solid #c33;
+            color: #944;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+            .validation-summary-errors::before {
+                content: '⚠';
+                font-size: 20px;
+                font-weight: bold;
+                flex-shrink: 0;
+            }
+
+            .validation-summary-errors ul {
+                list-style: none;
+                margin: 0;
+            }
+
+            .validation-summary-errors li {
+                margin: 4px 0;
+            }
+
+        /* Helper links */
+        .login-helpers {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            font-size: 13px;
+        }
+
+            .login-helpers a {
+                color: #777;
+                text-decoration: none;
+                transition: all 0.3s ease;
+                font-weight: 500;
+            }
+
+                .login-helpers a:hover {
+                    color: #333;
+                    text-decoration: underline;
+                }
+
+        /* Responsive design */
+        @@media (max-width: 768px) {
+            .card-container.card {
+                padding: 40px 30px;
+                max-width: 90%;
+            }
+
+            .card-container h1 {
+                font-size: 1.6em;
+            }
+
+            .logo img {
+                width: 100px;
+            }
+        }
+
+        @@media (max-width: 480px) {
+            body, html {
+                padding: 10px;
+            }
+
+            .card-container.card {
+                padding: 30px 20px;
+            }
+
+            .form-signin input[type=email],
+            .form-signin input[type=password],
+            .form-signin input[type=text] {
+                padding: 12px 14px;
+                font-size: 14px;
+            }
+
+            .login100-form-btn {
+                height: 48px;
+                font-size: 14px;
+            }
+        }
+    </style>
 </head>
 <body>
-    @using (Html.BeginForm("Login", "Account", FormMethod.Post, new { id = "login-form" }))
-    {
     <div class="container">
         <div class="card card-container">
-            <a class="logo"><img src="~/Images/logo.png" style="width:100%"/></a>
-            @*<a class="logo"><img src="~/Images/beyou.png" style="width:100%"/></a>*@
-          @*  <h1>Account to Your Account</h1>*@
-            <hr />
-            <form class="form-signin" runat="server">
+            <a class="logo"><img src="~/Images/logo.png" alt="Logo" /></a>
+            <div class="divider"></div>
+
+            @using (Html.BeginForm("Login", "Account", FormMethod.Post, new { id = "login-form", @class = "form-signin" }))
+            {
                 @Html.AntiForgeryToken()
-                <div class="row">
-                    @Html.TextBoxFor(m => m.username, new { @class = "form-control", @type = "text", @placeholder = "USERNAME", @autofocus = "autofocus", @Value = "system" }) @*SYSTEM*@
-                    <!--@Html.TextBoxFor(m => m.email, new { @class = "form-control", @type = "text", @placeholder = "EMAIL", @autofocus = "autofocus", @Value = "" })--> @*admin@beyou.com*@
-                    @*<div class="input100">
-            <input class="input100" type="text" name="email" placeholder="EMAIL" value="system@beyou.com">
-            <span class="focus-input100"></span>
-            <span class="symbol-input100">
-                <i class="fa fa-user" aria-hidden="true"></i>
-            </span>
-        </div>*@
-                </div>
-                <div class="row"><br /></div>
-                <div class="row">
-                    <div>
-                        @Html.PasswordFor(m => m.Password, new
-                   {
-                       @class = "form-control",
-                       @placeholder = "PASSWORD",
-                       @value = "system" /* admin123*/
-                   })
+
+                if (ViewBag.LoginFailed != null)
+                {
+                    <div class="validation-summary-errors">
+                        <ul>
+                            <li>@ViewBag.LoginFailed</li>
+                        </ul>
                     </div>
+                }
+
+                <div class="form-group">
+                    @Html.TextBoxFor(m => m.username,
+                                  new
+                                  {
+                                      @class = "form-control",
+                                      @type = "text",
+                                      @placeholder = "Username",
+                                      @autofocus = "autofocus",
+                                      autocomplete = "username",
+                                      @Value = "system"
+                                  })
                 </div>
 
-                <br />
-                @Html.ValidationSummary(false, "", new { @class = "text-danger" })
-                <div class="container-login100-form">
-                    <button @*class="btn btn-lg btn-primary btn-block btn-signin"*@ class="login100-form-btn" autocomplete="off" data-loading-text="Loading..." id="btnLogin" type="submit">LOGIN</button>
+                <div class="form-group">
+                    @Html.PasswordFor(m => m.Password,
+                                  new
+                                  {
+                                      @class = "form-control",
+                                      @placeholder = "Password",
+                                      autocomplete = "current-password",
+                                      @Value = "system"
+                                  })
                 </div>
-                @*<div class="row" style="padding-top:20px; text-align:center">
-            @Html.ActionLink("Forget Password?", "ForgetPassword")<br><br>
-            @Html.ActionLink("First time log-in?", "ForgetPassword")
-        </div>*@
-            </form>
+
+                <div class="container-login100-form">
+                    <button class="login100-form-btn" autocomplete="off" id="btnLogin" type="submit">Login</button>
+                </div>
+
+                <div class="login-helpers">
+                    <a href="@Url.Action("ForgetPassword", "Account")">Forgot Password?</a>
+                    <a href="@Url.Action("ForgetPassword", "Account")">First time login?</a>
+                </div>
+            }
         </div>
     </div>
-    }
-    
+
+    <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#btnLogin').on('click', function () {
+                $(this).addClass('loading');
+            });
+
+            $('#login-form').on('submit', function () {
+                $('#btnLogin').prop('disabled', true).addClass('loading');
+            });
+        });
+    </script>
 </body>
 </html>
