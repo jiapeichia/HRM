@@ -473,10 +473,10 @@ namespace Web.HRM.Controllers
                     foreach (var details in packageDetails)
                     {
                         // packageDetails itemId = ProductId -Fail-> Stock check product qty !!! check cus select how many Qty 
-                        var itemQty = stockAvailable.FirstOrDefault(x => x.ProductId == details.ItemId)?.QtyAvailable ?? 0;
-                        bool noStock = itemQty > (details.Qty * qty);
+                        var itemAvailableQty = stockAvailable.FirstOrDefault(x => x.ProductId == details.ItemId)?.QtyAvailable ?? 0;
+                        bool isNoStock = itemAvailableQty > (details.Qty * qty);
 
-                        if (!noStock)
+                        if (isNoStock)
                         {
                             noStockMsg = "Insufficient stock.";
                             //break; can add product name
@@ -1400,9 +1400,11 @@ namespace Web.HRM.Controllers
                         var productitem = allsalesitem.Where(x => x.TypeId == productid && x.Active == false && x.Status == false).ToList();
                         var product = db.Products.Where(x => x.Active == false && x.Status == false);
 
+                        // Get sales package in 
                         var packageitem = allsalesitem.Where(x => x.TypeId == packageid).ToList();
                         if (packageitem.Any())
                         {
+                            // all active Package
                             var main = db.Packages.Where(x => x.Active == false && x.Status == false).ToList();
 
                             // Clone Package Sold
@@ -1495,7 +1497,7 @@ namespace Web.HRM.Controllers
                                     var p_prod = new SalesItemViewModels
                                     {
                                         ProductId = prod.ItemId,
-                                        Quantity = prod.Qty,
+                                        Quantity = prod.Qty * pack.Quantity,
                                     };
 
                                     productitem.Add(p_prod);
@@ -1596,6 +1598,13 @@ namespace Web.HRM.Controllers
                             foreach (var i in productitem)
                             {
                                 var stock = db.Stock.FirstOrDefault(x => x.ProductId == i.ProductId);
+
+                                if (stock == null || stock.QtyAvailable < i.Quantity)
+                                {
+                                    var prodName = db.Products.FirstOrDefault(x => x.ProductId == i.ProductId)?.ProductName ?? "Unknown";
+                                    return Json(new { success = false, message = $"Insufficient stock for product: {prodName}." });
+                                }
+
                                 stock.QtyAvailable -= i.Quantity;
                                 stock.ModDate = DateTime.Now;
                                 stock.ModBy = Session["EmpNo"].ToString() + "|" + Session["EmpName"].ToString();
