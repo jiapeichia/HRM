@@ -143,7 +143,7 @@
                     @(Html.Kendo().DropDownListFor(model => model.EmpNo)
                         .Name("EmpNo")
                         .BindTo((System.Collections.IEnumerable)ViewData["Employee"])
-                        .DataTextField("FullName").DataValueField("EmpNo")
+                        .DataTextField("DisplayName").DataValueField("EmpNo")
                         .OptionLabel(" -- Select Employee -- ")
                         .Filter(FilterType.Contains)
                         .HtmlAttributes(new { @class = "form-control", @style = "width: 200px; text-align: center" }))

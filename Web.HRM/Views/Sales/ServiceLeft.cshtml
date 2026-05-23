@@ -115,38 +115,15 @@
 <span id="notification" style="display:none;"></span>
 
 <div id="employeeSelection" style="display: none;">
-    <p>Select a PIC:</p>
-    @*@Html.Kendo().DropDownListFor(model => model.SupplierId)
-            .BindTo((System.Collections.IEnumerable)ViewData["Supplier"])
-        .DataTextField("Name")
-        .DataValueField("Id")
-        .OptionLabel(" -- Select Supplier -- ")
-        .Filter(FilterType.Contains)*@
-
+    <p>Select PIC(s): <small style="color:#888">(up to 3)</small></p>
     <div style="padding-bottom: 10px">
-        @(Html.Kendo().DropDownList()
-        .Name("EmployeeDropdown")
+        @(Html.Kendo().MultiSelect()
+        .Name("PICMultiSelect")
         .DataTextField("DisplayName")
         .DataValueField("EmpNo")
-        .OptionLabel(" -- Select PIC -- ")
-        .BindTo((System.Collections.IEnumerable)ViewBag.Employees))
-    </div>
-    <div style="padding-bottom: 10px">
-        <p>Select a PIC 2:</p>
-        @(Html.Kendo().DropDownList()
-        .Name("picid2")
-        .DataTextField("DisplayName")
-        .DataValueField("EmpNo")
-        .OptionLabel(" -- Select PIC -- ")
-        .BindTo((System.Collections.IEnumerable)ViewBag.Employees))
-    </div>
-    <div style="padding-bottom: 10px">
-        <p>Select a PIC 3:</p>
-        @(Html.Kendo().DropDownList()
-        .Name("picid3")
-        .DataTextField("DisplayName")
-        .DataValueField("EmpNo")
-        .OptionLabel(" -- Select PIC -- ")
+        .Placeholder("-- Select PIC --")
+        .MaxSelectedItems(3)
+        .Filter(FilterType.Contains)
         .BindTo((System.Collections.IEnumerable)ViewBag.Employees))
     </div>
     <p>Remarks:</p>
@@ -202,30 +179,31 @@
     dialog.center();
     dialog.open();
 
+    // Reset the multi-select and remarks on each open
+    var ms = $("#PICMultiSelect").data("kendoMultiSelect");
+    if (ms) { ms.value([]); }
+    $("#Remarks").val("");
+
     // Create a closure to capture the 'id'
     (function () {
         var capturedId = id;
 
         // Attach a click event to the "PROCEED" button in the dialog
         $("#updateServicePIC").off("click").on("click", function () { // Use `off` to avoid multiple bindings
-            var picid = $("#EmployeeDropdown").data("kendoDropDownList").value();
-            var picid2 = $("#picid2").data("kendoDropDownList").value();
-            var picid3 = $("#picid3").data("kendoDropDownList").value();
-            var picName = $("#EmployeeDropdown").data("kendoDropDownList").text();
-            var pic2Name = $("#picid2").data("kendoDropDownList").text();
-            var pic3Name = picid3 !== "" ? $("#picid3").data("kendoDropDownList").text() : "";
-            var remarks = $("#Remarks").val();
+            var multiSelect = $("#PICMultiSelect").data("kendoMultiSelect");
+            var values = multiSelect.value();       // array of EmpNo
+            var dataItems = multiSelect.dataItems(); // array of data objects
 
-            if (picid === "" && picid2 === "" && picid3 === "") {
+            var picid    = values[0] || "";
+            var picid2   = values[1] || "";
+            var picid3   = values[2] || "";
+            var picName  = dataItems[0] ? dataItems[0].DisplayName : "";
+            var pic2Name = dataItems[1] ? dataItems[1].DisplayName : "";
+            var pic3Name = dataItems[2] ? dataItems[2].DisplayName : "";
+            var remarks  = $("#Remarks").val();
+
+            if (picid === "") {
                 return alert("\nPlease select at least one PIC! \n");
-            } else if (
-                (picid !== "" && picid === picid2) ||
-                (picid !== "" && picid === picid3) ||
-                (picid2 !== "" && picid === picid2) ||
-                (picid2 !== "" && picid2 === picid3) ||
-                (picid3 !== "" && picid2 === picid3)
-            ) {
-                return alert("\nNo duplicate PIC allowed! \n");
             }
 
             $.ajax({
