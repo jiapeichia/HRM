@@ -102,6 +102,9 @@ namespace Meo.Web.ViewModels
         [Display(Name = "Employee ID")]
         public string EmpNo { get; set; }
 
+        [Display(Name = "Employee Name")]
+        public string EmpName { get; set; }
+
         [Display(Name = "Product")]
         public int ProductId { get; set; }
 

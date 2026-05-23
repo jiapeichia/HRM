@@ -130,7 +130,7 @@ namespace Web.HRM.Controllers
                                                    {
                                                        SalesItemId = si.SalesItemId,
                                                        SalesId = si.SalesId,
-                                                       EmpName = employee.FullName ?? "",
+                                                       EmpName = si.EmpName != null && si.EmpName != "" ? si.EmpName : (employee.FullName ?? ""),
                                                        ProductName = pro.ProductName,
                                                        Quantity = si.Quantity,
                                                        UnitPrice = si.UnitPrice,
@@ -149,7 +149,7 @@ namespace Web.HRM.Controllers
                                   {
                                       SalesItemId = si.SalesItemId,
                                       SalesId = si.SalesId,
-                                      EmpName = employee.FullName ?? "",
+                                      EmpName = si.EmpName != null && si.EmpName != "" ? si.EmpName : (employee.FullName ?? ""),
                                       ProductName = pack.Code + " (" + pack.Remarks + ")",
                                       Quantity = si.Quantity,
                                       UnitPrice = si.UnitPrice,
@@ -458,7 +458,7 @@ namespace Web.HRM.Controllers
         }
 
         [HttpPost]
-        public ActionResult AddSalesItem(string path, string salesid, int pid, int qty, decimal price, decimal? payamt, decimal disc, decimal total, string empno, string cusid, bool backorder = false, string flag = "")
+        public ActionResult AddSalesItem(string path, string salesid, int pid, int qty, decimal price, decimal? payamt, decimal disc, decimal total, string empno, string empname, string cusid, bool backorder = false, string flag = "")
         {
             try
             {
@@ -517,6 +517,7 @@ namespace Web.HRM.Controllers
                             LineDiscAmt = disc,
                             LineTotal = total,
                             EmpNo = empno,
+                            EmpName = empname,
                             TypeId = (int)typeid,
                             IsBackordered = backorder,
 
