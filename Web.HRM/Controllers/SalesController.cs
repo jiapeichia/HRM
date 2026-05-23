@@ -1959,7 +1959,11 @@ namespace Web.HRM.Controllers
                 if (!string.IsNullOrEmpty(Session["EmpNo"] as string))
                 {
                     ViewBag.CusId = cusid;
-                    ViewBag.Employees = db.Employees.Where(e => e.Active.Equals(false) && e.Status.Equals(false) && !e.FullName.Contains("Admin")).ToList();
+                    var employees = db.Employees
+                        .Where(e => e.Active.Equals(false) && e.Status.Equals(false) && !e.FullName.Contains("Admin"))
+                        .Select(e => new { e.EmpNo, e.DisplayName })
+                        .ToList();
+                    ViewBag.EmployeesJson = Newtonsoft.Json.JsonConvert.SerializeObject(employees);
                     return PartialView();
                 }
 
@@ -2051,6 +2055,8 @@ namespace Web.HRM.Controllers
                     if (historyRecord != null)
                     {
                         historyRecord.Remarks = history.Remarks;
+                        historyRecord.PICName = history.PICName;
+                        historyRecord.PICId = history.PICId;
                         db.ServiceHistories.Attach(historyRecord);
                         db.Entry(historyRecord).State = EntityState.Modified;
                         db.SaveChanges();

@@ -12,14 +12,14 @@
         {
             columns.Bound(c => c.SalesId).Width(130);
             columns.Bound(c => c.ServiceName);
-            columns.Bound(c => c.PICName);
-            columns.Bound(c => c.Remarks).EditorTemplateName("RemarksEditor");
+            columns.Bound(c => c.PICName).EditorTemplateName("PICMultiEditor").Width(250);
+            columns.Bound(c => c.Remarks).EditorTemplateName("RemarksEditor").Width(250);
             columns.Bound(c => c.ServiceDate).Width(180);
             columns.Bound(c => c.SalesId).Title("")
             .ClientTemplate("<a href='javascript:void(0)' class='k-button k-button-icontext k-grid-edit' onclick='printService(#=Id#, \"#=SalesId#\")'>PRINT</a>").Width(100);
             columns.Command(command => { command.Edit(); }).Width(100);
         })
-        //.Events(e => e.Edit("onRequest"))
+        .Events(e => e.Edit("onHistoryGridEdit"))
         .Pageable(pageable => pageable
         .Refresh(true).Messages(m => m.Refresh(string.Empty)))
         .Editable(editable => editable.Mode(GridEditMode.InLine))
@@ -39,7 +39,6 @@
             model.Id(e => e.Id);
             model.Field(e => e.SalesId).Editable(false);
             model.Field(e => e.ServiceName).Editable(false);
-            model.Field(e => e.PICName).Editable(false);
             model.Field(e => e.ServiceDate).Editable(false);
         }))
         .Resizable(resize => resize.Columns(true))
@@ -85,6 +84,35 @@
         }
     }
 
+
+    var employeeData = @Html.Raw(ViewBag.EmployeesJson ?? "[]");
+
+    function onHistoryGridEdit(e) {
+        var model = e.model;
+        var picName = model.PICName || "";
+
+        // Initialize Kendo MultiSelect on the plain <select> rendered by the editor template.
+        // Use model.set() so Kendo DataSource includes the updated values in the AJAX POST.
+        var $select = $("#picMultiSelectEditor");
+        $select.kendoMultiSelect({
+            dataTextField: "DisplayName",
+            dataValueField: "EmpNo",
+            dataSource: employeeData,
+            placeholder: "-- Select PIC --",
+            change: function () {
+                var items = this.dataItems();
+                model.set("PICName", items.map(function (x) { return x.DisplayName; }).join(","));
+                model.set("PICId", items.map(function (x) { return x.EmpNo; }).join(","));
+            }
+        });
+
+        // Pre-select names matching the current PICName value
+        var currentNames = picName.split(",").map(function (s) { return s.trim(); }).filter(function (s) { return s.length > 0; });
+        var valuesToSelect = employeeData
+            .filter(function (emp) { return currentNames.indexOf(emp.DisplayName) >= 0; })
+            .map(function (emp) { return emp.EmpNo; });
+        $select.data("kendoMultiSelect").value(valuesToSelect);
+    }
 
     function printService(id, salesId) {
         if (salesId === undefined) {

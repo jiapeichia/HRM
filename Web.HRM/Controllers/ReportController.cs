@@ -198,10 +198,14 @@ namespace Web.HRM.Controllers
                       //TotalDiscAmt = si.LineDiscAmt + sa.DiscPercentageAmt ?? 0,
                   };
 
-            // Apply filter only if empNo is not null or whitespace
+            // Apply filter only if empNo is not null or whitespace.
+            // PICId may be comma-separated (e.g. "E001,E002"), so match any position.
             if (!string.IsNullOrWhiteSpace(empNo))
             {
-                query = query.Where(x => x.PICId == empNo);
+                query = query.Where(x => x.PICId == empNo
+                    || x.PICId.StartsWith(empNo + ",")
+                    || x.PICId.EndsWith("," + empNo)
+                    || x.PICId.Contains("," + empNo + ","));
             }
 
             return Json(query.ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
