@@ -54,6 +54,8 @@
         .AllPages(true)
         .FileName("DailySalesReport" + ".xlsx")
         )
+        .Selectable()
+        .Events(e => e.Change("onDailySalesRowChange"))
         .Sortable()
         .Pageable(pageable => pageable
         .Refresh(true).Messages(m => m.Refresh(string.Empty)))

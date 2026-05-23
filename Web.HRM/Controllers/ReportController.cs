@@ -230,28 +230,29 @@ namespace Web.HRM.Controllers
                 throw new Exception(ex.ToString());
             }
         }
-        public ActionResult _SearchAllInvoice(int? cusid, string period, string startDate, string endDate)
+        public ActionResult _SearchAllInvoice(int? cusid, string period, string invoiceNo, string startDate, string endDate)
         {
             ViewBag.cusid = cusid;
             ViewBag.period = period;
-            ViewBag.startDate = string.IsNullOrEmpty(startDate) ? DateTime.Now.Date.ToString() : startDate;
-            ViewBag.endDate = string.IsNullOrEmpty(endDate) ? DateTime.Now.Date.ToString() : endDate;
+            ViewBag.invoiceNo = invoiceNo;
+            ViewBag.startDate = startDate;
+            ViewBag.endDate = endDate;
             ViewData["Customer"] = db.Customers.Where(e => e.Active.Equals(false) && e.Status.Equals(false)).ToList();
             ViewData["PaymentType"] = db.Types.Where(x => x.Module == "PaymentType").ToList();
 
             // Retrieve the viewmodel for the view here, depending on your data structure.
             return PartialView();
         }
-        public ActionResult GetInvoiceData(string cusid, string startDate, string endDate, [DataSourceRequest] DataSourceRequest request)
+        public ActionResult GetInvoiceData(string cusid, string invoiceNo, string startDate, string endDate, [DataSourceRequest] DataSourceRequest request)
         {
-            DateTime today = DateTime.Now.Date;
-            var start_date = DateTime.Parse(startDate);
-            var end_date = DateTime.Parse(endDate).AddDays(1).AddMilliseconds(-1);
+            bool hasDateFilter = !string.IsNullOrEmpty(startDate) && !string.IsNullOrEmpty(endDate);
+            DateTime start_date = hasDateFilter ? DateTime.Parse(startDate) : DateTime.MinValue;
+            DateTime end_date = hasDateFilter ? DateTime.Parse(endDate).AddDays(1).AddMilliseconds(-1) : DateTime.MaxValue;
 
             return Json(db.Saless.Where(x => x.Status.Equals(false)
             && x.Active.Equals(false)
-             && x.AddDate > start_date
-              && x.AddDate < end_date).ToDataSourceResult(request, o => new SalesViewModels()
+             && (!hasDateFilter || (x.AddDate > start_date && x.AddDate < end_date))
+              && (string.IsNullOrEmpty(invoiceNo) || x.SalesId.Contains(invoiceNo))).ToDataSourceResult(request, o => new SalesViewModels()
               {
                   SalesId = o.SalesId,
                   CusId = o.CusId,
@@ -412,6 +413,151 @@ namespace Web.HRM.Controllers
                 throw new Exception(ex.ToString());
             }
         }
+
+        #region Daily Transaction Summary
+        public ActionResult DailyTransaction(string date)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(Session["EmpNo"] as string))
+                {
+                    DateTime salesDate = DateTime.ParseExact(date, "dd-MM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
+                    ViewBag.SalesDateRaw = date;
+                    ViewBag.SalesDate = salesDate.ToString("dd/MM/yyyy");
+                    return View();
+                }
+                return RedirectToAction("Login", "Account");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.ToString());
+            }
+        }
+
+        public ActionResult GetDailyTransactionData(string date, [DataSourceRequest] DataSourceRequest request)
+        {
+            DateTime salesDate = DateTime.ParseExact(date, "dd-MM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
+            var start_date = salesDate;
+            var end_date = salesDate.AddDays(1).AddMilliseconds(-1);
+
+            // Fetch all matching invoices first, tagged with GIRO flag
+            var invoices = (from sa in db.Saless
+                            join cus in db.Customers on sa.CusId equals cus.CusId
+                            join pay in db.Types on sa.PaymentMethod equals pay.TypeId
+                            where sa.PaymentDate >= start_date && sa.PaymentDate <= end_date
+                            && sa.Active == false && sa.Status == false
+                            select new
+                            {
+                                SalesId        = sa.SalesId,
+                                CardNo         = cus.CardNo,
+                                CustomerName   = cus.FullName,
+                                PaymentTypeName = pay.TypeName,
+                                InvoiceTotalAmt = sa.TotalAmt ?? 0,
+                                InvoicePaidAmt  = sa.PaidAmt ?? 0,
+                                IsGiro         = sa.GIRO,
+                                Remarks        = sa.Remarks
+                            }).ToList();
+
+            // GIRO invoices (original package or installment): one row per invoice using PaidAmt
+            var giroRows = invoices
+                .Where(x => x.IsGiro == true)
+                .Select(x =>
+                {
+                    string payType = x.PaymentTypeName.ToLower();
+                    decimal amt = x.InvoicePaidAmt;
+                    return new DailyTransactionReport
+                    {
+                        SalesId       = x.SalesId,
+                        CardNo        = x.CardNo,
+                        CustomerName  = x.CustomerName,
+                        FacialProduct = "GIRO",
+                        BankAmt = payType.Contains("bank") ? amt : 0,
+                        TNGAmt  = (payType.Contains("tng") || payType.Contains("touch") || payType.Contains("ewallet") || payType.Contains("e-wallet")) ? amt : 0,
+                        CashAmt = payType.Contains("cash") ? amt : 0,
+                        CardAmt = payType.Contains("card") ? amt : 0,
+                        Beautician = "",
+                        GroupAmt   = 0,
+                        Remarks    = x.Remarks,
+                        IsGiro     = true
+                    };
+                }).ToList();
+
+            // Regular invoices: fetch with item detail for type/beautician breakdown
+            var giroIds = new HashSet<string>(invoices.Where(x => x.IsGiro == true).Select(x => x.SalesId));
+
+            var rawData = (from sa in db.Saless
+                           join cus in db.Customers on sa.CusId equals cus.CusId
+                           join pay in db.Types on sa.PaymentMethod equals pay.TypeId
+                           join si in db.SalesItems on sa.SalesId equals si.SalesId
+                           join emp in db.Employees on si.EmpNo equals emp.EmpNo into empGroup
+                           from employee in empGroup.DefaultIfEmpty()
+                           join pro in db.Products on si.ProductId equals pro.ProductId into proGroup
+                           from product in proGroup.DefaultIfEmpty()
+                           join typ in db.Types on (product != null ? product.TypeId : -1) equals typ.TypeId into typGroup
+                           from productType in typGroup.DefaultIfEmpty()
+                           where sa.PaymentDate >= start_date && sa.PaymentDate <= end_date
+                           && sa.Active == false && sa.Status == false
+                           && si.Active == false && si.Status == false
+                           && (sa.GIRO == false || sa.GIRO == null)
+                           select new
+                           {
+                               SalesId         = sa.SalesId,
+                               CardNo          = cus.CardNo,
+                               CustomerName    = cus.FullName,
+                               PaymentTypeName = pay.TypeName,
+                               LineTotal       = si.LineTotal,
+                               InvoiceTotalAmt = sa.TotalAmt ?? 0,
+                               ProductTypeName = (productType != null && productType.TypeName == "Service") ? "Service" : "Product",
+                               BeauticianName  = employee != null ? employee.FullName : "",
+                               Remarks         = sa.Remarks
+                           }).ToList();
+
+            // Pre-compute the sum of LineTotals per invoice so we can distribute
+            // the invoice-level discount (lump sum or percentage) proportionally.
+            var invoiceLineTotals = rawData
+                .GroupBy(x => x.SalesId)
+                .ToDictionary(g => g.Key, g => g.Sum(x => x.LineTotal));
+
+            // One row per unique combination of invoice + type + beautician.
+            var regularRows = rawData
+                .GroupBy(x => new { x.SalesId, x.CardNo, x.CustomerName, x.PaymentTypeName, x.Remarks, x.ProductTypeName, x.BeauticianName })
+                .Select(g =>
+                {
+                    var first = g.First();
+                    string payType = first.PaymentTypeName.ToLower();
+                    decimal groupLineTotal = g.Sum(x => x.LineTotal);
+
+                    // Apply invoice-level discount proportionally across groups
+                    decimal invoiceLineTotal = invoiceLineTotals.ContainsKey(first.SalesId) ? invoiceLineTotals[first.SalesId] : 0;
+                    decimal ratio = invoiceLineTotal > 0 ? first.InvoiceTotalAmt / invoiceLineTotal : 1;
+                    decimal amt = Math.Round(groupLineTotal * ratio, 2);
+
+                    string label = first.ProductTypeName == "Service" ? "Facial" : "Product";
+
+                    return new DailyTransactionReport
+                    {
+                        SalesId       = first.SalesId,
+                        CardNo        = first.CardNo,
+                        CustomerName  = first.CustomerName,
+                        FacialProduct = label,
+                        BankAmt = payType.Contains("bank") ? amt : 0,
+                        TNGAmt  = (payType.Contains("tng") || payType.Contains("touch") || payType.Contains("ewallet") || payType.Contains("e-wallet")) ? amt : 0,
+                        CashAmt = payType.Contains("cash") ? amt : 0,
+                        CardAmt = payType.Contains("card") ? amt : 0,
+                        Beautician = first.BeauticianName,
+                        GroupAmt   = 0,
+                        Remarks    = first.Remarks,
+                        IsGiro     = false
+                    };
+                }).ToList();
+
+            var summary = giroRows.Concat(regularRows)
+                .OrderBy(x => x.SalesId)
+                .ToList();
+
+            return Json(summary.ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
+        }
+        #endregion
 
         #region Daily Sales Report
         public ActionResult SearchSales(string reportType)

@@ -106,7 +106,18 @@
 
         function sync_handler(e) {
             this.read();
-    }
+        }
+
+        function onDailySalesRowChange() {
+            var dataItem = this.dataItem(this.select());
+            if (dataItem) {
+                var d = kendo.parseDate(dataItem.SalesDate);
+                var day   = ("0" + d.getDate()).slice(-2);
+                var month = ("0" + (d.getMonth() + 1)).slice(-2);
+                var year  = d.getFullYear();
+                window.location.href = '@Url.Action("DailyTransaction", "Report")?date=' + day + '-' + month + '-' + year;
+            }
+        }
         </script>
     }
 </head>

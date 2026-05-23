@@ -204,4 +204,47 @@ namespace Meo.Web.ViewModels
         public DateTime PaymentDate { get; set; }
     }
 
+    public class DailyTransactionReport
+    {
+        [Display(Name = "Invoice No")]
+        public string SalesId { get; set; }
+
+        public bool IsGiro { get; set; }
+
+        [Display(Name = "Card No")]
+        public string CardNo { get; set; }
+
+        [Display(Name = "Customer Name")]
+        public string CustomerName { get; set; }
+
+        [Display(Name = "Facial / Product")]
+        public string FacialProduct { get; set; }
+
+        [Display(Name = "Bank")]
+        [DisplayFormat(DataFormatString = "{0:N2}")]
+        public decimal BankAmt { get; set; }
+
+        [Display(Name = "TNG")]
+        [DisplayFormat(DataFormatString = "{0:N2}")]
+        public decimal TNGAmt { get; set; }
+
+        [Display(Name = "Cash")]
+        [DisplayFormat(DataFormatString = "{0:N2}")]
+        public decimal CashAmt { get; set; }
+
+        [Display(Name = "Card")]
+        [DisplayFormat(DataFormatString = "{0:N2}")]
+        public decimal CardAmt { get; set; }
+
+        [Display(Name = "Beautician")]
+        public string Beautician { get; set; }
+
+        [Display(Name = "Group")]
+        [DisplayFormat(DataFormatString = "{0:N2}")]
+        public decimal GroupAmt { get; set; }
+
+        [Display(Name = "Remarks")]
+        public string Remarks { get; set; }
+    }
+
 }

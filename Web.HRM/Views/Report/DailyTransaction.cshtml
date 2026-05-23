@@ -1,0 +1,277 @@
+@{
+    ViewBag.Title = "Daily Transaction Summary";
+}
+
+<head>
+    <style>
+        .report-header {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        .report-date {
+            font-size: 15px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .bottom-totals {
+            margin-top: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            gap: 80px;
+        }
+        .bottom-totals span {
+            color: #c0392b;
+        }
+        .grid-total-row td {
+            font-weight: bold;
+            background-color: #f0f0f0;
+            border-top: 2px solid #ccc;
+        }
+    </style>
+
+    @section Scripts {
+        @Scripts.Render("~/bundles/jqueryval")
+
+        <script>
+            function error_handler(e) {
+                if (e.errors) {
+                    var message = "Errors:\n";
+                    $.each(e.errors, function (key, value) {
+                        if ('errors' in value) {
+                            $.each(value.errors, function () {
+                                message += this + "\n";
+                            });
+                        }
+                    });
+                    alert(message);
+                }
+            }
+
+            function onExcelExport(e) {
+                var sheet = e.workbook.sheets[0];
+                var rows  = sheet.rows;
+
+                // Pull aggregates from the DataSource (covers all pages)
+                var grid  = $("#GridDailyTransaction").data("kendoGrid");
+                var agg   = grid.dataSource.aggregates();
+                var bank  = (agg.BankAmt  && agg.BankAmt.sum)  ? agg.BankAmt.sum  : 0;
+                var tng   = (agg.TNGAmt   && agg.TNGAmt.sum)   ? agg.TNGAmt.sum   : 0;
+                var cash  = (agg.CashAmt  && agg.CashAmt.sum)  ? agg.CashAmt.sum  : 0;
+                var card  = (agg.CardAmt  && agg.CardAmt.sum)  ? agg.CardAmt.sum  : 0;
+                var group = (agg.GroupAmt && agg.GroupAmt.sum)  ? agg.GroupAmt.sum : 0;
+                var totalSales = bank + tng + cash + card;
+
+                var salesDate = "@ViewBag.SalesDate";
+
+                // Detect column count from header row
+                var headerRow = null;
+                for (var i = 0; i < rows.length; i++) {
+                    if (rows[i].type === "header") { headerRow = rows[i]; break; }
+                }
+                var numCols = headerRow ? headerRow.cells.length : 10;
+                // Column indices (0-based): CardNo=0, CustomerName=1, FacialProduct=2,
+                //   Bank=3, TNG=4, Cash=5, Card=6, Beautician=7, Group=8, Remarks=9
+                var facialIdx = 2;
+
+                // ── Remove DOM-injected total row ──────────────────────────────────
+                var cleanRows = rows.filter(function (row) {
+                    if (!row.cells || !row.cells.length) return true;
+                    for (var j = 0; j < row.cells.length; j++) {
+                        var v = row.cells[j].value;
+                        if (v && typeof v === "string" && v.indexOf("<") >= 0) return false;
+                    }
+                    // Pattern: CardNo blank, CustomerName blank, FacialProduct = "Total"
+                    if (row.type !== "header") {
+                        var c0 = row.cells[0] ? row.cells[0].value : null;
+                        var c1 = row.cells[1] ? row.cells[1].value : null;
+                        var c2 = row.cells[facialIdx] ? row.cells[facialIdx].value : null;
+                        if (!c0 && !c1 && c2 === "Total") return false;
+                    }
+                    return true;
+                });
+
+                // ── Style original header row ──────────────────────────────────────
+                var hdrBg = "#2E75B6", hdrFg = "#FFFFFF";
+                if (headerRow) {
+                    headerRow.cells.forEach(function (cell) {
+                        cell.bold = true;
+                        cell.background = hdrBg;
+                        cell.color = hdrFg;
+                    });
+                }
+
+                // ── Title / date rows ──────────────────────────────────────────────
+                var titleRows = [
+                    {
+                        cells: [{
+                            value: "BeYou Skin Management Daily Transaction Summary",
+                            bold: true, fontSize: 14, colSpan: numCols, textAlign: "center"
+                        }]
+                    },
+                    {
+                        cells: [{
+                            value: "Date : " + salesDate,
+                            colSpan: numCols, textAlign: "center"
+                        }]
+                    },
+                    {
+                        cells: (function () {
+                            var a = [];
+                            for (var k = 0; k < numCols; k++) a.push({ value: "" });
+                            return a;
+                        }())
+                    }
+                ];
+
+                // ── Total row ──────────────────────────────────────────────────────
+                var totBg = "#D6DCE4";
+                function tc(val, isNum) {
+                    return isNum
+                        ? { value: val, bold: true, background: totBg, format: "#,##0.00", textAlign: "right" }
+                        : { value: val, bold: true, background: totBg };
+                }
+                var totalCells = [];
+                for (var ci = 0; ci < numCols; ci++) {
+                    if      (ci === facialIdx) totalCells.push(tc("Total", false));
+                    else if (ci === 3)         totalCells.push(tc(bank,  true));
+                    else if (ci === 4)         totalCells.push(tc(tng,   true));
+                    else if (ci === 5)         totalCells.push(tc(cash,  true));
+                    else if (ci === 6)         totalCells.push(tc(card,  true));
+                    else if (ci === 8)         totalCells.push(tc(group, true));
+                    else                       totalCells.push(tc("",    false));
+                }
+
+                // ── Footer row ─────────────────────────────────────────────────────
+                var half = Math.floor(numCols / 2);
+                var footerRow = {
+                    cells: [
+                        { value: "TOTAL SALES : RM " + kendo.toString(totalSales, "N2"),
+                          bold: true, colSpan: half, textAlign: "right" },
+                        { value: "TOTAL GROUP : RM " + kendo.toString(group, "N2"),
+                          bold: true, colSpan: numCols - half, textAlign: "right" }
+                    ]
+                };
+
+                // ── Assemble sheet ─────────────────────────────────────────────────
+                sheet.rows = titleRows
+                    .concat(cleanRows)
+                    .concat([{ cells: totalCells }])
+                    .concat([{ cells: (function () { var a = []; for (var k = 0; k < numCols; k++) a.push({ value: "" }); return a; }()) }])
+                    .concat([footerRow]);
+
+                sheet.columns = [
+                    { width: 80  }, // Card No
+                    { width: 150 }, // Customer Name
+                    { width: 100 }, // Facial / Product
+                    { width: 90  }, // Bank
+                    { width: 90  }, // TNG
+                    { width: 90  }, // Cash
+                    { width: 90  }, // Card
+                    { width: 130 }, // Beautician
+                    { width: 90  }, // Group
+                    { width: 130 }  // Remarks
+                ];
+            }
+
+            function onGridDataBound() {
+                var grid = $("#GridDailyTransaction").data("kendoGrid");
+                var agg  = grid.dataSource.aggregates();
+
+                var bank  = (agg.BankAmt  && agg.BankAmt.sum)  ? agg.BankAmt.sum  : 0;
+                var tng   = (agg.TNGAmt   && agg.TNGAmt.sum)   ? agg.TNGAmt.sum   : 0;
+                var cash  = (agg.CashAmt  && agg.CashAmt.sum)  ? agg.CashAmt.sum  : 0;
+                var card  = (agg.CardAmt  && agg.CardAmt.sum)  ? agg.CardAmt.sum  : 0;
+                var group = (agg.GroupAmt && agg.GroupAmt.sum)  ? agg.GroupAmt.sum : 0;
+
+                var totalSales = bank + tng + cash + card;
+                $("#totalSalesAmt").text(kendo.toString(totalSales, 'N2'));
+
+                // Remove previous total row to avoid duplicates on re-render
+                grid.tbody.find("tr.grid-total-row").remove();
+
+                // Append total row at the bottom of the grid body
+                var tr = $('<tr class="grid-total-row"></tr>');
+                tr.append('<td></td>');
+                tr.append('<td></td>');
+                tr.append('<td></td>');
+                tr.append('<td>Total</td>');
+                tr.append('<td>' + kendo.toString(bank,  'N2') + '</td>');
+                tr.append('<td>' + kendo.toString(tng,   'N2') + '</td>');
+                tr.append('<td>' + kendo.toString(cash,  'N2') + '</td>');
+                tr.append('<td>' + kendo.toString(card,  'N2') + '</td>');
+                tr.append('<td></td>');
+                tr.append('<td>' + kendo.toString(group, 'N2') + '</td>');
+                tr.append('<td></td>');
+                grid.tbody.append(tr);
+            }
+        </script>
+    }
+</head>
+
+<div class="page-content">
+    <div class="row" style="margin-bottom: 10px;">
+        <div class="col-md-10">
+            <div class="report-header">BeYou Skin Management Daily Transaction Summary</div>
+            <div class="report-date">Date : @ViewBag.SalesDate</div>
+        </div>
+        <div class="col-md-2" style="text-align: right; padding-top: 10px;">
+            <input type="button" value="BACK" class="btn btn-default" onclick="history.back()" style="width:100px;" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            @(Html.Kendo().Grid<Meo.Web.ViewModels.DailyTransactionReport>()
+                .Name("GridDailyTransaction")
+                .HtmlAttributes(new { style = "width: 100%" })
+                .Columns(columns =>
+                {
+                    columns.Template(c => { }).Title("Invoice No").Width(105)
+                        .ClientTemplate("# if (IsGiro) { #<a href='/GIROs/GIROReceipt?salesid=#= SalesId #' target='_blank'><span class='k-button k-button-icontext k-grid-edit'>#= SalesId #</span></a># } else { #<a href='/Sales/PreviewINV?salesid=#= SalesId #' target='_blank'><span class='k-button k-button-icontext k-grid-edit'>#= SalesId #</span></a># } #");
+                    columns.Bound(c => c.CardNo).Title("Card No").Width(105);
+                    columns.Bound(c => c.CustomerName).Title("Customer Name");
+                    columns.Bound(c => c.FacialProduct).Title("Facial / Product");
+                    columns.Bound(c => c.BankAmt).Title("Bank").Format("{0:N2}");
+                    columns.Bound(c => c.TNGAmt).Title("TNG").Format("{0:N2}");
+                    columns.Bound(c => c.CashAmt).Title("Cash").Format("{0:N2}");
+                    columns.Bound(c => c.CardAmt).Title("Card").Format("{0:N2}");
+                    columns.Bound(c => c.Beautician).Title("Beautician");
+                    columns.Bound(c => c.GroupAmt).Title("Group").Format("{0:N2}");
+                    columns.Bound(c => c.Remarks).Title("Remarks");
+                })
+                .ToolBar(t => t.Excel().HtmlAttributes(new { style = "float: right" }))
+                .Excel(excel => excel
+                    .AllPages(true)
+                    .FileName("DailyTransaction_" + ViewBag.SalesDate + ".xlsx"))
+                .Sortable()
+                .Pageable(pageable => pageable
+                    .Refresh(true).Messages(m => m.Refresh(string.Empty)))
+                .Events(e => e.DataBound("onGridDataBound").ExcelExport("onExcelExport"))
+                .DataSource(source => source
+                    .Ajax()
+                    .PageSize(50)
+                    .Aggregates(a =>
+                    {
+                        a.Add(m => m.BankAmt).Sum();
+                        a.Add(m => m.TNGAmt).Sum();
+                        a.Add(m => m.CashAmt).Sum();
+                        a.Add(m => m.CardAmt).Sum();
+                        a.Add(m => m.GroupAmt).Sum();
+                    })
+                    .Events(events => events.Error("error_handler"))
+                    .Read(read => read.Action("GetDailyTransactionData", "Report", new { date = ViewBag.SalesDateRaw }))
+                )
+                .NoRecords("No Records Found")
+            )
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12 bottom-totals">
+            <div>TOTAL SALES : RM &nbsp;<span id="totalSalesAmt">0.00</span></div>
+            <div>TOTAL GROUP : RM</div>
+        </div>
+    </div>
+</div>

@@ -34,6 +34,10 @@
             <td>
                 <h2 style="width: 250px" class="pagetitle">All Invoice</h2>
             </td>
+            <td style="text-align: right; width: 280px">
+                <label>Invoice No</label>
+                <input type="text" id="InvoiceNo" class="k-textbox" placeholder="e.g. INV2605931" style="width: 150px;" />
+            </td>
             <td style="text-align: right;width: 280px">
                 @Html.LabelFor(model => model.StartDate)
                 @(Html.Kendo().DatePickerFor(m => m.StartDate)
@@ -60,7 +64,7 @@
     </table>
     <br />
     <div class="col-md-12" id="saveDiv">
-        @{ Html.RenderAction("_SearchAllInvoice", new { cusid = "" }); }
+        @{ Html.RenderAction("_SearchAllInvoice", new { cusid = "", invoiceNo = "" }); }
     </div>
 </div>
 
@@ -113,14 +117,15 @@
             }
 
     $('#search').click(function () {
+            var invoiceNo = $('#InvoiceNo').val();
             var startDate = $('#StartDate').val();
             var endDate = $('#EndDate').val();
-            var searchPath = "_SearchAllInvoice";
 
-            var url = "@Html.Raw(Url.Action("Path", "Report", new { empNo = "empno", startDate = "startdate", endDate = "enddate" }))";
-            url = url.replace("startdate", startDate);
-            url = url.replace("enddate", endDate);
-            url = url.replace("Path", searchPath);
+            var params = { invoiceNo: invoiceNo };
+            if (startDate) params.startDate = startDate;
+            if (endDate) params.endDate = endDate;
+
+            var url = '@Url.Action("_SearchAllInvoice", "Report")' + '?' + $.param(params);
             $('#saveDiv').load(url);
         });
 

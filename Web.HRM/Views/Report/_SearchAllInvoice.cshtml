@@ -40,7 +40,7 @@
         {
             model.Id(tc => tc.SalesId);
         })
-        .Read(read => read.Action("GetInvoiceData", "Report", new { empNo = ViewBag.empNo, period = ViewBag.period, startDate = ViewBag.startDate, endDate = ViewBag.endDate }))
+        .Read(read => read.Action("GetInvoiceData", "Report", new { empNo = ViewBag.empNo, period = ViewBag.period, invoiceNo = ViewBag.invoiceNo, startDate = ViewBag.startDate, endDate = ViewBag.endDate }))
         )
         //.Resizable(resize => resize.Columns(true))
         .NoRecords("No Records Found")
