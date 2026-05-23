@@ -495,6 +495,60 @@ namespace Web.HRM.Controllers
         }
         #endregion
 
+        #region Product Settlement Report
+        public ActionResult SearchProductSettlement()
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(Session["EmpNo"] as string))
+                {
+                    ReportSearchContent search = new ReportSearchContent();
+                    search.StartDate = DateTime.Now.Date;
+                    search.EndDate = DateTime.Now.Date;
+                    return View(search);
+                }
+                return RedirectToAction("Login", "Account");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.ToString());
+            }
+        }
+
+        public ActionResult _SearchProductSettlementReport(string startDate, string endDate)
+        {
+            ViewBag.StartDate = startDate;
+            ViewBag.EndDate = endDate;
+            return PartialView();
+        }
+
+        public ActionResult GetProductSettlementData(string startDate, string endDate, [DataSourceRequest] DataSourceRequest request)
+        {
+            var start_date = DateTime.Parse(startDate);
+            var end_date = DateTime.Parse(endDate).AddDays(1).AddMilliseconds(-1);
+
+            var query = from sa in db.Saless
+                        join si in db.SalesItems on sa.SalesId equals si.SalesId
+                        join cus in db.Customers on sa.CusId equals cus.CusId
+                        join p in db.Products on si.ProductId equals p.ProductId
+                        where sa.PaymentDate > start_date && sa.PaymentDate < end_date
+                              && si.Active.Equals(false) && si.Status.Equals(false)
+                              && sa.Active.Equals(false) && sa.Status.Equals(false)
+                        select new ProductSettlementReport
+                        {
+                            SalesId = sa.SalesId,
+                            CustomerName = cus.FullName,
+                            ProductName = p.ProductName,
+                            Quantity = si.Quantity,
+                            UnitPrice = si.UnitPrice,
+                            LineTotal = si.LineTotal,
+                            PaymentDate = sa.PaymentDate,
+                        };
+
+            return Json(query.ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
+        }
+        #endregion
+
 
         //backup
         //#region All invoice 

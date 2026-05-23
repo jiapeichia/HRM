@@ -226,7 +226,7 @@
                 </table>
             </div>
         }
-        @if (Session["EmployeeList"] != null || Session["SalesReport"] != null || Session["ServiceReport"] != null || Session["DailySalesReport"] != null)
+        @if (Session["EmployeeList"] != null || Session["SalesReport"] != null || Session["ServiceReport"] != null || Session["DailySalesReport"] != null || Session["ProductSettlement"] != null)
         {
             <br />
             <div class="sub-content">
@@ -269,6 +269,15 @@
                                     <a class="btn btn-silver btn-admin" href='@Url.Action("SearchSales", "Report")'>
                                         <img style="width:50px;" src="@Url.Content("~/Images/report.png")" alt="" />
                                         <br /><strong>Daily Sales Report</strong>
+                                    </a>
+                                </td>
+                            }
+                            @if (Session["ProductSettlement"] != null)
+                            {
+                                <td>
+                                    <a class="btn btn-silver btn-admin" href='@Url.Action("SearchProductSettlement", "Report")'>
+                                        <img style="width:50px;" src="@Url.Content("~/Images/report.png")" alt="" />
+                                        <br /><strong>Product Settlement</strong>
                                     </a>
                                 </td>
                             }

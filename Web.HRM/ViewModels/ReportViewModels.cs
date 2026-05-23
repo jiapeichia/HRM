@@ -172,4 +172,32 @@ namespace Meo.Web.ViewModels
         public List<SalesViewModels> Sales { get; set; }
     }
 
+    public class ProductSettlementReport
+    {
+        [Display(Name = "Invoice No")]
+        public string SalesId { get; set; }
+
+        [Display(Name = "Customer")]
+        public string CustomerName { get; set; }
+
+        [Display(Name = "Product")]
+        public string ProductName { get; set; }
+
+        [Display(Name = "Qty")]
+        public int Quantity { get; set; }
+
+        [Display(Name = "Unit Price")]
+        [DisplayFormat(DataFormatString = "{0:N2}")]
+        public decimal UnitPrice { get; set; }
+
+        [Display(Name = "Total")]
+        [DisplayFormat(DataFormatString = "{0:N2}")]
+        public decimal LineTotal { get; set; }
+
+        [Display(Name = "Payment Date")]
+        [DataType(DataType.Date)]
+        [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy}")]
+        public DateTime PaymentDate { get; set; }
+    }
+
 }

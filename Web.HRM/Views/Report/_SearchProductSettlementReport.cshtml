@@ -1,0 +1,33 @@
+<div>
+    @(Html.Kendo().Grid<Meo.Web.ViewModels.ProductSettlementReport>()
+        .Name("GridProductSettlement")
+        .HtmlAttributes(new { style = "width:100%" })
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.PaymentDate).Title("Date").ClientTemplate("#= kendo.toString(kendo.parseDate(PaymentDate), 'dd/MM/yyyy') #").Width(120);
+            columns.Bound(c => c.SalesId).Title("Invoice No").Width(130);
+            columns.Bound(c => c.CustomerName).Title("Customer");
+            columns.Bound(c => c.ProductName).Title("Product");
+            columns.Bound(c => c.Quantity).Title("Qty").Width(70);
+            columns.Bound(c => c.UnitPrice).Title("Unit Price").Width(110);
+            columns.Bound(c => c.LineTotal).Title("Total").Width(110);
+        })
+        .ToolBar(t => t.Excel().HtmlAttributes(new { style = "float: right" }))
+        .Excel(excel => excel
+            .AllPages(true)
+            .FileName("ProductSettlement.xlsx")
+        )
+        .Sortable()
+        .Filterable()
+        .Pageable(pageable => pageable
+            .Refresh(true).Messages(m => m.Refresh(string.Empty)))
+        .DataSource(source => source
+            .Ajax()
+            .PageSize(50)
+            .Events(events => events.Error("error_handler"))
+            .Sort(sort => sort.Add("PaymentDate").Descending())
+            .Read(read => read.Action("GetProductSettlementData", "Report", new { startDate = ViewBag.StartDate, endDate = ViewBag.EndDate }))
+        )
+        .NoRecords("No Records Found")
+    )
+</div>
