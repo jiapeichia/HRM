@@ -190,6 +190,10 @@ namespace Meo.Web.ViewModels
         [DisplayFormat(DataFormatString = "{0:N2}")]
         public decimal UnitPrice { get; set; }
 
+        [Display(Name = "Discount")]
+        [DisplayFormat(DataFormatString = "{0:N2}")]
+        public decimal LineDiscAmt { get; set; }
+
         [Display(Name = "Total")]
         [DisplayFormat(DataFormatString = "{0:N2}")]
         public decimal LineTotal { get; set; }

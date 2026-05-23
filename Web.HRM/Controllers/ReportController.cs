@@ -426,10 +426,10 @@ namespace Web.HRM.Controllers
                     DateTime today = DateTime.Now.Date.AddMilliseconds(1);
                     DateTime tmr = DateTime.Now.Date.AddDays(1).AddMilliseconds(-1);
                     var sales = (from sa in db.Saless
-                                 where (sa.PaymentDate > today && sa.PaymentDate < tmr) && sa.Active.Equals(false) && sa.Status.Equals(false) 
+                                 where (sa.PaymentDate > today && sa.PaymentDate < tmr) && sa.Active.Equals(false) && sa.Status.Equals(false)
                                  select sa).ToList();
 
-                    var totalAmount = sales.Sum(x => x.TotalAmt);
+                    var totalAmount = sales.Sum(x => x.PaidAmt);
                     ViewBag.TotalAmount = totalAmount;
                     // End 
 
@@ -527,6 +527,9 @@ namespace Web.HRM.Controllers
             var start_date = DateTime.Parse(startDate);
             var end_date = DateTime.Parse(endDate).AddDays(1).AddMilliseconds(-1);
 
+            var productTypeId = db.Types.FirstOrDefault(e => e.Active.Equals(false) && e.Status.Equals(false)
+                                    && e.Module == "Product" && e.TypeName == "Product")?.TypeId;
+
             var query = from sa in db.Saless
                         join si in db.SalesItems on sa.SalesId equals si.SalesId
                         join cus in db.Customers on sa.CusId equals cus.CusId
@@ -534,6 +537,7 @@ namespace Web.HRM.Controllers
                         where sa.PaymentDate > start_date && sa.PaymentDate < end_date
                               && si.Active.Equals(false) && si.Status.Equals(false)
                               && sa.Active.Equals(false) && sa.Status.Equals(false)
+                              && si.TypeId == productTypeId
                         select new ProductSettlementReport
                         {
                             SalesId = sa.SalesId,
@@ -541,6 +545,7 @@ namespace Web.HRM.Controllers
                             ProductName = p.ProductName,
                             Quantity = si.Quantity,
                             UnitPrice = si.UnitPrice,
+                            LineDiscAmt = si.LineDiscAmt,
                             LineTotal = si.LineTotal,
                             PaymentDate = sa.PaymentDate,
                         };

@@ -458,7 +458,7 @@ namespace Web.HRM.Controllers
         }
 
         [HttpPost]
-        public ActionResult AddSalesItem(string path, string salesid, int pid, int qty, decimal price, decimal? payamt, decimal disc, decimal total, string empno, string empname, string cusid, bool backorder = false, string flag = "")
+        public ActionResult AddSalesItem(string path, string salesid, int pid, int qty, decimal price, decimal? payamt, decimal disc, decimal total, string empno, string empname, string cusid, string remarks = "", bool backorder = false, string flag = "")
         {
             try
             {
@@ -518,6 +518,7 @@ namespace Web.HRM.Controllers
                             LineTotal = total,
                             EmpNo = empno,
                             EmpName = empname,
+                            Remarks = remarks,
                             TypeId = (int)typeid,
                             IsBackordered = backorder,
 

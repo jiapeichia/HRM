@@ -10,6 +10,7 @@
             columns.Bound(c => c.ProductName).Title("Product");
             columns.Bound(c => c.Quantity).Title("Qty").Width(70);
             columns.Bound(c => c.UnitPrice).Title("Unit Price").Width(110);
+            columns.Bound(c => c.LineDiscAmt).Title("Discount").Width(110);
             columns.Bound(c => c.LineTotal).Title("Total").Width(110);
         })
         .ToolBar(t => t.Excel().HtmlAttributes(new { style = "float: right" }))
