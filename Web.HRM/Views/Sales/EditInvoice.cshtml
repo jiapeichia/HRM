@@ -1,0 +1,399 @@
+@model Meo.Web.ViewModels.SalesInvoiceViewModels
+
+@{
+    ViewBag.Title = "Edit Invoice";
+    var index = 1;
+}
+
+<head>
+    <style>
+        th, td {
+            border-top: 1px solid #ddd;
+            text-align: center;
+        }
+        td {
+            padding: 6px 10px;
+        }
+        .info-label {
+            font-weight: bold;
+            text-align: left;
+            padding: 4px 6px;
+            white-space: nowrap;
+        }
+        .info-value {
+            text-align: left;
+            padding: 4px 6px;
+        }
+        .edit-box {
+            background: #f0f7ff;
+            border: 1px solid #b8d4f0;
+            border-radius: 6px;
+            padding: 16px 20px;
+            margin-bottom: 18px;
+        }
+        .edit-box h4 {
+            margin-top: 0;
+            margin-bottom: 14px;
+            color: #1a5f9e;
+            font-size: 15px;
+            border-bottom: 1px solid #b8d4f0;
+            padding-bottom: 6px;
+        }
+        .edit-box label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .edit-box .form-control {
+            width: 100%;
+        }
+        .btn-edit-row   { min-width: 60px; }
+        .btn-save-row   { min-width: 60px; }
+        .btn-cancel-row { min-width: 60px; }
+        .remarks-cell input {
+            width: 100%;
+            min-width: 120px;
+        }
+        #tblSalesItem th { background: #2f6db5; color: #fff; padding: 8px 6px; }
+        #tblSalesItem tbody tr:hover { background: #f5f9ff; }
+        .footer-row td { font-weight: bold; background: #eef3fa; }
+    </style>
+
+    @section Scripts {
+        <script>
+            $(function () {
+                $("#gohistory").click(function () {
+                    window.open('@Url.Action("CusPurchaseHistory", "Sales", new { id = Model.CusId })', "_self");
+                });
+                $("#cusservice").click(function () {
+                    window.open('@Url.Action("SalesByCus", "Sales", new { id = Model.CusId })', "_self");
+                });
+                $("#close").click(function () {
+                    window.open('@Url.Action("PreviewINV", "Sales", new { salesid = Model.SalesId })', "_self");
+                });
+
+                // Save header (Remarks + PaymentDate + DiscAmt)
+                $("#saveChanges").click(function () {
+                    var salesid     = "@Model.SalesId";
+                    var remarks     = $("#Remarks").val();
+                    var paymentDate = $("#PaymentDate").val();
+                    var discAmt     = parseFloat($("#HeaderDiscAmt").val()) || 0;
+
+                    var $btn = $(this);
+                    $btn.prop("disabled", true).val("Saving...");
+
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Action("EditInvoice", "Sales")',
+                        data: { salesid: salesid, remarks: remarks, paymentDate: paymentDate, discAmt: discAmt },
+                        success: function (response) {
+                            $btn.prop("disabled", false).val("SAVE CHANGES");
+                            if (response && response.success === false) {
+                                alert("Error: " + (response.message || "Save failed."));
+                            } else {
+                                alert("Invoice updated successfully.");
+                                window.open('@Url.Action("PreviewINV", "Sales", new { salesid = Model.SalesId })', "_self");
+                            }
+                        },
+                        error: function () {
+                            $btn.prop("disabled", false).val("SAVE CHANGES");
+                            alert("A network error occurred. Please try again.");
+                        }
+                    });
+                });
+            });
+
+            $("html, body").animate({ scrollTop: 0 }, 200);
+        </script>
+    }
+</head>
+<body>
+<div class="page-content">
+    <div class="col-md-12 mx-0">
+
+        <!-- Top buttons -->
+        <div align="right" style="width:100%; margin-bottom:10px">
+            <input type="button" value="GO SERVICE" class="btn btn-default" id="cusservice" style="width:110px" />
+            <input type="button" value="GO HISTORY" class="btn btn-default" id="gohistory"  style="width:110px" />
+            <input type="button" value="BACK"        class="btn btn-default" id="close"      style="width:100px" />
+        </div>
+
+        <div class="sub-content" style="margin-top:0; padding-top:20px">
+            <div class="card px-0 pt-4 pb-0 mt-3 mb-3" style="text-align:center">
+                <h2><strong>Edit Invoice</strong></h2>
+            </div>
+            <hr style="height:1px;border-width:0;color:gray;background-color:gray;margin:0">
+            <br />
+
+            @Html.AntiForgeryToken()
+
+            <!-- Invoice Info (read-only) -->
+            <table style="margin-bottom:10px">
+                <tr>
+                    <td class="info-label" style="border-top:none">Card No.</td>
+                    <td class="info-value"  style="border-top:none">: @Model.CardNo</td>
+                    <td class="info-label"  style="border-top:none">Date</td>
+                    <td class="info-value"  style="border-top:none">: @Model.OrderDate.ToShortDateString()</td>
+                    <td class="info-label"  style="border-top:none">Invoice No.</td>
+                    <td class="info-value"  style="border-top:none">: <strong>@Model.SalesId</strong></td>
+                </tr>
+                <tr>
+                    <td class="info-label" style="border-top:none">Customer</td>
+                    <td class="info-value"  style="border-top:none">: @ViewData["CustomerName"]</td>
+                    <td class="info-label"  style="border-top:none">Paid By</td>
+                    <td class="info-value"  style="border-top:none">: @Model.PaymentMethodName</td>
+                    <td class="info-label"  style="border-top:none">Total Discount</td>
+                    <td class="info-value"  style="border-top:none">: <span id="headerDisc">@((Model.DiscAmt ?? 0) + Model.totalDisc)</span></td>
+                </tr>
+                <tr>
+                    <td class="info-label" style="border-top:none">Credit Balance</td>
+                    <td class="info-value"  style="border-top:none">: @Model.CreditBal</td>
+                    <td colspan="4" style="border-top:none"></td>
+                </tr>
+            </table>
+
+            <!-- Editable header fields -->
+            <div class="edit-box">
+                <h4>Invoice Header - Editable Fields</h4>
+                <div class="row">
+                    <div class="col-md-3">
+                        <label>Payment Date</label>
+                        <input type="date" id="PaymentDate" class="form-control"
+                               value="@Model.PaymentDate.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div class="col-md-2">
+                        <label>Additional Discount</label>
+                        <input type="number" id="HeaderDiscAmt" class="form-control" step="0.01" min="0"
+                               value="@Model.DiscAmt" placeholder="0.00" />
+                        <small style="color:#888">Extra discount on top of item discounts</small>
+                    </div>
+                    <div class="col-md-7">
+                        <label>Remarks / Notes</label>
+                        <textarea id="Remarks" class="form-control" rows="2"
+                                  placeholder="Enter any remarks for this invoice...">@Model.Remarks</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Line items -->
+            <p style="color:#555; font-size:13px; margin-bottom:6px">
+                <span class="glyphicon glyphicon-info-sign"></span>
+                Click <strong>Edit</strong> on a row to change the price, discount, quantity or remarks for that item.
+                Click <strong>Save</strong> to apply the change immediately.
+            </p>
+
+            <table id="tblSalesItem" style="width:100%">
+                <thead>
+                    <tr>
+                        <th style="width:4%">No</th>
+                        <th style="width:22%; text-align:left; padding-left:10px">Item</th>
+                        <th style="width:6%">Qty</th>
+                        <th style="width:9%">Unit Price</th>
+                        <th style="width:9%">Discount</th>
+                        <th style="width:9%">Total</th>
+                        <th style="width:12%">Sales By</th>
+                        <th style="width:17%; text-align:left; padding-left:10px">Remarks</th>
+                        <th style="width:12%">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @if (Model.SalesDetails != null && Model.SalesDetails.Any())
+                {
+                    foreach (var item in Model.SalesDetails)
+                    {
+                        <tr>
+                            <td class="salesitemid" style="display:none">@item.SalesItemId</td>
+                            <td>@index</td>
+                            <td style="text-align:left; padding-left:10px">@item.ProductName</td>
+
+                            <td class="quantity">
+                                <span>@item.Quantity</span>
+                                <input type="number" value="@item.Quantity" style="display:none; width:100%" min="1" />
+                            </td>
+                            <td class="unitprice">
+                                <span>@item.UnitPrice.ToString("0.00")</span>
+                                <input type="number" value="@item.UnitPrice" style="display:none; width:100%" step="0.01" min="0" />
+                            </td>
+                            <td class="linediscount">
+                                <span>@item.LineDiscAmt.ToString("0.00")</span>
+                                <input type="number" value="@item.LineDiscAmt" style="display:none; width:100%" step="0.01" min="0" />
+                            </td>
+                            <td class="linetotal">
+                                <span>@item.LineTotal.ToString("0.00")</span>
+                            </td>
+                            <td>@item.EmpName</td>
+
+                            <td class="remarks-cell" style="text-align:left; padding-left:6px">
+                                <span>@item.Remarks</span>
+                                <input type="text" value="@item.Remarks" style="display:none"
+                                       placeholder="Optional remark..." />
+                            </td>
+                            <td>
+                                <a class="btnEdit btn btn-sm btn-warning btn-edit-row" href="javascript:;">
+                                    <span class="glyphicon glyphicon-pencil"></span> Edit
+                                </a>
+                                <a class="btnSave btn btn-sm btn-success btn-save-row" href="javascript:;" style="display:none">
+                                    <span class="glyphicon glyphicon-ok"></span> Save
+                                </a>
+                                <a class="btnCancel btn btn-sm btn-default btn-cancel-row" href="javascript:;" style="display:none">
+                                    <span class="glyphicon glyphicon-remove"></span> Undo
+                                </a>
+                            </td>
+                        </tr>
+                        index++;
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="9">No sales details available.</td></tr>
+                }
+                </tbody>
+                <tfoot>
+                    <tr class="footer-row">
+                        <td></td>
+                        <td style="text-align:right; padding-right:10px">Total</td>
+                        <td id="footerQty">@Model.totalQty</td>
+                        <td></td>
+                        <td id="footerDisc">@Model.totalDisc.ToString("0.00")</td>
+                        <td id="footerSubtotal">@Model.subtotal.ToString("0.00")</td>
+                        <td colspan="3"></td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <br />
+            <div style="float:right; padding-bottom:20px">
+                <input type="button" value="SAVE CHANGES" id="saveChanges"
+                       class="btn btn-success" style="width:200px; height:50px; font-size:18px" />
+            </div>
+            <br style="clear:both" />
+        </div>
+    </div>
+</div>
+</body>
+
+<script type="text/javascript">
+    // ── Edit row ──────────────────────────────────────────────────────────────
+    $("body").on("click", "#tblSalesItem .btnEdit", function () {
+        var row = $(this).closest("tr");
+        row.find(".quantity, .unitprice, .linediscount, .remarks-cell").each(function () {
+            $(this).find("span").hide();
+            $(this).find("input").show();
+        });
+        row.find(".btnSave, .btnCancel").show();
+        $(this).hide();
+    });
+
+    // ── Undo / cancel ─────────────────────────────────────────────────────────
+    $("body").on("click", "#tblSalesItem .btnCancel", function () {
+        var row = $(this).closest("tr");
+        row.find(".quantity, .unitprice, .linediscount, .remarks-cell").each(function () {
+            var span  = $(this).find("span");
+            var input = $(this).find("input");
+            input.val(span.text().trim());
+            span.show();
+            input.hide();
+        });
+        row.find(".btnEdit").show();
+        row.find(".btnSave, .btnCancel").hide();
+    });
+
+    // ── Save row ──────────────────────────────────────────────────────────────
+    $("body").on("click", "#tblSalesItem .btnSave", function () {
+        var row        = $(this).closest("tr");
+        var salesitemid = parseInt(row.find(".salesitemid").text());
+        var qty        = parseInt(row.find(".quantity input").val());
+        var price      = parseFloat(row.find(".unitprice input").val());
+        var disc       = parseFloat(row.find(".linediscount input").val()) || 0;
+        var remarks    = row.find(".remarks-cell input").val();
+        var linetotal  = parseFloat((qty * price - disc).toFixed(2));
+
+        if (isNaN(qty) || qty < 1) { alert("Quantity must be at least 1."); return; }
+        if (isNaN(price) || price < 0) { alert("Unit Price must be a valid number."); return; }
+
+        var $btn = $(this);
+        $btn.prop("disabled", true).html('<span class="glyphicon glyphicon-refresh"></span> Saving...');
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("EditInvoiceItem", "Sales")',
+            data: {
+                SalesItemId: salesitemid,
+                Quantity:    qty,
+                UnitPrice:   price,
+                LineDiscAmt: disc,
+                LineTotal:   linetotal,
+                Remarks:     remarks
+            },
+            success: function (response) {
+                $btn.prop("disabled", false).html('<span class="glyphicon glyphicon-ok"></span> Save');
+                if (response && response.success === false) {
+                    alert("Error: " + (response.message || "Save failed."));
+                    return;
+                }
+                // Update display spans
+                row.find(".quantity span").text(qty);
+                row.find(".quantity input").val(qty);
+                row.find(".unitprice span").text(price.toFixed(2));
+                row.find(".unitprice input").val(price.toFixed(2));
+                row.find(".linediscount span").text(disc.toFixed(2));
+                row.find(".linediscount input").val(disc.toFixed(2));
+                row.find(".linetotal span").text(linetotal.toFixed(2));
+                row.find(".remarks-cell span").text(remarks);
+                row.find(".remarks-cell input").val(remarks);
+
+                // Restore view mode
+                row.find(".quantity, .unitprice, .linediscount, .remarks-cell").each(function () {
+                    $(this).find("span").show();
+                    $(this).find("input").hide();
+                });
+                row.find(".btnEdit").show();
+                row.find(".btnSave, .btnCancel").hide();
+
+                refreshFooterTotals();
+            },
+            error: function () {
+                $btn.prop("disabled", false).html('<span class="glyphicon glyphicon-ok"></span> Save');
+                alert("A network error occurred. Please try again.");
+            }
+        });
+    });
+
+    // ── Live recalc while typing ──────────────────────────────────────────────
+    $("body").on("input", "#tblSalesItem .linediscount input, #tblSalesItem .quantity input, #tblSalesItem .unitprice input", function () {
+        var row   = $(this).closest("tr");
+        var qty   = parseInt(row.find(".quantity input").val())   || 0;
+        var price = parseFloat(row.find(".unitprice input").val()) || 0;
+        var disc  = parseFloat(row.find(".linediscount input").val()) || 0;
+        row.find(".linetotal span").text((qty * price - disc).toFixed(2));
+        refreshFooterTotals();
+    });
+
+    // ── Refresh footer totals ─────────────────────────────────────────────────
+    function refreshFooterTotals() {
+        var totalQty = 0, totalDisc = 0, subtotal = 0;
+        $("#tblSalesItem tbody tr").each(function () {
+            var $row = $(this);
+            totalQty  += parseInt($row.find(".quantity input:visible").val()       || $row.find(".quantity span").text())   || 0;
+            totalDisc += parseFloat($row.find(".linediscount input:visible").val() || $row.find(".linediscount span").text()) || 0;
+            subtotal  += parseFloat($row.find(".linetotal span").text()) || 0;
+        });
+        $("#footerQty").text(totalQty);
+        $("#footerDisc").text(totalDisc.toFixed(2));
+        $("#footerSubtotal").text(subtotal.toFixed(2));
+        // Keep header Total Discount in sync: Header lump-sum + line item discounts
+        var headerLump = parseFloat($("#HeaderDiscAmt").val()) || 0;
+        $("#headerDisc").text((headerLump + totalDisc).toFixed(2));
+    }
+
+    // Update header Total Discount when Header Discount input changes
+    $("#HeaderDiscAmt").on("input", function () {
+        var headerLump = parseFloat($(this).val()) || 0;
+        var totalLineDisc = 0;
+        $("#tblSalesItem tbody tr").each(function () {
+            var $row = $(this);
+            totalLineDisc += parseFloat($row.find(".linediscount input:visible").val() || $row.find(".linediscount span").text()) || 0;
+        });
+        $("#headerDisc").text((headerLump + totalLineDisc).toFixed(2));
+    });
+</script>

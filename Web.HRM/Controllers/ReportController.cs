@@ -70,66 +70,48 @@ namespace Web.HRM.Controllers
             var start_date = DateTime.Parse(startDate);
             var end_date = DateTime.Parse(endDate).AddDays(1).AddMilliseconds(-1);
 
+            // Fetch all items in the date range; EmpNo may be comma-separated for multi-PIC items
+            // so we use a left-join on Employee and fall back to the stored EmpName.
+            var query = (from sa in db.Saless
+                         join si in db.SalesItems on sa.SalesId equals si.SalesId
+                         join cus in db.Customers on sa.CusId equals cus.CusId
+                         join emp in db.Employees on si.EmpNo equals emp.EmpNo into empGroup
+                         from employee in empGroup.DefaultIfEmpty()
+                         join pay in db.Types on sa.PaymentMethod equals pay.TypeId
+                         where si.Active.Equals(false) && si.Status.Equals(false)
+                               && sa.PaymentDate >= start_date && sa.PaymentDate < end_date
+                         select new SalesReportViewModels
+                         {
+                             SalesItemId = si.SalesItemId,
+                             SalesId = si.SalesId,
+                             EmpNo = si.EmpNo,
+                             PICName = (si.EmpName != null && si.EmpName != "") ? si.EmpName : (employee != null ? employee.FullName : ""),
+                             ProductId = si.ProductId,
+                             TypeId = si.TypeId,
+                             Quantity = si.Quantity,
+                             UnitPrice = si.UnitPrice,
+                             TotalAmt = sa.TotalAmt ?? 0,
+                             LineTotal = si.LineTotal,
+                             LineDiscAmt = sa.DiscAmt + sa.DiscPercentageAmt ?? 0,
+                             Remarks = si.Remarks,
+                             PaymentDate = sa.PaymentDate,
+                             PaymentMethod = pay.TypeName,
+                             CusId = sa.CusId,
+                             CardNo = cus.CardNo,
+                             ImagePath = cus.ImagePath,
+                         }).ToList();
+
+            // Apply employee filter after fetch to support comma-separated multi-PIC EmpNo values
             if (!empNo.IsNullOrWhiteSpace())
             {
-                summary = (from sa in db.Saless
-                           join si in db.SalesItems on sa.SalesId equals si.SalesId
-                           join cus in db.Customers on sa.CusId equals cus.CusId
-                           join emp in db.Employees on si.EmpNo equals emp.EmpNo
-                           join pay in db.Types on sa.PaymentMethod equals pay.TypeId
-                           where si.EmpNo.Equals(empNo) && sa.PaymentDate > start_date && sa.PaymentDate < end_date //&& dateRange.Contains(sa.PaymentDate.Date)
-                           && si.Active.Equals(false) && si.Status.Equals(false)
-                           select new SalesReportViewModels
-                           {
-                               SalesItemId = si.SalesItemId,
-                               SalesId = si.SalesId,
-                               EmpNo = si.EmpNo,
-                               PICName = emp.FullName,
-                               ProductId = si.ProductId,
-                               TypeId = si.TypeId,
-                               Quantity = si.Quantity,
-                               UnitPrice = si.UnitPrice,
-                               TotalAmt = sa.TotalAmt ?? 0,
-                               LineTotal = si.LineTotal,
-                               //sa.SubTotal ?? 0,
-                               LineDiscAmt = sa.DiscAmt + sa.DiscPercentageAmt ?? 0,
-                               Remarks = si.Remarks,
-                               PaymentDate = sa.PaymentDate,
-                               PaymentMethod = pay.TypeName,
-                               CusId = sa.CusId,
-                               CardNo = cus.CardNo,
-                               ImagePath = cus.ImagePath,
-                           }).ToList();
+                summary = query.Where(x => x.EmpNo == empNo
+                    || x.EmpNo.StartsWith(empNo + ",")
+                    || x.EmpNo.EndsWith("," + empNo)
+                    || x.EmpNo.Contains("," + empNo + ",")).ToList();
             }
             else
             {
-                summary = (from sa in db.Saless
-                           join si in db.SalesItems on sa.SalesId equals si.SalesId
-                           join cus in db.Customers on sa.CusId equals cus.CusId
-                           join emp in db.Employees on si.EmpNo equals emp.EmpNo
-                           join pay in db.Types on sa.PaymentMethod equals pay.TypeId
-                           where si.Active.Equals(false) && sa.PaymentDate > start_date && sa.PaymentDate < end_date
-                           && si.Status.Equals(false)
-                           select new SalesReportViewModels
-                           {
-                               SalesItemId = si.SalesItemId,
-                               SalesId = si.SalesId,
-                               EmpNo = si.EmpNo,
-                               PICName = emp.FullName,
-                               ProductId = si.ProductId,
-                               TypeId = si.TypeId,
-                               Quantity = si.Quantity,
-                               UnitPrice = si.UnitPrice,
-                               TotalAmt = sa.TotalAmt ?? 0,
-                               LineTotal = si.LineTotal,
-                               LineDiscAmt = sa.DiscAmt + sa.DiscPercentageAmt ?? 0,
-                               Remarks = si.Remarks,
-                               PaymentDate = sa.PaymentDate,
-                               PaymentMethod = pay.TypeName,
-                               CusId = sa.CusId,
-                               CardNo = cus.CardNo,
-                               ImagePath = cus.ImagePath,
-                           }).ToList();
+                summary = query;
             }
 
             return Json(summary.ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
@@ -508,7 +490,7 @@ namespace Web.HRM.Controllers
                                LineTotal       = si.LineTotal,
                                InvoiceTotalAmt = sa.TotalAmt ?? 0,
                                ProductTypeName = (productType != null && productType.TypeName == "Service") ? "Service" : "Product",
-                               BeauticianName  = employee != null ? employee.FullName : "",
+                               BeauticianName  = (si.EmpName != null && si.EmpName != "") ? si.EmpName : (employee != null ? employee.FullName : ""),
                                Remarks         = sa.Remarks
                            }).ToList();
 

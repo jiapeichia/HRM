@@ -493,6 +493,13 @@ namespace Web.HRM.Controllers
             }
             else
             {
+                // Compute totals from actual line items so they are always consistent
+                decimal lineItemsTotal  = Math.Round(sales.ReceiptItems.Sum(x => x.LineTotal), 2);
+                decimal additionalDisc  = Math.Round((sales.DiscAmt ?? 0m) + (sales.DiscPercentageAmt ?? 0m), 2);
+                decimal trueTotal       = Math.Round(lineItemsTotal - additionalDisc, 2);
+                decimal paid            = Math.Round(sales.PaidAmt ?? 0m, 2);
+                decimal balance         = Math.Round(paid - trueTotal, 2);
+
                 receipt = new ReceiptModel
                 {
                     ReceiptHeader = sales.Exchange == true ? "EXCHANGE" : "SALES",
@@ -508,18 +515,20 @@ namespace Web.HRM.Controllers
                     PaymentMethod = paymentType,
                     Date = sales.Date.ToString("dd/MM/yyyy"),
                     ReceiptItems = sales.ReceiptItems,
-                    TotalDisc = Math.Round((sales.DiscAmt ?? 0m) + (sales.DiscPercentageAmt ?? 0m), 2),
-                    TotalPaid = Math.Round(sales.PaidAmt ?? 0m, 2),
-                    TotalBalance = Math.Round(sales.BalAmt ?? 0m, 2),
-                    SubTotal = Math.Round(sales.SubTotal ?? 0m, 2),
-                    TotalAmount = Math.Round(sales.TotalAmt ?? 0m, 2),
+                    SubTotal    = lineItemsTotal,
+                    TotalDisc   = additionalDisc,
+                    TotalAmount = trueTotal,
+                    TotalPaid   = paid,
+                    TotalBalance = balance,
                 };
             }
 
             if (receipt.TotalBalance < 0)
             {
-                receipt.TotalBalanceString = "(" + Math.Abs(Math.Round(receipt.TotalBalance, 2)) + ")";
+                // Negative balance = customer owes money — shown as OUTSTANDING AMOUNT
+                receipt.TotalBalanceString = "(" + Math.Abs(Math.Round(receipt.TotalBalance, 2)).ToString("0.00") + ")";
             }
+            // Positive balance = customer change/overpaid — shown as BALANCE (RM), TotalBalanceString stays null
             //return new EmptyResult();
             return PartialView(receipt);
         }

@@ -390,6 +390,9 @@ namespace Meo.Web.ViewModels
 
         [Display(Name = "Total Amount")]
         public decimal? TotalAmt { get; set; }
+
+        [Display(Name = "Remarks")]
+        public string Remarks { get; set; }
     }
 
     public class AddSalesItem

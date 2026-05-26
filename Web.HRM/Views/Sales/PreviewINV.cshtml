@@ -122,6 +122,41 @@
                     const printWindow = window.open(url, '_blank');
                 });
 
+                $("#editInvoice").click(function () {
+                    window.open('@Url.Action("EditInvoice", "Sales", new { salesid = Model.SalesId })', "_self");
+                });
+
+                $("#cancelInvoice").click(function () {
+                    $("#cancelModal").modal("show");
+                });
+
+                $("#confirmCancel").click(function () {
+                    var reason = $("#cancelReason").val().trim();
+                    if (!reason) {
+                        alert("Please enter a reason for cancellation.");
+                        return;
+                    }
+                    $("#confirmCancel").prop("disabled", true);
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Action("CancelInvoice", "Sales")',
+                        data: { salesid: "@Model.SalesId", reason: reason },
+                        success: function (response) {
+                            $("#confirmCancel").prop("disabled", false);
+                            if (response && response.success) {
+                                alert("Invoice @Model.SalesId has been cancelled.");
+                                window.open('@Url.Action("CusPurchaseHistory", "Sales", new { id = Model.CusId })', "_self");
+                            } else {
+                                alert("Error: " + (response.message || "Cancel failed."));
+                            }
+                        },
+                        error: function () {
+                            $("#confirmCancel").prop("disabled", false);
+                            alert("A network error occurred. Please try again.");
+                        }
+                    });
+                });
+
                 @*$("#PrintReceipt").click(function () {
 
                     // Show loading icon
@@ -157,10 +192,19 @@
     </div>
     <div class="page-content">
         <div class="col-md-12 mx-0">
+            @{
+                var _role = Session["RoleName"]?.ToString() ?? "";
+                var _isAdminOrPic = _role.Contains("Admin") || _role.Equals("PIC");
+            }
             <div align="right" style="width:100%">
                 <input type="button" value="GO SERVICE" class="btn btn-default" id="cusservice" style="width:100px" />
                 <input type="button" value="GO HISTORY" class="btn btn-default" id="gohistory" style="width:100px" />
                 <input type="button" value="PRINT" class="btn btn-default" id="PrintReceipt" style="width:100px" />
+                @if (_isAdminOrPic)
+                {
+                    <input type="button" value="EDIT" class="btn btn-success" id="editInvoice" style="width:80px" />
+                    <input type="button" value="CANCEL INV" class="btn btn-danger" id="cancelInvoice" style="width:100px" />
+                }
                 @if (ViewData["From"].ToString() == "allinvoice")
                 {
                     <input type="button" value="BACK" class="btn btn-default" id="backinvoice" style="width:100px" />
@@ -368,6 +412,29 @@
                         <td></td>
                     </tr>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cancel Invoice Confirmation Modal -->
+    <div class="modal fade" id="cancelModal" tabindex="-1" role="dialog" aria-labelledby="cancelModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header" style="background:#d9534f; color:#fff;">
+                    <button type="button" class="close" data-dismiss="modal" style="color:#fff;">&times;</button>
+                    <h4 class="modal-title" id="cancelModalLabel">Cancel Invoice @Model.SalesId</h4>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Warning:</strong> This will permanently cancel the invoice and reverse all associated stock, services, and customer credit changes. This action cannot be undone.</p>
+                    <div class="form-group">
+                        <label for="cancelReason"><strong>Reason for cancellation (required):</strong></label>
+                        <textarea id="cancelReason" class="form-control" rows="3" placeholder="Enter reason..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-danger" id="confirmCancel">Confirm Cancel</button>
+                </div>
             </div>
         </div>
     </div>

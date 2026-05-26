@@ -619,7 +619,7 @@ namespace Web.HRM.Controllers
                                 {
                                     SalesItemId = si.SalesItemId,
                                     SalesId = salesid,
-                                    EmpName = employee.FullName ?? "",
+                                    EmpName = (si.EmpName != null && si.EmpName != "") ? si.EmpName : (employee.FullName ?? ""),
                                     ProductName = pro.ProductCode + " - " + pro.ProductName,
                                     Quantity = si.Quantity,
                                     UnitPrice = si.UnitPrice,
@@ -698,7 +698,7 @@ namespace Web.HRM.Controllers
                                  {
                                      SalesItemId = si.SalesItemId,
                                      SalesId = salesid,
-                                     EmpName = employee.FullName ?? "",
+                                     EmpName = (si.EmpName != null && si.EmpName != "") ? si.EmpName : (employee.FullName ?? ""),
                                      ProductName = pro.ProductCode + " - " + pro.ProductName,
                                      Quantity = si.Quantity,
                                      UnitPrice = si.UnitPrice,
@@ -717,7 +717,7 @@ namespace Web.HRM.Controllers
                                  {
                                      SalesItemId = si.SalesItemId,
                                      SalesId = salesid,
-                                     EmpName = employee.FullName ?? "",
+                                     EmpName = (si.EmpName != null && si.EmpName != "") ? si.EmpName : (employee.FullName ?? ""),
                                      ProductName = pack.Code + " - " + pack.Remarks,
                                      Quantity = si.Quantity,
                                      UnitPrice = si.UnitPrice,
@@ -799,7 +799,7 @@ namespace Web.HRM.Controllers
                                  {
                                      SalesItemId = si.SalesItemId,
                                      SalesId = si.SalesId,
-                                     EmpName = employee.FullName ?? "",
+                                     EmpName = (si.EmpName != null && si.EmpName != "") ? si.EmpName : (employee.FullName ?? ""),
                                      ProductName = pro.ProductCode + " - " + pro.ProductName,
                                      Quantity = si.Quantity,
                                      UnitPrice = si.UnitPrice,
@@ -818,7 +818,7 @@ namespace Web.HRM.Controllers
                                  {
                                      SalesItemId = si.SalesItemId,
                                      SalesId = si.SalesId,
-                                     EmpName = employee.FullName ?? "",
+                                     EmpName = (si.EmpName != null && si.EmpName != "") ? si.EmpName : (employee.FullName ?? ""),
                                      ProductName = pack.Code + " - " + pack.Remarks,
                                      Quantity = si.Quantity,
                                      UnitPrice = si.UnitPrice,
@@ -856,6 +856,238 @@ namespace Web.HRM.Controllers
                 throw new Exception(ex.ToString());
             }
         }
+
+        public ActionResult EditInvoice(string salesid)
+        {
+            var role = Session["RoleName"]?.ToString() ?? "";
+            if (!role.Contains("Admin") && !role.Equals("PIC"))
+                return RedirectToAction("Login", "Account");
+
+            if (string.IsNullOrEmpty(Session["EmpNo"] as string))
+                return RedirectToAction("Login", "Account");
+
+            var sales = db.Saless.FirstOrDefault(x => x.SalesId == salesid && x.Active == false);
+            if (sales == null) return HttpNotFound();
+
+            var customer = db.Customers.FirstOrDefault(x => x.CusId == sales.CusId);
+            ViewData["CustomerName"] = customer?.FullName ?? "";
+
+            var items = GetSalesItemList(salesid);
+            var model = new SalesInvoiceViewModels
+            {
+                SalesId           = sales.SalesId,
+                CusId             = sales.CusId,
+                CusName           = customer?.FullName ?? "",
+                CardNo            = customer?.CardNo ?? "",
+                CreditBal         = customer?.CreditBal ?? 0,
+                PaymentMethod     = sales.PaymentMethod,
+                PaymentMethodName = db.Types.FirstOrDefault(t => t.TypeId == sales.PaymentMethod)?.TypeName ?? "",
+                OrderDate         = sales.OrderDate,
+                PaymentDate       = sales.PaymentDate,
+                TotalAmt          = sales.TotalAmt,
+                PaidAmt           = sales.PaidAmt,
+                DiscAmt           = sales.DiscAmt,
+                BalAmt            = sales.BalAmt,
+                Remarks           = sales.Remarks,
+                Active            = sales.Active,
+                SalesDetails      = items,
+                totalQty          = items?.Sum(x => x.Quantity) ?? 0,
+                totalDisc         = items?.Sum(x => x.LineDiscAmt) ?? 0,
+                subtotal          = items?.Sum(x => x.LineTotal) ?? 0,
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public ActionResult EditInvoice(string salesid, string remarks, string paymentDate, decimal? discAmt)
+        {
+            var role = Session["RoleName"]?.ToString() ?? "";
+            if (!role.Contains("Admin") && !role.Equals("PIC"))
+                return Json(new { success = false, message = "Unauthorized." });
+
+            var sales = db.Saless.FirstOrDefault(x => x.SalesId == salesid && x.Active == false);
+            if (sales == null)
+                return Json(new { success = false, message = "Invoice not found." });
+
+            if (DateTime.TryParse(paymentDate, out DateTime parsedDate))
+                sales.PaymentDate = parsedDate;
+
+            sales.Remarks = remarks;
+            if (discAmt.HasValue)
+                sales.DiscAmt = discAmt.Value;
+            sales.ModBy   = Session["EmpNo"] + "|" + Session["EmpName"];
+            sales.ModDate = DateTime.Now;
+
+            db.Saless.Attach(sales);
+            db.Entry(sales).State = EntityState.Modified;
+            db.SaveChanges();
+
+            return Json(new { success = true, salesid });
+        }
+
+        [HttpPost]
+        public ActionResult EditInvoiceItem(UpdateSales salesitem)
+        {
+            var role = Session["RoleName"]?.ToString() ?? "";
+            if (!role.Contains("Admin") && !role.Equals("PIC"))
+                return Json(new { success = false, message = "Unauthorized." });
+
+            DBContext db2 = new DBContext();
+            var item = db2.SalesItems.Find(salesitem.SalesItemId);
+            if (item == null) return new EmptyResult();
+
+            int oldQty   = item.Quantity;
+            int newQty   = salesitem.Quantity;
+            int qtyDelta = newQty - oldQty;
+
+            var productTypeId = db2.Types
+                .FirstOrDefault(t => t.Active == false && t.Status == false
+                              && t.Module == "Product" && t.TypeName == "Product")?.TypeId;
+
+            if (item.TypeId == productTypeId && qtyDelta != 0)
+            {
+                var stock = db2.Stock.FirstOrDefault(x => x.ProductId == item.ProductId);
+                if (stock != null)
+                {
+                    if (qtyDelta > 0 && stock.QtyAvailable < qtyDelta)
+                        return Json(new { success = false, message = "Insufficient stock." });
+
+                    stock.QtyAvailable -= qtyDelta;
+                    stock.ModDate = DateTime.Now;
+                    stock.ModBy   = Session["EmpNo"] + "|" + Session["EmpName"];
+                    db2.Stock.Attach(stock);
+                    db2.Entry(stock).State = EntityState.Modified;
+                }
+            }
+
+            item.Quantity    = newQty;
+            item.UnitPrice   = salesitem.UnitPrice;
+            item.LineDiscAmt = salesitem.LineDiscAmt;
+            item.LineTotal   = salesitem.LineTotal;
+            item.Remarks     = salesitem.Remarks;
+            item.ModBy       = Session["EmpNo"] + "|" + Session["EmpName"];
+            item.ModDate     = DateTime.Now;
+            db2.SalesItems.Attach(item);
+            db2.Entry(item).State = EntityState.Modified;
+
+            var allItems = db2.SalesItems.Where(x => x.SalesId == item.SalesId).ToList();
+            allItems.First(x => x.SalesItemId == item.SalesItemId).LineTotal = item.LineTotal;
+            var headerSales = db2.Saless.Find(item.SalesId);
+            if (headerSales == null)
+                return Json(new { success = false, message = "Invoice header not found." });
+            headerSales.TotalAmt = allItems.Sum(x => x.LineTotal);
+            headerSales.ModBy    = item.ModBy;
+            headerSales.ModDate  = DateTime.Now;
+            db2.Saless.Attach(headerSales);
+            db2.Entry(headerSales).State = EntityState.Modified;
+
+            db2.SaveChanges();
+            return Json(new { success = true });
+        }
+
+        [HttpPost]
+        public ActionResult CancelInvoice(string salesid, string reason)
+        {
+            var role = Session["RoleName"]?.ToString() ?? "";
+            if (!role.Contains("Admin") && !role.Equals("PIC"))
+                return Json(new { success = false, message = "Unauthorized." });
+
+            if (string.IsNullOrEmpty(Session["EmpNo"] as string))
+                return Json(new { success = false, message = "Session expired." });
+
+            DBContext db2 = new DBContext();
+            var sales = db2.Saless.FirstOrDefault(x => x.SalesId == salesid && x.Active == false);
+            if (sales == null)
+                return Json(new { success = false, message = "Invoice not found or already cancelled." });
+
+            var typeList    = db2.Types.Where(t => t.Active == false && t.Status == false && t.Module == "Product").ToList();
+            var topupTypeId = typeList.FirstOrDefault(t => t.TypeName == "TopUp")?.TypeId;
+
+            var allItems   = db2.SalesItems.Where(x => x.SalesId == salesid).ToList();
+            var topupItems = allItems.Where(x => x.TypeId == topupTypeId).ToList();
+
+            string cancelledBy = Session["EmpNo"] + "|" + Session["EmpName"];
+
+            // 1. Restore stock — for each item, check if a stock record exists.
+            //    Stock is only tracked for product-type items; services/packages have no stock row.
+            //    Using the stock record as the discriminator avoids fragile TypeId nullable comparisons.
+            foreach (var item in allItems)
+            {
+                var stock = db2.Stock.FirstOrDefault(x => x.ProductId == item.ProductId);
+                if (stock != null)
+                {
+                    stock.QtyAvailable += item.Quantity;
+                    stock.ModDate = DateTime.Now;
+                    stock.ModBy   = cancelledBy;
+                    // Entity is already tracked by db2 via FirstOrDefault; just mark it Modified.
+                    db2.Entry(stock).State = EntityState.Modified;
+                }
+            }
+
+            // 2. Deactivate associated service records
+            var services = db2.Services.Where(x => x.SalesId == salesid && x.Status == false).ToList();
+            foreach (var svc in services)
+            {
+                svc.Status = true;
+                db2.Entry(svc).State = EntityState.Modified;
+            }
+
+            // 3. Mark all sales items as cancelled (Active=true, Status=true)
+            foreach (var item in allItems)
+            {
+                item.Active  = true;
+                item.Status  = true;
+                item.ModBy   = cancelledBy;
+                item.ModDate = DateTime.Now;
+                db2.Entry(item).State = EntityState.Modified;
+            }
+
+            // 4. Reverse customer financials
+            var cus = db2.Customers.FirstOrDefault(x => x.CusId == sales.CusId);
+            if (cus != null)
+            {
+                // Credit invoice — restore customer credit balance
+                if (salesid.StartsWith("CCT"))
+                {
+                    cus.CreditBal += sales.TotalAmt ?? 0;
+                }
+
+                if (topupItems.Any())
+                {
+                    // Reverse TopUp: undo TPDueAmt and CreditBal additions
+                    var dueBalance = (sales.PaidAmt ?? 0) - (sales.TotalAmt ?? 0);
+                    cus.TPDueAmt  -= dueBalance;
+
+                    var products = db2.Products.Where(p => p.Active == false && p.Status == false).ToList();
+                    foreach (var topup in topupItems)
+                    {
+                        var pro = products.FirstOrDefault(p => p.ProductId == topup.ProductId);
+                        cus.CreditBal -= (decimal)(pro != null && pro.Credit > 0 ? pro.Credit * topup.Quantity : 0);
+                    }
+                }
+                else if (services.Any())
+                {
+                    // Reverse SVDue if payment was short and services were delivered on credit
+                    var dueBalance = (sales.PaidAmt ?? 0) - (sales.TotalAmt ?? 0);
+                    if (dueBalance < 0)
+                        cus.SVDueAmt -= dueBalance;
+                }
+
+                db2.Entry(cus).State = EntityState.Modified;
+            }
+
+            // 5. Mark invoice header as cancelled (Active=true = soft-deleted in this project's convention)
+            sales.Active  = true;
+            sales.Remarks = $"CANCELLED on {DateTime.Now:yyyy-MM-dd} by {cancelledBy}: {reason}. " + (sales.Remarks ?? "");
+            sales.ModBy   = cancelledBy;
+            sales.ModDate = DateTime.Now;
+            db2.Entry(sales).State = EntityState.Modified;
+
+            db2.SaveChanges();
+            return Json(new { success = true });
+        }
+
         #endregion
 
         #region Invoice By Credit   
