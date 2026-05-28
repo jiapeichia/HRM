@@ -484,6 +484,14 @@
     <Content Include="Views\BackOrder\EditorTemplates\PreorderEditor.cshtml" />
     <Content Include="Views\Customer\ExpiringList.cshtml" />
     <Content Include="Views\Customer\_SearchExpiringList.cshtml" />
+    <Content Include="Views\Report\DailyTransaction.cshtml" />
+    <Content Include="Views\Report\SearchProductSettlement.cshtml" />
+    <Content Include="Views\Report\_SearchProductSettlementReport.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\PICMultiEditor.cshtml" />
+    <Content Include="Views\Sales\EditInvoice.cshtml" />
+    <Content Include="Views\Employee\EditorTemplates\EmployeeEditor.cshtml" />
+    <Content Include="Views\Employee\EditorTemplates\TrainingEditor.cshtml" />
+    <Content Include="Views\Admin\AdminSettings.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff" />

@@ -230,7 +230,7 @@
                 .Columns(columns =>
                 {
                     columns.Template(c => { }).Title("Invoice No").Width(105)
-                        .ClientTemplate("# if (IsGiro) { #<a href='/GIROs/GIROReceipt?salesid=#= SalesId #' target='_blank'><span class='k-button k-button-icontext k-grid-edit'>#= SalesId #</span></a># } else { #<a href='/Sales/PreviewINV?salesid=#= SalesId #' target='_blank'><span class='k-button k-button-icontext k-grid-edit'>#= SalesId #</span></a># } #");
+                        .ClientTemplate("# if (IsGiro) { #" + "<a href='" + @Url.Action("GIROReceipt", "GIROs") + "?salesid=#= SalesId #' target='_blank'><span class='k-button k-button-icontext k-grid-edit'>#= SalesId #</span></a>" + "# } else { #" + "<a href='" + @Url.Action("PreviewINV", "Sales") + "?salesid=#= SalesId #' target='_blank'><span class='k-button k-button-icontext k-grid-edit'>#= SalesId #</span></a>" + "# } #");
                     columns.Bound(c => c.CardNo).Title("Card No").Width(105);
                     columns.Bound(c => c.CustomerName).Title("Customer Name");
                     columns.Bound(c => c.FacialProduct).Title("Facial / Product");

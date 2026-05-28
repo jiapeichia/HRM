@@ -273,12 +273,8 @@
                     <tr>
                         <td style="border-top: none; text-align: left; padding: 3px"><strong>Credit Balance </strong></td>
                         <td style="border-top: none; text-align: left; padding: 3px">: @Model.CreditBal </td>
-                        <td style="border-top: none; text-align: left; padding: 3px"></td>
-                        <td style="border-top: none; text-align: left; padding: 3px"></td>
-                        <td style="border-top: none; text-align: left; padding: 3px"></td>
-                        <td style="border-top: none; text-align: left; padding: 3px"></td>
-                        @* <td style="border-top: none; text-align: left; padding: 3px"><strong>Credit Balance </strong></td>
-                            <td style="border-top: none; text-align: left; padding: 3px">: @Model.CreditBal </td>*@
+                        <td style="border-top: none; text-align: left; padding: 3px"><strong>Remarks </strong></td>
+                        <td style="border-top: none; text-align: left; padding: 3px" colspan="3">: @Model.Remarks</td>
                     </tr>
                 </table>
                 <br />
@@ -291,6 +287,9 @@
                         </th>
                         <th>
                             Item
+                        </th>
+                        <th>
+                            Remarks
                         </th>
                         <th>
                             Qty
@@ -317,6 +316,9 @@
                                 <td style="width:5%">@index</td>
                                 <td style="width:20%; text-align:left">
                                     @Html.DisplayFor(modelItem => item.ProductName)
+                                </td>
+                                <td style="width:15%; text-align:left">
+                                    @Html.DisplayFor(modelItem => item.Remarks)
                                 </td>
                                 <td class="quantity" style="width:5%">
                                     @if (Model.PaidAmt == null)
@@ -363,6 +365,9 @@
                                 <td style="width:20%; text-align:left">
                                     @Html.DisplayFor(modelItem => item.ProductName)
                                 </td>
+                                <td style="width:15%; text-align:left">
+                                    @Html.DisplayFor(modelItem => item.Remarks)
+                                </td>
                                 <td class="quantity" style="width:5%">
                                     @if (Model.PaidAmt == null)
                                     {
@@ -403,6 +408,7 @@
                         <tr><td colspan="8">No sales details available.</td></tr>
                     }
                     <tr>
+                        <td></td>
                         <td></td>
                         <td></td>
                         <td><strong>@Model.totalQty</strong></td>

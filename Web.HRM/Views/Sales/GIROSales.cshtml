@@ -180,6 +180,9 @@
                             Item
                         </th>
                         <th>
+                            Remarks
+                        </th>
+                        <th>
                             Unit Price
                         </th>
                         <th>
@@ -210,6 +213,9 @@
                                 <td style="width:5%">@index</td>
                                 <td style="width:20%; text-align:left">
                                     @Html.DisplayFor(modelItem => item.ProductName)
+                                </td>
+                                <td style="width:15%; text-align:left">
+                                    @Html.DisplayFor(modelItem => item.Remarks)
                                 </td>
                                 <td class="unitprice" style="width:10%">
                                     <span>@item.UnitPrice</span>
@@ -247,9 +253,10 @@
                     }
                     else
                     {
-                        <tr><td colspan="8">No sales details available.</td></tr>
+                        <tr><td colspan="9">No sales details available.</td></tr>
                     }
                     <tr>
+                        <td></td>
                         <td></td>
                         <td></td>
                         <td></td>
@@ -309,6 +316,12 @@
                             <td style="text-align: left;">Sales Person</td>
                             <td>
                                 <select id="SalesPerson" style="width:100%"></select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;">Remarks</td>
+                            <td>
+                                <textarea id="Remarks" rows="3" style="width:100%; resize:vertical;" placeholder="Enter remarks..."></textarea>
                             </td>
                         </tr>
                         <tr>
@@ -421,6 +434,7 @@
         var payamtInput = document.getElementById("LinePayAmt");
         var salesPersonWidget = $("#SalesPerson").data("kendoMultiSelect");
         var salesPersonItems = salesPersonWidget ? salesPersonWidget.dataItems() : [];
+        var remarksInput = document.getElementById("Remarks");
         var cusId = document.getElementById("CusId").value;
         var minAmtInput = document.getElementById("minAmt").value;
 
@@ -489,6 +503,7 @@
                 total: total,
                 empno: salesPersonItems.map(function (x) { return x.EmpNo; }).join(","),
                 empname: salesPersonItems.map(function (x) { return x.DisplayName; }).join(","),
+                remarks: remarksInput ? remarksInput.value : "",
                 cusid: cusId,
             },
             success: function (response) {
