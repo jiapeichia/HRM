@@ -900,7 +900,7 @@ namespace Web.HRM.Controllers
         }
 
         [HttpPost]
-        public ActionResult EditInvoice(string salesid, string remarks, string paymentDate, decimal? discAmt)
+        public ActionResult EditInvoice(string salesid, string remarks, decimal? discAmt)
         {
             var role = Session["RoleName"]?.ToString() ?? "";
             if (!role.Contains("Admin") && !role.Equals("PIC"))
@@ -910,12 +910,15 @@ namespace Web.HRM.Controllers
             if (sales == null)
                 return Json(new { success = false, message = "Invoice not found." });
 
-            if (DateTime.TryParse(paymentDate, out DateTime parsedDate))
-                sales.PaymentDate = parsedDate;
-
             sales.Remarks = remarks;
             if (discAmt.HasValue)
                 sales.DiscAmt = discAmt.Value;
+
+            // Recalculate TotalAmt and PaidAmt to stay in sync with current items + header discount
+            var lineItems = db.SalesItems.Where(x => x.SalesId == salesid).ToList();
+            sales.TotalAmt = lineItems.Sum(x => x.LineTotal);
+            sales.PaidAmt  = sales.TotalAmt - (sales.DiscAmt ?? 0);
+
             sales.ModBy   = Session["EmpNo"] + "|" + Session["EmpName"];
             sales.ModDate = DateTime.Now;
 
@@ -977,6 +980,7 @@ namespace Web.HRM.Controllers
             if (headerSales == null)
                 return Json(new { success = false, message = "Invoice header not found." });
             headerSales.TotalAmt = allItems.Sum(x => x.LineTotal);
+            headerSales.PaidAmt  = headerSales.TotalAmt - (headerSales.DiscAmt ?? 0);
             headerSales.ModBy    = item.ModBy;
             headerSales.ModDate  = DateTime.Now;
             db2.Saless.Attach(headerSales);

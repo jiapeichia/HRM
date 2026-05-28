@@ -74,10 +74,9 @@
 
                 // Save header (Remarks + PaymentDate + DiscAmt)
                 $("#saveChanges").click(function () {
-                    var salesid     = "@Model.SalesId";
-                    var remarks     = $("#Remarks").val();
-                    var paymentDate = $("#PaymentDate").val();
-                    var discAmt     = parseFloat($("#HeaderDiscAmt").val()) || 0;
+                    var salesid = "@Model.SalesId";
+                    var remarks = $("#Remarks").val();
+                    var discAmt = parseFloat($("#HeaderDiscAmt").val()) || 0;
 
                     var $btn = $(this);
                     $btn.prop("disabled", true).val("Saving...");
@@ -85,7 +84,7 @@
                     $.ajax({
                         type: "POST",
                         url: '@Url.Action("EditInvoice", "Sales")',
-                        data: { salesid: salesid, remarks: remarks, paymentDate: paymentDate, discAmt: discAmt },
+                        data: { salesid: salesid, remarks: remarks, discAmt: discAmt },
                         success: function (response) {
                             $btn.prop("disabled", false).val("SAVE CHANGES");
                             if (response && response.success === false) {
@@ -156,11 +155,6 @@
             <div class="edit-box">
                 <h4>Invoice Header - Editable Fields</h4>
                 <div class="row">
-                    <div class="col-md-3">
-                        <label>Payment Date</label>
-                        <input type="date" id="PaymentDate" class="form-control"
-                               value="@Model.PaymentDate.ToString("yyyy-MM-dd")" />
-                    </div>
                     <div class="col-md-2">
                         <label>Additional Discount</label>
                         <input type="number" id="HeaderDiscAmt" class="form-control" step="0.01" min="0"
@@ -251,11 +245,21 @@
                 <tfoot>
                     <tr class="footer-row">
                         <td></td>
-                        <td style="text-align:right; padding-right:10px">Total</td>
+                        <td style="text-align:right; padding-right:10px">Subtotal</td>
                         <td id="footerQty">@Model.totalQty</td>
                         <td></td>
                         <td id="footerDisc">@Model.totalDisc.ToString("0.00")</td>
                         <td id="footerSubtotal">@Model.subtotal.ToString("0.00")</td>
+                        <td colspan="3"></td>
+                    </tr>
+                    <tr class="footer-row">
+                        <td colspan="5" style="text-align:right; padding-right:10px">Additional Discount</td>
+                        <td id="footerHeaderDisc" style="color:#c0392b">-@((Model.DiscAmt ?? 0).ToString("0.00"))</td>
+                        <td colspan="3"></td>
+                    </tr>
+                    <tr class="footer-row" style="font-size:15px; background:#d4edda">
+                        <td colspan="5" style="text-align:right; padding-right:10px; font-weight:bold">Grand Total (Paid)</td>
+                        <td id="footerGrandTotal" style="font-weight:bold; color:#1a5f9e">@((Model.subtotal - (Model.DiscAmt ?? 0)).ToString("0.00"))</td>
                         <td colspan="3"></td>
                     </tr>
                 </tfoot>
@@ -378,22 +382,20 @@
             totalDisc += parseFloat($row.find(".linediscount input:visible").val() || $row.find(".linediscount span").text()) || 0;
             subtotal  += parseFloat($row.find(".linetotal span").text()) || 0;
         });
+        var headerLump = parseFloat($("#HeaderDiscAmt").val()) || 0;
+        var grandTotal = subtotal - headerLump;
+
         $("#footerQty").text(totalQty);
         $("#footerDisc").text(totalDisc.toFixed(2));
         $("#footerSubtotal").text(subtotal.toFixed(2));
+        $("#footerHeaderDisc").text("-" + headerLump.toFixed(2));
+        $("#footerGrandTotal").text(grandTotal.toFixed(2));
         // Keep header Total Discount in sync: Header lump-sum + line item discounts
-        var headerLump = parseFloat($("#HeaderDiscAmt").val()) || 0;
         $("#headerDisc").text((headerLump + totalDisc).toFixed(2));
     }
 
-    // Update header Total Discount when Header Discount input changes
+    // Update all totals when Additional Discount changes
     $("#HeaderDiscAmt").on("input", function () {
-        var headerLump = parseFloat($(this).val()) || 0;
-        var totalLineDisc = 0;
-        $("#tblSalesItem tbody tr").each(function () {
-            var $row = $(this);
-            totalLineDisc += parseFloat($row.find(".linediscount input:visible").val() || $row.find(".linediscount span").text()) || 0;
-        });
-        $("#headerDisc").text((headerLump + totalLineDisc).toFixed(2));
+        refreshFooterTotals();
     });
 </script>
