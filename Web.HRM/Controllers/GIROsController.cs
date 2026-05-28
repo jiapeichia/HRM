@@ -268,28 +268,42 @@ namespace Web.HRM.Controllers
 
                 db.Saless.Add(sales);
 
-                // Update service DueFlag to false 
+                // Update service DueFlag to false
                 if (sales.BalAmt == 0 && !payment.IsTopUp)
                 {
                     var service = db.Services.FirstOrDefault(x => x.SalesId == payment.OldSalesId);
-                    service.DueFlag = false;
+                    if (service != null)
+                        service.DueFlag = false;
                 }
                 else if (payment.IsTopUp && sales.BalAmt >= 0)
                 {
                     // Add package free credit - buy one package at a time
                     var topupid = db.Types.FirstOrDefault(e => e.Active.Equals(false) && e.Status.Equals(false) && e.TypeName == "TopUp")?.TypeId;
                     var origSales = db.SalesItems.FirstOrDefault(x => x.SalesId == payment.OldSalesId);
-                    var package = db.Packages.FirstOrDefault(x => x.ProductId == origSales.ProductId);
-                    var packagedetails = db.PackageDetails.FirstOrDefault(x => x.PackageId == package.Id && x.ItemType == topupid);
+                    var package = origSales != null ? db.Packages.FirstOrDefault(x => x.ProductId == origSales.ProductId) : null;
+                    var packagedetails = (package != null && topupid != null)
+                        ? db.PackageDetails.FirstOrDefault(x => x.PackageId == package.Id && x.ItemType == topupid)
+                        : null;
 
-                    var salesList = db.Saless.Where(x => x.SalesId == payment.OldSalesId || x.DueInvoice == payment.OldSalesId);
-                    var ToCredit = packagedetails.TotalCost - salesList.Sum(x => x.PaidAmt);
-                    cus.CreditBal += ToCredit ?? 0;
+                    if (packagedetails != null)
+                    {
+                        var salesList = db.Saless.Where(x => x.SalesId == payment.OldSalesId || x.DueInvoice == payment.OldSalesId);
+                        var ToCredit = packagedetails.TotalCost - salesList.Sum(x => x.PaidAmt);
+                        cus.CreditBal += ToCredit ?? 0;
+                    }
+                    else
+                    {
+                        // Package credit details not found - credit the payment amount
+                        cus.CreditBal += payment.PaidAmt ?? 0;
+                    }
 
                     // unlock free gift if any
                     var service = db.Services.FirstOrDefault(x => x.SalesId == payment.OldSalesId);
-                    service.DueFlag = false;
-                    service.Remarks = "";
+                    if (service != null)
+                    {
+                        service.DueFlag = false;
+                        service.Remarks = "";
+                    }
                 }
                 else
                 {
