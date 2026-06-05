@@ -149,6 +149,9 @@ namespace Meo.Web.ViewModels
         [Display(Name = "Package Id")]
         public int PackageId { get; set; }
 
+        [Display(Name = "Sales Id")]
+        public string SalesId { get; set; }
+
         [Display(Name = "Package Code")]
         public string PackageCode { get; set; }
 

@@ -474,7 +474,7 @@ namespace Web.HRM.Controllers
                     {
                         // packageDetails itemId = ProductId -Fail-> Stock check product qty !!! check cus select how many Qty 
                         var itemAvailableQty = stockAvailable.FirstOrDefault(x => x.ProductId == details.ItemId)?.QtyAvailable ?? 0;
-                        bool isNoStock = itemAvailableQty > (details.Qty * qty);
+                        bool isNoStock = itemAvailableQty < (details.Qty * qty);
 
                         if (isNoStock)
                         {
@@ -910,6 +910,8 @@ namespace Web.HRM.Controllers
             if (sales == null)
                 return Json(new { success = false, message = "Invoice not found." });
 
+            decimal oldPaidAmt = sales.PaidAmt ?? 0;
+
             sales.Remarks = remarks;
             if (discAmt.HasValue)
                 sales.DiscAmt = discAmt.Value;
@@ -924,6 +926,24 @@ namespace Web.HRM.Controllers
 
             db.Saless.Attach(sales);
             db.Entry(sales).State = EntityState.Modified;
+
+            // Credit invoice — adjust customer credit balance by the difference in paid amount
+            if (salesid.StartsWith("CCT"))
+            {
+                decimal newPaidAmt = sales.PaidAmt ?? 0;
+                decimal delta = oldPaidAmt - newPaidAmt;
+                if (delta != 0)
+                {
+                    var cus = db.Customers.FirstOrDefault(x => x.CusId == sales.CusId);
+                    if (cus != null)
+                    {
+                        cus.CreditBal += delta;
+                        db.Customers.Attach(cus);
+                        db.Entry(cus).State = EntityState.Modified;
+                    }
+                }
+            }
+
             db.SaveChanges();
 
             return Json(new { success = true, salesid });
@@ -979,12 +999,31 @@ namespace Web.HRM.Controllers
             var headerSales = db2.Saless.Find(item.SalesId);
             if (headerSales == null)
                 return Json(new { success = false, message = "Invoice header not found." });
+
+            decimal oldPaidAmt = headerSales.PaidAmt ?? 0;
+
             headerSales.TotalAmt = allItems.Sum(x => x.LineTotal);
             headerSales.PaidAmt  = headerSales.TotalAmt - (headerSales.DiscAmt ?? 0);
             headerSales.ModBy    = item.ModBy;
             headerSales.ModDate  = DateTime.Now;
             db2.Saless.Attach(headerSales);
             db2.Entry(headerSales).State = EntityState.Modified;
+
+            // Credit invoice — adjust customer credit balance by the difference in paid amount
+            if (item.SalesId.StartsWith("CCT"))
+            {
+                decimal newPaidAmt = headerSales.PaidAmt ?? 0;
+                decimal delta = oldPaidAmt - newPaidAmt;
+                if (delta != 0)
+                {
+                    var cus = db2.Customers.FirstOrDefault(x => x.CusId == headerSales.CusId);
+                    if (cus != null)
+                    {
+                        cus.CreditBal += delta;
+                        db2.Entry(cus).State = EntityState.Modified;
+                    }
+                }
+            }
 
             db2.SaveChanges();
             return Json(new { success = true });
@@ -1005,18 +1044,19 @@ namespace Web.HRM.Controllers
             if (sales == null)
                 return Json(new { success = false, message = "Invoice not found or already cancelled." });
 
-            var typeList    = db2.Types.Where(t => t.Active == false && t.Status == false && t.Module == "Product").ToList();
-            var topupTypeId = typeList.FirstOrDefault(t => t.TypeName == "TopUp")?.TypeId;
+            var typeList      = db2.Types.Where(t => t.Active == false && t.Status == false && t.Module == "Product").ToList();
+            var topupTypeId   = typeList.FirstOrDefault(t => t.TypeName == "TopUp")?.TypeId;
+            var packageTypeId = typeList.FirstOrDefault(t => t.TypeName == "Package")?.TypeId;
+            var productTypeId = typeList.FirstOrDefault(t => t.TypeName == "Product")?.TypeId;
 
             var allItems   = db2.SalesItems.Where(x => x.SalesId == salesid).ToList();
             var topupItems = allItems.Where(x => x.TypeId == topupTypeId).ToList();
 
             string cancelledBy = Session["EmpNo"] + "|" + Session["EmpName"];
 
-            // 1. Restore stock — for each item, check if a stock record exists.
-            //    Stock is only tracked for product-type items; services/packages have no stock row.
-            //    Using the stock record as the discriminator avoids fragile TypeId nullable comparisons.
-            foreach (var item in allItems)
+            // 1. Restore stock for direct product items (TypeId == Product).
+            //    Skip back order items — stock was never deducted for them.
+            foreach (var item in allItems.Where(x => !x.IsBackordered))
             {
                 var stock = db2.Stock.FirstOrDefault(x => x.ProductId == item.ProductId);
                 if (stock != null)
@@ -1024,8 +1064,85 @@ namespace Web.HRM.Controllers
                     stock.QtyAvailable += item.Quantity;
                     stock.ModDate = DateTime.Now;
                     stock.ModBy   = cancelledBy;
-                    // Entity is already tracked by db2 via FirstOrDefault; just mark it Modified.
                     db2.Entry(stock).State = EntityState.Modified;
+                }
+            }
+
+            // 1b & 1c. Handle package items: restore stock for component products AND
+            //          disable PackageSold/PackageSoldDetails so they vanish from PRODUCT PURCHASED.
+            //          PackageSold has no SalesId column, so match by CusId + PackageId + same day.
+            // Back order package items also never deducted component stock — skip them.
+            var packageItems = allItems.Where(x => x.TypeId == packageTypeId && !x.IsBackordered).ToList();
+            if (packageItems.Any())
+            {
+                var allPackages = db2.Packages.Where(x => x.Active == false && x.Status == false).ToList();
+
+                foreach (var packItem in packageItems)
+                {
+                    var pkg = allPackages.FirstOrDefault(x => x.ProductId == packItem.ProductId);
+                    if (pkg == null) continue;
+
+                    // Restore stock for each component product
+                    var components = db2.PackageDetails
+                        .Where(x => x.PackageId == pkg.Id && x.ItemType == productTypeId && x.Active == false)
+                        .ToList();
+
+                    foreach (var comp in components)
+                    {
+                        var stock = db2.Stock.FirstOrDefault(x => x.ProductId == comp.ItemId);
+                        if (stock != null)
+                        {
+                            stock.QtyAvailable += comp.Qty * packItem.Quantity;
+                            stock.ModDate = DateTime.Now;
+                            stock.ModBy   = cancelledBy;
+                            db2.Entry(stock).State = EntityState.Modified;
+                        }
+                    }
+
+                    // Deactivate Service rows created for service components of this package.
+                    // On payment, package services are stored with SalesItemId = pack.SalesItemId
+                    // (the package SalesItem ID, not any individual service ID). Mirror that link here.
+                    var pkgServices = db2.Services
+                        .Where(x => x.SalesItemId == packItem.SalesItemId
+                                   && x.SalesId == salesid
+                                   && !x.Status)
+                        .ToList();
+
+                    foreach (var svc in pkgServices)
+                    {
+                        svc.Status = true;
+                        db2.Entry(svc).State = EntityState.Modified;
+                    }
+
+                    // Disable PackageSold (matched by SalesId — reliable, unique per invoice)
+                    // and its PackageSoldDetails (matched by the PackageSold's real PK).
+                    var soldRecords = db2.PackageSolds
+                        .Where(x => x.SalesId == salesid
+                                   && x.PackageId == pkg.Id
+                                   && !x.Status && !x.Active)
+                        .ToList();
+
+                    foreach (var sold in soldRecords)
+                    {
+                        sold.Status  = true;
+                        sold.Active  = true;
+                        sold.ModBy   = cancelledBy;
+                        sold.ModDate = DateTime.Now;
+                        db2.Entry(sold).State = EntityState.Modified;
+
+                        var soldDetails = db2.PackageSoldDetails
+                            .Where(x => x.PackageSoldId == sold.Id && !x.Active)
+                            .ToList();
+
+                        foreach (var detail in soldDetails)
+                        {
+                            detail.Status  = true;
+                            detail.Active  = true;
+                            detail.ModBy   = cancelledBy;
+                            detail.ModDate = DateTime.Now;
+                            db2.Entry(detail).State = EntityState.Modified;
+                        }
+                    }
                 }
             }
 
@@ -1651,17 +1768,19 @@ namespace Web.HRM.Controllers
                                 var main_p = main.FirstOrDefault(x => x.ProductId == pack.ProductId);
                                 var p_item = db.PackageDetails.Where(x => x.PackageId == main_p.Id && x.Active == false && x.Status == false).ToList();
 
-                                db.PackageSolds.Add(new PackageSoldViewModels
+                                // Save PackageSold first so EF generates its Id, which we then
+                                // use as the correct FK for PackageSoldDetails.
+                                var newSold = new PackageSoldViewModels
                                 {
                                     CusId = payment.CusId,
                                     PackageId = main_p.Id,
+                                    SalesId = newSalesId,
                                     PackageCode = main_p.Code,
                                     PackageType = main_p.ProductType,
                                     TotalCost = main_p.TotalCost,
                                     SellingPrice = main_p.SellingPrice,
                                     PackageRemarks = main_p.Remarks,
                                     ExpiryPeriod = main_p.ExpiryPeriod,
-                                    //ExpiryDate = main_p.ExpiryPeriod == 0 ? null : DateTime.Now.AddMonths(main_p.ExpiryPeriod).AddDays(-1),
                                     ExpiryDate = main_p.ExpiryPeriod.HasValue && main_p.ExpiryPeriod.Value > 0
                                     ? DateTime.Now.AddMonths(main_p.ExpiryPeriod.Value).AddDays(-1)
                                     : (DateTime?)null,
@@ -1672,14 +1791,17 @@ namespace Web.HRM.Controllers
                                     ModBy = Session["EmpNo"].ToString() + " | " + Session["EmpName"].ToString(),
                                     AddDate = DateTime.Now,
                                     ModDate = DateTime.Now
-                                });
+                                };
 
-                                // Clone Package Sold Details
+                                db.PackageSolds.Add(newSold);
+                                db.SaveChanges(); // flush to get newSold.Id
+
+                                // Clone Package Sold Details — now using the real PackageSold PK
                                 foreach (var details in p_item)
                                 {
                                     db.PackageSoldDetails.Add(new PackageSoldDetailsViewModels
                                     {
-                                        PackageSoldId = details.PackageId,
+                                        PackageSoldId = newSold.Id,
                                         ItemId = details.ItemId,
                                         ItemType = details.ItemType,
                                         Qty = details.Qty,
@@ -1892,17 +2014,17 @@ namespace Web.HRM.Controllers
                     var main_p = main.FirstOrDefault(x => x.ProductId == pack.ProductId);
                     var p_item = db.PackageDetails.Where(x => x.PackageId == main_p.Id).ToList();
 
-                    db.PackageSolds.Add(new PackageSoldViewModels
+                    var newSold = new PackageSoldViewModels
                     {
                         CusId = CusId,
                         PackageId = main_p.Id,
+                        SalesId = SalesId,
                         PackageCode = main_p.Code,
                         PackageType = main_p.ProductType,
                         TotalCost = main_p.TotalCost,
                         SellingPrice = main_p.SellingPrice,
                         PackageRemarks = main_p.Remarks,
                         ExpiryPeriod = main_p.ExpiryPeriod,
-                        //ExpiryDate = DateTime.Now.AddMonths(main_p.ExpiryPeriod).AddDays(-1),
                         ExpiryDate = main_p.ExpiryPeriod.HasValue && main_p.ExpiryPeriod.Value > 0
                                         ? DateTime.Now.AddMonths(main_p.ExpiryPeriod.Value).AddDays(-1)
                                         : (DateTime?)null,
@@ -1913,14 +2035,17 @@ namespace Web.HRM.Controllers
                         ModBy = Session["EmpNo"].ToString() + " | " + Session["EmpName"].ToString(),
                         AddDate = DateTime.Now,
                         ModDate = DateTime.Now
-                    });
+                    };
 
-                    // Clone Package Sold Details
+                    db.PackageSolds.Add(newSold);
+                    db.SaveChanges(); // flush to get newSold.Id
+
+                    // Clone Package Sold Details — now using the real PackageSold PK
                     foreach (var details in p_item)
                     {
                         db.PackageSoldDetails.Add(new PackageSoldDetailsViewModels
                         {
-                            PackageSoldId = details.PackageId,
+                            PackageSoldId = newSold.Id,
                             ItemId = details.ItemId,
                             ItemType = details.ItemType,
                             Qty = details.Qty,
@@ -2363,29 +2488,32 @@ namespace Web.HRM.Controllers
                          ModDate = o.ModDate
                      }).ToList();
 
-                var query2 = db.PackageSoldDetails
-                   .Where(o => !o.Status && o.ItemType == prodId && db.PackageSolds.Any(s => s.CusId == cusId && s.Id == o.PackageSoldId && !o.Status && !o.Active))
-                   .AsEnumerable()
-                   .Select(o => new SalesItemViewModels
-                   {
-                       SalesItemId = o.Id,
-                       SalesId = "",
-                       EmpNo = "",
-                       ProductId = o.ItemId,
-                       Quantity = o.Qty,
-                       QtyBalance = o.Qty,
-                       UnitPrice = o.Cost,
-                       LineTotal = o.TotalCost,
-                       //LineDiscAmt = o.LineDiscAmt,
-                       //Exchange = o.Exchange,
-                       Remarks = o.Remarks,
-                       Active = o.Active,
-                       Status = o.Status,
-                       AddBy = o.AddBy,
-                       ModBy = o.ModBy,
-                       AddDate = o.AddDate,
-                       ModDate = o.ModDate
-                   }).ToList();
+                var query2 = (from o in db.PackageSoldDetails
+                              join s in db.PackageSolds on o.PackageSoldId equals s.Id
+                              where !o.Status && !o.Active
+                                    && o.ItemType == prodId
+                                    && s.CusId == cusId
+                                    && !s.Status && !s.Active
+                              select new { o, s.SalesId })
+                             .AsEnumerable()
+                             .Select(x => new SalesItemViewModels
+                             {
+                                 SalesItemId = x.o.Id,
+                                 SalesId     = x.SalesId ?? "",
+                                 EmpNo       = "",
+                                 ProductId   = x.o.ItemId,
+                                 Quantity    = x.o.Qty,
+                                 QtyBalance  = x.o.Qty,
+                                 UnitPrice   = x.o.Cost,
+                                 LineTotal   = x.o.TotalCost,
+                                 Remarks     = x.o.Remarks,
+                                 Active      = x.o.Active,
+                                 Status      = x.o.Status,
+                                 AddBy       = x.o.AddBy,
+                                 ModBy       = x.o.ModBy,
+                                 AddDate     = x.o.AddDate,
+                                 ModDate     = x.o.ModDate
+                             }).ToList();
 
                 var combinedList = query.Concat(query2).ToList();
                 return Json(combinedList.ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
