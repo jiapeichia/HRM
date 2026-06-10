@@ -172,7 +172,7 @@
             <!-- Line items -->
             <p style="color:#555; font-size:13px; margin-bottom:6px">
                 <span class="glyphicon glyphicon-info-sign"></span>
-                Click <strong>Edit</strong> on a row to change the price, discount, quantity or remarks for that item.
+                Click <strong>Edit</strong> on a row to change the price, discount or remarks for that item.
                 Click <strong>Save</strong> to apply the change immediately.
             </p>
 
@@ -280,7 +280,7 @@
     // ── Edit row ──────────────────────────────────────────────────────────────
     $("body").on("click", "#tblSalesItem .btnEdit", function () {
         var row = $(this).closest("tr");
-        row.find(".quantity, .unitprice, .linediscount, .remarks-cell").each(function () {
+        row.find(".unitprice, .linediscount, .remarks-cell").each(function () {
             $(this).find("span").hide();
             $(this).find("input").show();
         });
@@ -291,7 +291,7 @@
     // ── Undo / cancel ─────────────────────────────────────────────────────────
     $("body").on("click", "#tblSalesItem .btnCancel", function () {
         var row = $(this).closest("tr");
-        row.find(".quantity, .unitprice, .linediscount, .remarks-cell").each(function () {
+        row.find(".unitprice, .linediscount, .remarks-cell").each(function () {
             var span  = $(this).find("span");
             var input = $(this).find("input");
             input.val(span.text().trim());
@@ -306,7 +306,7 @@
     $("body").on("click", "#tblSalesItem .btnSave", function () {
         var row        = $(this).closest("tr");
         var salesitemid = parseInt(row.find(".salesitemid").text());
-        var qty        = parseInt(row.find(".quantity input").val());
+        var qty        = parseInt(row.find(".quantity span").text().trim());
         var price      = parseFloat(row.find(".unitprice input").val());
         var disc       = parseFloat(row.find(".linediscount input").val()) || 0;
         var remarks    = row.find(".remarks-cell input").val();
@@ -336,8 +336,6 @@
                     return;
                 }
                 // Update display spans
-                row.find(".quantity span").text(qty);
-                row.find(".quantity input").val(qty);
                 row.find(".unitprice span").text(price.toFixed(2));
                 row.find(".unitprice input").val(price.toFixed(2));
                 row.find(".linediscount span").text(disc.toFixed(2));
@@ -347,7 +345,7 @@
                 row.find(".remarks-cell input").val(remarks);
 
                 // Restore view mode
-                row.find(".quantity, .unitprice, .linediscount, .remarks-cell").each(function () {
+                row.find(".unitprice, .linediscount, .remarks-cell").each(function () {
                     $(this).find("span").show();
                     $(this).find("input").hide();
                 });
@@ -364,7 +362,7 @@
     });
 
     // ── Live recalc while typing ──────────────────────────────────────────────
-    $("body").on("input", "#tblSalesItem .linediscount input, #tblSalesItem .quantity input, #tblSalesItem .unitprice input", function () {
+    $("body").on("input", "#tblSalesItem .linediscount input, #tblSalesItem .unitprice input", function () {
         var row   = $(this).closest("tr");
         var qty   = parseInt(row.find(".quantity input").val())   || 0;
         var price = parseFloat(row.find(".unitprice input").val()) || 0;
