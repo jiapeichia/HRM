@@ -456,7 +456,7 @@
             var qty = parseInt(qtyInput.value);
             var orig_unitprice = parseFloat(selectedProduct.Price).toFixed(2);
          var disc = parseFloat(discountInput.value).toFixed(2);
-         var total = qty * unitprice - disc;
+         var total = parseFloat((qty * parseFloat(unitprice) - parseFloat(disc)).toFixed(2));
 
             if (selectedProduct.QtyAvailable < qty && selectedProduct.TypeName == "Product") {
                 return alert("\nFailed to Insert! \n" + selectedProduct.ProductName + " insufficient stock.");

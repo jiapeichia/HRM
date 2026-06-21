@@ -460,7 +460,7 @@
         var disc = parseFloat(discountInput.value).toFixed(2);
         var qty = parseInt(qtyInput.value);
 
-        var total = qty * unitprice - disc;
+        var total = parseFloat((qty * parseFloat(unitprice) - parseFloat(disc)).toFixed(2));
         var backorder = false;
 
         if (selectedProduct.QtyAvailable < qty && selectedProduct.TypeName == "Product") {
