@@ -10,9 +10,10 @@
 <body>
     <div class="page-content">
         <div class="col-md-12 mx-0">
-            <div align="right" style="width:100%">
+            <div align="right" style="width:100%" id="action-buttons">
                 <input type="button" value="NEW" class="btn btn-default" id="addnew" style="width:100px" />
                 <input type="button" value="EDIT" class="btn btn-default" id="edit" style="width:100px" />
+                <input type="button" value="PRINT" class="btn btn-default" id="printCN" style="width:100px" />
                 <input type="button" value="BACK" class="btn btn-default" id="close" style="width:100px" />
             </div>
             <br />
@@ -38,7 +39,7 @@
                             @Html.TextAreaFor(model => model.Remarks, new { @style = "width : 350px", @id = "Remarks", @disabled = "disabled" })
                         </td>
                     </tr>
-                    <tr>
+                    <tr id="cnno-row" @(string.IsNullOrEmpty(Model.CNNo) ? "class=\"hide-when-empty-cnno\"" : "")>
                         <td style="border-top: none; text-align: left; padding: 3px"><strong>CN No </strong></td>
                         <td style="border-top: none; text-align: left; padding: 3px">
                             :
@@ -210,6 +211,11 @@
 
             $("#edit").click(function () {
                 window.open('@Url.Action("CreditNote", "Stock", new { id = Model.Id, flag = "edit" })', "_self");
+            });
+
+            $("#printCN").click(function () {
+                var url = '@Url.Action("PrintCN", "Stock")' + '?id=@Model.Id';
+                window.open(url, '_blank');
             });
         });
 

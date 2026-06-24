@@ -1,0 +1,134 @@
+@model Meo.Web.ViewModels.CreditNote
+@{
+    Layout = null;
+    var company = ViewData["CompanyProfile"] as Meo.Web.ViewModels.CompanyProfile;
+    var supplierName = ViewData["SupplierName"] as string;
+}
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Credit Note</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            border-top: 1px solid darkgrey;
+            border-bottom: 1px solid darkgrey;
+            text-align: left;
+            font-size: 11px;
+        }
+
+        td {
+            font-size: 11px;
+        }
+
+        @@media print {
+            @@page {
+                size: auto;
+                margin: 5mm;
+            }
+        }
+    </style>
+</head>
+<body>
+    @* Company Header *@
+    <div style="text-align: center; padding-bottom: 5px;">
+        <span style="font-size: 13px;"><strong>@company.Name</strong></span><br />
+        <span style="font-size: 11px;">@company.RegNo</span><br />
+        <span style="font-size: 11px;">@company.Address1</span><br />
+        <span style="font-size: 11px;">@company.Address2</span><br />
+        @if (!string.IsNullOrEmpty(company.Address3))
+        {
+            <span style="font-size: 11px;">@company.Address3</span><br />
+        }
+        <span style="font-size: 11px;">TEL: @company.Tel</span>
+    </div>
+    <div style="text-align: center; padding-bottom: 5px;">
+        <span style="font-size: 13px;"><strong>CREDIT NOTE</strong></span>
+    </div>
+
+    @* CN Info *@
+    <table>
+        @if (!string.IsNullOrEmpty(Model.CNNo))
+        {
+            <tr>
+                <td>CN No.</td>
+                <td>: @Model.CNNo</td>
+                <td></td>
+                <td></td>
+            </tr>
+        }
+        <tr>
+            <td>Date</td>
+            <td>: @Model.CNDate.ToString("dd/MM/yyyy")</td>
+            <td></td>
+            <td></td>
+        </tr>
+        @if (!string.IsNullOrEmpty(supplierName))
+        {
+            <tr>
+                <td>Supplier</td>
+                <td>: @supplierName</td>
+                <td></td>
+                <td></td>
+            </tr>
+        }
+        @if (!string.IsNullOrEmpty(Model.Remarks))
+        {
+            <tr>
+                <td>Remarks</td>
+                <td colspan="3">: @Model.Remarks</td>
+            </tr>
+        }
+    </table>
+
+    @* Items Table *@
+    <table>
+        <tr>
+            <th>Code/Desc</th>
+            <th style="text-align: right">Price(RM)</th>
+            <th style="text-align: right; padding-left: 1px;">Qty</th>
+            <th style="text-align: right; padding-left: 1px;">Disc(RM)</th>
+            <th style="text-align: right; padding-left: 1px;">Amt(RM)</th>
+        </tr>
+        @if (Model.ItemReturns != null)
+        {
+            foreach (var item in Model.ItemReturns)
+            {
+                <tr>
+                    <td>@item.ProductName</td>
+                    <td style="text-align: right">@item.UnitPrice.ToString("N2")</td>
+                    <td style="text-align: right">*@item.Qty</td>
+                    <td style="text-align: right">@item.LineDiscAmt.ToString("N2")</td>
+                    <td style="text-align: right">@item.LineTotal.ToString("N2")</td>
+                </tr>
+            }
+        }
+    </table>
+    <br />
+    <br />
+
+    @* Totals *@
+    <table style="font-size: 11px; border-top: 1px darkgrey dotted; border-bottom: 1px darkgrey dotted;">
+        <tr>
+            <td colspan="4" style="font-size: 11px;">TOTAL (RM)</td>
+            <td style="font-size: 11px; text-align: right">@Model.subtotal.ToString("N2")</td>
+        </tr>
+    </table>
+
+    <div style="text-align: center">
+        <br />
+        <span style="font-size: 11px;">Thank you for choosing <strong>BeYou</strong></span>
+        <br />
+    </div>
+</body>
+</html>
+
+<script>
+    window.onload = function () {
+        window.print();
+    };
+</script>

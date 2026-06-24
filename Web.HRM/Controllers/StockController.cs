@@ -1444,5 +1444,56 @@ namespace Web.HRM.Controllers
             }
         }
         #endregion
+
+        #region Print CN
+        public ActionResult PrintCN(int? id)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(Session["EmpNo"] as string))
+                {
+                    CreditNote cn = (from sr in db.StockReturns
+                                     where sr.Id == id
+                                     select new CreditNote
+                                     {
+                                         Id = sr.Id,
+                                         CNNo = sr.CNNo,
+                                         CNDate = sr.CNDate,
+                                         SupplierId = sr.SupplierId,
+                                         Remarks = sr.Remarks,
+                                         ItemReturns = (from i in db.ItemReturns
+                                                        join p in db.Products on i.ProductId equals p.ProductId into pgroup
+                                                        from pr in pgroup.DefaultIfEmpty()
+                                                        where i.CNId == id
+                                                        select new UpdateItemReturn
+                                                        {
+                                                            CNId = sr.Id,
+                                                            CNNo = sr.CNNo,
+                                                            ProductName = pr.ProductName,
+                                                            Qty = i.Qty,
+                                                            UnitPrice = i.UnitPrice,
+                                                            LineDiscAmt = i.LineDiscAmt,
+                                                            LineTotal = i.LineTotal,
+                                                        }).ToList(),
+                                     }).FirstOrDefault();
+
+                    cn.subtotal = cn.ItemReturns.Sum(item => item.LineTotal);
+                    cn.totalDisc = cn.ItemReturns.Sum(item => item.LineDiscAmt);
+                    cn.totalQty = cn.ItemReturns.Sum(item => item.Qty);
+
+                    ViewData["SupplierName"] = cn.SupplierId > 0 ? db.Suppliers.FirstOrDefault(x => x.Id == cn.SupplierId).Name : "";
+                    ViewData["CompanyProfile"] = db.CompanyProfile.FirstOrDefault();
+
+                    return View(cn);
+                }
+
+                return RedirectToAction("Login", "Account");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.ToString());
+            }
+        }
+        #endregion
     }
 }

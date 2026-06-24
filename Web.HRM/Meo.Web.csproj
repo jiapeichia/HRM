@@ -434,6 +434,7 @@
     <Content Include="Views\Setting\EditorTemplates\ServiceVMEditor.cshtml" />
     <Content Include="Views\Setting\EditorTemplates\TopUpEditor.cshtml" />
     <Content Include="Views\Stock\PreviewCN.cshtml" />
+    <Content Include="Views\Stock\PrintCN.cshtml" />
     <Content Include="Views\Sales\InvoiceByCredit.cshtml" />
     <Content Include="Views\Supplier\Index.cshtml" />
     <Content Include="Views\Supplier\_SearchSupplier.cshtml" />
