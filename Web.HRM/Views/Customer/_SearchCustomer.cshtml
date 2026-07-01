@@ -109,6 +109,12 @@
             //columns.Bound(c => c.CreditBal).ClientTemplate("<a href='" + @Url.Action("InvoiceByCredit", "Sales", new { id = "#=CusId#" }) + "' ><span class='k-button k-button-icontext k-grid-edit'>#=CreditBal#</span></a>").Width(90);
             columns.Bound(c => c.IcNo);
             columns.Bound(c => c.ContactNo);
+            columns.Bound(c => c.LastPurchaseDate).Title("Last Purchase")
+                .ClientTemplate("#= LastPurchaseDate ? kendo.toString(kendo.parseDate(LastPurchaseDate), 'dd/MM/yyyy') : '-' #")
+                .Width(120);
+            columns.Bound(c => c.LastTreatmentDate).Title("Last Treatment")
+                .ClientTemplate("#= LastTreatmentDate ? kendo.toString(kendo.parseDate(LastTreatmentDate), 'dd/MM/yyyy') : '-' #")
+                .Width(120);
             columns.Bound(c => c.CusId).Title("Treatment").ClientTemplate("<a href='" + @Url.Action("SalesByCus", "Sales", new { id = "#=CusId#" }) + "' ><span class='k-button k-button-icontext k-grid-edit'>Treatment</span></a>").Width(90);
             columns.Bound(c => c.CusId).Title("History").ClientTemplate("<a href='" + @Url.Action("CusPurchaseHistory", "Sales", new { id = "#=CusId#" }) + "' ><span class='k-button k-button-icontext k-grid-edit'>History</span></a>").Width(90);
             columns.Bound(c => c.CusId).Title("Profile").ClientTemplate("<a href='" + @Url.Action("Preview", "Customer", new { id = "#=CusId#" }) + "' ><span class='k-button k-button-icontext k-grid-edit'>Preview</span></a>").Width(90);
@@ -145,7 +151,7 @@
             model.Id(tc => tc.CusId);
             model.Field(item => item.CusId).Editable(false);
         })
-        .Read(read => read.Action("GetSearchData", "Customer", new { searchContent = ViewBag.searchContent }))
+        .Read(read => read.Action("GetSearchData", "Customer", new { searchContent = ViewBag.searchContent, inactiveDays = ViewBag.inactiveDays }))
         .Destroy(update => update.Action("Destroy", "Customer"))
         )
         .Resizable(resize => resize.Columns(true))

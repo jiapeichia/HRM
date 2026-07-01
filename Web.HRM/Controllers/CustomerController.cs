@@ -39,14 +39,13 @@ namespace Web.HRM.Controllers
                 throw new Exception(ex.ToString());
             }
         }
-        public ActionResult _SearchCustomer(string searchContent)
+        public ActionResult _SearchCustomer(string searchContent, string inactiveDays)
         {
             ViewBag.searchContent = searchContent;
-
-            // Retrieve the viewmodel for the view here, depending on your data structure.
+            ViewBag.inactiveDays = inactiveDays;
             return PartialView();
         }
-        public ActionResult GetSearchData(string searchContent, [DataSourceRequest] DataSourceRequest request)
+        public ActionResult GetSearchData(string searchContent, string inactiveDays, [DataSourceRequest] DataSourceRequest request)
         {
             List<CustomerDetailsViewModel> employee = new List<CustomerDetailsViewModel>();
             if (!searchContent.IsNullOrWhiteSpace())
@@ -54,7 +53,7 @@ namespace Web.HRM.Controllers
                 searchContent = searchContent.Trim();
 
                 employee = (from cus in db.Customers
-                            where (cus.IcNo.Contains(searchContent) || cus.CardNo.Contains(searchContent) || 
+                            where (cus.IcNo.Contains(searchContent) || cus.CardNo.Contains(searchContent) ||
                             cus.ContactNo.Contains(searchContent) || cus.FullName.Replace(" ", "").ToLower().Contains(searchContent))
                             && cus.Active.Equals(false) && cus.Status.Equals(false)
                             select new CustomerDetailsViewModel
@@ -74,6 +73,14 @@ namespace Web.HRM.Controllers
                                 ModBy = cus.ModBy,
                                 AddDate = cus.AddDate,
                                 ModDate = cus.ModDate,
+                                LastPurchaseDate = (from sa in db.Saless
+                                                    where sa.CusId == cus.CusId && sa.Active == false && sa.Status == false
+                                                    orderby sa.PaymentDate descending
+                                                    select (DateTime?)sa.PaymentDate).FirstOrDefault(),
+                                LastTreatmentDate = (from sh in db.ServiceHistories
+                                                     where sh.CusId == cus.CusId && sh.Status == false
+                                                     orderby sh.ServiceDate descending
+                                                     select (DateTime?)sh.ServiceDate).FirstOrDefault(),
                             }).ToList();
             }
             else
@@ -97,7 +104,38 @@ namespace Web.HRM.Controllers
                                 ModBy = cus.ModBy,
                                 AddDate = cus.AddDate,
                                 ModDate = cus.ModDate,
+                                LastPurchaseDate = (from sa in db.Saless
+                                                    where sa.CusId == cus.CusId && sa.Active == false && sa.Status == false
+                                                    orderby sa.PaymentDate descending
+                                                    select (DateTime?)sa.PaymentDate).FirstOrDefault(),
+                                LastTreatmentDate = (from sh in db.ServiceHistories
+                                                     where sh.CusId == cus.CusId && sh.Status == false
+                                                     orderby sh.ServiceDate descending
+                                                     select (DateTime?)sh.ServiceDate).FirstOrDefault(),
                             }).ToList();
+            }
+
+            if (!string.IsNullOrEmpty(inactiveDays))
+            {
+                var parts = inactiveDays.Split(':');
+                int? minDays = parts[0] != "" ? int.Parse(parts[0]) : (int?)null;
+                int? maxDays = parts.Length > 1 && parts[1] != "" ? int.Parse(parts[1]) : (int?)null;
+
+                employee = employee.Where(e =>
+                {
+                    DateTime? lastActivity;
+                    if (e.LastPurchaseDate.HasValue && e.LastTreatmentDate.HasValue)
+                        lastActivity = e.LastPurchaseDate > e.LastTreatmentDate ? e.LastPurchaseDate : e.LastTreatmentDate;
+                    else
+                        lastActivity = e.LastPurchaseDate ?? e.LastTreatmentDate;
+
+                    if (!lastActivity.HasValue)
+                        return !maxDays.HasValue; // no activity = infinitely inactive; include only in open-ended (180+) range
+
+                    double days = (DateTime.Now - lastActivity.Value).TotalDays;
+                    return (!minDays.HasValue || days >= minDays.Value)
+                        && (!maxDays.HasValue || days < maxDays.Value);
+                }).ToList();
             }
 
             return Json(employee.ToDataSourceResult(request), JsonRequestBehavior.AllowGet);

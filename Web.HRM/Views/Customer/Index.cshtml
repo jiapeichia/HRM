@@ -30,13 +30,16 @@
     $(function () {
         $('#search').click(function () {
             var searchContent = $('#SearchContent').val();
+            var inactiveDays = $("#InactiveDays").data("kendoDropDownList").value();
             var url = "@Html.Raw(Url.Action("_SearchCustomer", "Customer", new { searchContent = "searchcontent" }))";
             url = url.replace("searchcontent", searchContent.replace(" ", ""));
+            if (inactiveDays) url += "&inactiveDays=" + inactiveDays;
             $('#saveDiv').load(url);
         });
 
         $('#clear').click(function () {
             $("#SearchContent").val('').trigger("change");
+            $("#InactiveDays").data("kendoDropDownList").value("");
             var url = "@Html.Raw(Url.Action("_SearchCustomer", "Customer", new { searchContent = "" }))";
             $('#saveDiv').load(url);
         });
@@ -48,6 +51,15 @@
             window.open('@Url.Action("Index", "Home", new { id = ViewBag.CusId })', "_self");
         });*@
     });
+
+    function onInactiveDaysChange() {
+        var inactiveDays = this.value();
+        var searchContent = $('#SearchContent').val();
+        var url = "@Html.Raw(Url.Action("_SearchCustomer", "Customer", new { searchContent = "searchcontent" }))";
+        url = url.replace("searchcontent", searchContent.replace(" ", ""));
+        if (inactiveDays) url += "&inactiveDays=" + inactiveDays;
+        $('#saveDiv').load(url);
+    }
 
     function error_handler(e) {
         if (e.errors) {
@@ -76,6 +88,21 @@
                 </td>
                 <td align="right">
                     @Html.TextBox("SearchContent", "", new { @class = "k-textbox fa fa-search", @style = "width: 350px", @placeholder = HttpUtility.HtmlDecode("&#xf002;") + " Search By Customer info" })
+                </td>
+                <td align="right">
+                    @(Html.Kendo().DropDownList()
+                        .Name("InactiveDays")
+                        .BindTo(new List<SelectListItem> {
+                            new SelectListItem { Text = "All Customers", Value = "" },
+                            new SelectListItem { Text = "No activity 30 - 59 days", Value = "30:59" },
+                            new SelectListItem { Text = "No activity 60 - 89 days", Value = "60:89" },
+                            new SelectListItem { Text = "No activity 90 - 179 days", Value = "90:179" },
+                            new SelectListItem { Text = "No activity 180+ days", Value = "180:" },
+                        })
+                        .DataTextField("Text")
+                        .DataValueField("Value")
+                        .Events(e => e.Change("onInactiveDaysChange"))
+                        .HtmlAttributes(new { @class = "form-control", @style = "width: 200px" }))
                 </td>
                 <td align="right" style="width:350px">
                     <input type="button" value="SEARCH" class="btn btn-primary" id="search" style="width:100px" />

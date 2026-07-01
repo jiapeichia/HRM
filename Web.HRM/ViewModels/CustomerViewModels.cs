@@ -146,6 +146,12 @@ namespace Meo.Web.ViewModels
         [Display(Name = "Service Due Amount")]
         [DisplayFormat(DataFormatString = "{0:N2}", ApplyFormatInEditMode = true)]
         public decimal? SVDueAmt { get; set; }
+
+        [Display(Name = "Last Purchase")]
+        public DateTime? LastPurchaseDate { get; set; }
+
+        [Display(Name = "Last Treatment")]
+        public DateTime? LastTreatmentDate { get; set; }
     }
 
     public class NewCustomer
