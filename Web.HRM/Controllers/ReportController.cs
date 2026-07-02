@@ -422,6 +422,27 @@ namespace Web.HRM.Controllers
             var start_date = salesDate;
             var end_date = salesDate.AddDays(1).AddMilliseconds(-1);
 
+            var summary = BuildDailyTransactionRows(start_date, end_date)
+                .OrderBy(x => x.SalesId)
+                .ToList();
+
+            return Json(summary.ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult GetDailyTransactionRangeData(string startDate, string endDate, [DataSourceRequest] DataSourceRequest request)
+        {
+            var start_date = DateTime.Parse(startDate);
+            var end_date = DateTime.Parse(endDate).AddDays(1).AddMilliseconds(-1);
+
+            var summary = BuildDailyTransactionRows(start_date, end_date)
+                .OrderBy(x => x.PaymentDate).ThenBy(x => x.SalesId)
+                .ToList();
+
+            return Json(summary.ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
+        }
+
+        private List<DailyTransactionReport> BuildDailyTransactionRows(DateTime start_date, DateTime end_date)
+        {
             // Fetch all matching invoices first, tagged with GIRO flag
             var invoices = (from sa in db.Saless
                             join cus in db.Customers on sa.CusId equals cus.CusId
@@ -437,7 +458,8 @@ namespace Web.HRM.Controllers
                                 InvoiceTotalAmt = sa.TotalAmt ?? 0,
                                 InvoicePaidAmt  = sa.PaidAmt ?? 0,
                                 IsGiro         = sa.GIRO,
-                                Remarks        = sa.Remarks
+                                Remarks        = sa.Remarks,
+                                PaymentDate    = sa.PaymentDate
                             }).ToList();
 
             // GIRO invoices (original package or installment): one row per invoice using PaidAmt
@@ -460,13 +482,12 @@ namespace Web.HRM.Controllers
                         Beautician = "",
                         GroupAmt   = 0,
                         Remarks    = x.Remarks,
-                        IsGiro     = true
+                        IsGiro     = true,
+                        PaymentDate = x.PaymentDate
                     };
                 }).ToList();
 
             // Regular invoices: fetch with item detail for type/beautician breakdown
-            var giroIds = new HashSet<string>(invoices.Where(x => x.IsGiro == true).Select(x => x.SalesId));
-
             var rawData = (from sa in db.Saless
                            join cus in db.Customers on sa.CusId equals cus.CusId
                            join pay in db.Types on sa.PaymentMethod equals pay.TypeId
@@ -491,7 +512,8 @@ namespace Web.HRM.Controllers
                                InvoiceTotalAmt = sa.TotalAmt ?? 0,
                                ProductTypeName = (productType != null && productType.TypeName == "Service") ? "Service" : "Product",
                                BeauticianName  = (si.EmpName != null && si.EmpName != "") ? si.EmpName : (employee != null ? employee.FullName : ""),
-                               Remarks         = sa.Remarks
+                               Remarks         = sa.Remarks,
+                               PaymentDate     = sa.PaymentDate
                            }).ToList();
 
             // Pre-compute the sum of LineTotals per invoice so we can distribute
@@ -502,7 +524,7 @@ namespace Web.HRM.Controllers
 
             // One row per unique combination of invoice + type + beautician.
             var regularRows = rawData
-                .GroupBy(x => new { x.SalesId, x.CardNo, x.CustomerName, x.PaymentTypeName, x.Remarks, x.ProductTypeName, x.BeauticianName })
+                .GroupBy(x => new { x.SalesId, x.CardNo, x.CustomerName, x.PaymentTypeName, x.Remarks, x.ProductTypeName, x.BeauticianName, x.PaymentDate })
                 .Select(g =>
                 {
                     var first = g.First();
@@ -529,15 +551,12 @@ namespace Web.HRM.Controllers
                         Beautician = first.BeauticianName,
                         GroupAmt   = 0,
                         Remarks    = first.Remarks,
-                        IsGiro     = false
+                        IsGiro     = false,
+                        PaymentDate = first.PaymentDate
                     };
                 }).ToList();
 
-            var summary = giroRows.Concat(regularRows)
-                .OrderBy(x => x.SalesId)
-                .ToList();
-
-            return Json(summary.ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
+            return giroRows.Concat(regularRows).ToList();
         }
         #endregion
 

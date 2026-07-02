@@ -211,6 +211,11 @@ namespace Meo.Web.ViewModels
 
         public bool IsGiro { get; set; }
 
+        [Display(Name = "Date")]
+        [DataType(DataType.Date)]
+        [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy}")]
+        public DateTime PaymentDate { get; set; }
+
         [Display(Name = "Card No")]
         public string CardNo { get; set; }
 
