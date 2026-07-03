@@ -480,7 +480,7 @@ namespace Web.HRM.Controllers
                                  {
                                      SalesItemId = si.SalesItemId,
                                      SalesId = salesid,
-                                     EmpName = employee.FullName ?? "",
+                                     EmpName = employee.DisplayName ?? "",
                                      ProductName = pro.ProductCode + " - " + pro.ProductName,
                                      Quantity = si.Quantity,
                                      UnitPrice = si.UnitPrice,
@@ -501,7 +501,7 @@ namespace Web.HRM.Controllers
                              {
                                  SalesItemId = si.SalesItemId,
                                  SalesId = salesid,
-                                 EmpName = employee.FullName ?? "",
+                                 EmpName = employee.DisplayName ?? "",
                                  ProductName = pack.Code + " - " + pack.Remarks,
                                  Quantity = si.Quantity,
                                  UnitPrice = si.UnitPrice,

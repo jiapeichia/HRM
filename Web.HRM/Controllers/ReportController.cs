@@ -85,7 +85,7 @@ namespace Web.HRM.Controllers
                              SalesItemId = si.SalesItemId,
                              SalesId = si.SalesId,
                              EmpNo = si.EmpNo,
-                             PICName = (si.EmpName != null && si.EmpName != "") ? si.EmpName : (employee != null ? employee.FullName : ""),
+                             PICName = (si.EmpName != null && si.EmpName != "") ? si.EmpName : (employee != null ? employee.DisplayName : ""),
                              ProductId = si.ProductId,
                              TypeId = si.TypeId,
                              Quantity = si.Quantity,
@@ -286,7 +286,7 @@ namespace Web.HRM.Controllers
                                                            {
                                                                SalesItemId = si.SalesItemId,
                                                                SalesId = si.SalesId,
-                                                               EmpName = employee.FullName ?? "",
+                                                               EmpName = employee.DisplayName ?? "",
                                                                ProductName = pro.ProductName,
                                                                Quantity = si.Quantity,
                                                                UnitPrice = si.UnitPrice,
@@ -358,7 +358,7 @@ namespace Web.HRM.Controllers
                                              {
                                                  SalesItemId = si.SalesItemId,
                                                  SalesId = si.SalesId,
-                                                 EmpName = employee.FullName ?? "",
+                                                 EmpName = employee.DisplayName ?? "",
                                                  ProductName = pro.ProductName,
                                                  Quantity = si.Quantity,
                                                  UnitPrice = si.UnitPrice,
@@ -458,9 +458,33 @@ namespace Web.HRM.Controllers
                                 InvoiceTotalAmt = sa.TotalAmt ?? 0,
                                 InvoicePaidAmt  = sa.PaidAmt ?? 0,
                                 IsGiro         = sa.GIRO,
+                                DueInvoice     = sa.DueInvoice,
                                 Remarks        = sa.Remarks,
                                 PaymentDate    = sa.PaymentDate
                             }).ToList();
+
+            // GIRO installment payments have no SalesItems of their own, so resolve the
+            // beautician from the first SalesItem of the root invoice (DueInvoice, or the
+            // row itself if it has no DueInvoice) that they were created against.
+            var rootInvoiceIds = invoices
+                .Where(x => x.IsGiro == true)
+                .Select(x => string.IsNullOrEmpty(x.DueInvoice) ? x.SalesId : x.DueInvoice)
+                .Distinct()
+                .ToList();
+
+            var firstBeauticianByRootInvoice = (from si in db.SalesItems
+                                                 join emp in db.Employees on si.EmpNo equals emp.EmpNo into empGroup
+                                                 from employee in empGroup.DefaultIfEmpty()
+                                                 where rootInvoiceIds.Contains(si.SalesId)
+                                                 && si.Active == false && si.Status == false
+                                                 select new
+                                                 {
+                                                     si.SalesId,
+                                                     si.SalesItemId,
+                                                     BeauticianName = (si.EmpName != null && si.EmpName != "") ? si.EmpName : (employee != null ? employee.DisplayName : "")
+                                                 }).ToList()
+                .GroupBy(x => x.SalesId)
+                .ToDictionary(g => g.Key, g => g.OrderBy(x => x.SalesItemId).First().BeauticianName);
 
             // GIRO invoices (original package or installment): one row per invoice using PaidAmt
             var giroRows = invoices
@@ -469,6 +493,7 @@ namespace Web.HRM.Controllers
                 {
                     string payType = x.PaymentTypeName.ToLower();
                     decimal amt = x.InvoicePaidAmt;
+                    string rootInvoiceId = string.IsNullOrEmpty(x.DueInvoice) ? x.SalesId : x.DueInvoice;
                     return new DailyTransactionReport
                     {
                         SalesId       = x.SalesId,
@@ -479,7 +504,7 @@ namespace Web.HRM.Controllers
                         TNGAmt  = (payType.Contains("tng") || payType.Contains("touch") || payType.Contains("ewallet") || payType.Contains("e-wallet")) ? amt : 0,
                         CashAmt = payType.Contains("cash") ? amt : 0,
                         CardAmt = payType.Contains("card") ? amt : 0,
-                        Beautician = "",
+                        Beautician = firstBeauticianByRootInvoice.ContainsKey(rootInvoiceId) ? firstBeauticianByRootInvoice[rootInvoiceId] : "",
                         GroupAmt   = 0,
                         Remarks    = x.Remarks,
                         IsGiro     = true,
@@ -511,7 +536,7 @@ namespace Web.HRM.Controllers
                                LineTotal       = si.LineTotal,
                                InvoiceTotalAmt = sa.TotalAmt ?? 0,
                                ProductTypeName = (productType != null && productType.TypeName == "Service") ? "Service" : "Product",
-                               BeauticianName  = (si.EmpName != null && si.EmpName != "") ? si.EmpName : (employee != null ? employee.FullName : ""),
+                               BeauticianName  = (si.EmpName != null && si.EmpName != "") ? si.EmpName : (employee != null ? employee.DisplayName : ""),
                                Remarks         = sa.Remarks,
                                PaymentDate     = sa.PaymentDate
                            }).ToList();

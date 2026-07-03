@@ -1170,7 +1170,7 @@ namespace Web.HRM.Controllers
                                                  {
                                                      Id = si.Id,
                                                      FocId = si.FocId,
-                                                     EmpName = employee.FullName ?? "",
+                                                     EmpName = employee.DisplayName ?? "",
                                                      ProductName = pro.ProductName,
                                                      Qty = si.Qty,
                                                      UnitPrice = si.UnitPrice,

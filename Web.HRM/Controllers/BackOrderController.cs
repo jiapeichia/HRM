@@ -242,7 +242,7 @@ namespace Web.HRM.Controllers
                                                    {
                                                        SalesItemId = si.SalesItemId,
                                                        SalesId = si.SalesId,
-                                                       EmpName = employee.FullName ?? "",
+                                                       EmpName = employee.DisplayName ?? "",
                                                        ProductName = pro.ProductName,
                                                        Quantity = si.Quantity,
                                                        UnitPrice = si.UnitPrice,

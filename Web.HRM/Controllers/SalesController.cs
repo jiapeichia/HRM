@@ -130,7 +130,7 @@ namespace Web.HRM.Controllers
                                                    {
                                                        SalesItemId = si.SalesItemId,
                                                        SalesId = si.SalesId,
-                                                       EmpName = si.EmpName != null && si.EmpName != "" ? si.EmpName : (employee.FullName ?? ""),
+                                                       EmpName = si.EmpName != null && si.EmpName != "" ? si.EmpName : (employee.DisplayName ?? ""),
                                                        ProductName = pro.ProductName,
                                                        Quantity = si.Quantity,
                                                        UnitPrice = si.UnitPrice,
@@ -149,7 +149,7 @@ namespace Web.HRM.Controllers
                                   {
                                       SalesItemId = si.SalesItemId,
                                       SalesId = si.SalesId,
-                                      EmpName = si.EmpName != null && si.EmpName != "" ? si.EmpName : (employee.FullName ?? ""),
+                                      EmpName = si.EmpName != null && si.EmpName != "" ? si.EmpName : (employee.DisplayName ?? ""),
                                       ProductName = pack.Code + " (" + pack.Remarks + ")",
                                       Quantity = si.Quantity,
                                       UnitPrice = si.UnitPrice,
@@ -619,7 +619,7 @@ namespace Web.HRM.Controllers
                                 {
                                     SalesItemId = si.SalesItemId,
                                     SalesId = salesid,
-                                    EmpName = (si.EmpName != null && si.EmpName != "") ? si.EmpName : (employee.FullName ?? ""),
+                                    EmpName = (si.EmpName != null && si.EmpName != "") ? si.EmpName : (employee.DisplayName ?? ""),
                                     ProductName = pro.ProductCode + " - " + pro.ProductName,
                                     Quantity = si.Quantity,
                                     UnitPrice = si.UnitPrice,
@@ -698,7 +698,7 @@ namespace Web.HRM.Controllers
                                  {
                                      SalesItemId = si.SalesItemId,
                                      SalesId = salesid,
-                                     EmpName = (si.EmpName != null && si.EmpName != "") ? si.EmpName : (employee.FullName ?? ""),
+                                     EmpName = (si.EmpName != null && si.EmpName != "") ? si.EmpName : (employee.DisplayName ?? ""),
                                      ProductName = pro.ProductCode + " - " + pro.ProductName,
                                      Quantity = si.Quantity,
                                      UnitPrice = si.UnitPrice,
@@ -717,7 +717,7 @@ namespace Web.HRM.Controllers
                                  {
                                      SalesItemId = si.SalesItemId,
                                      SalesId = salesid,
-                                     EmpName = (si.EmpName != null && si.EmpName != "") ? si.EmpName : (employee.FullName ?? ""),
+                                     EmpName = (si.EmpName != null && si.EmpName != "") ? si.EmpName : (employee.DisplayName ?? ""),
                                      ProductName = pack.Code + " - " + pack.Remarks,
                                      Quantity = si.Quantity,
                                      UnitPrice = si.UnitPrice,
@@ -799,7 +799,7 @@ namespace Web.HRM.Controllers
                                  {
                                      SalesItemId = si.SalesItemId,
                                      SalesId = si.SalesId,
-                                     EmpName = (si.EmpName != null && si.EmpName != "") ? si.EmpName : (employee.FullName ?? ""),
+                                     EmpName = (si.EmpName != null && si.EmpName != "") ? si.EmpName : (employee.DisplayName ?? ""),
                                      ProductName = pro.ProductCode + " - " + pro.ProductName,
                                      Quantity = si.Quantity,
                                      UnitPrice = si.UnitPrice,
@@ -818,7 +818,7 @@ namespace Web.HRM.Controllers
                                  {
                                      SalesItemId = si.SalesItemId,
                                      SalesId = si.SalesId,
-                                     EmpName = (si.EmpName != null && si.EmpName != "") ? si.EmpName : (employee.FullName ?? ""),
+                                     EmpName = (si.EmpName != null && si.EmpName != "") ? si.EmpName : (employee.DisplayName ?? ""),
                                      ProductName = pack.Code + " - " + pack.Remarks,
                                      Quantity = si.Quantity,
                                      UnitPrice = si.UnitPrice,
