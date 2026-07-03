@@ -109,6 +109,9 @@
             //columns.Bound(c => c.CreditBal).ClientTemplate("<a href='" + @Url.Action("InvoiceByCredit", "Sales", new { id = "#=CusId#" }) + "' ><span class='k-button k-button-icontext k-grid-edit'>#=CreditBal#</span></a>").Width(90);
             columns.Bound(c => c.IcNo);
             columns.Bound(c => c.ContactNo);
+            columns.Bound(c => c.BirthDate).Title("Birth Date")
+                .ClientTemplate("#= BirthDate ? kendo.toString(kendo.parseDate(BirthDate), 'dd/MM/yyyy') : '-' #")
+                .Width(120);
             columns.Bound(c => c.LastPurchaseDate).Title("Last Purchase")
                 .ClientTemplate("#= LastPurchaseDate ? kendo.toString(kendo.parseDate(LastPurchaseDate), 'dd/MM/yyyy') : '-' #")
                 .Width(120);
@@ -151,7 +154,7 @@
             model.Id(tc => tc.CusId);
             model.Field(item => item.CusId).Editable(false);
         })
-        .Read(read => read.Action("GetSearchData", "Customer", new { searchContent = ViewBag.searchContent, inactiveDays = ViewBag.inactiveDays }))
+        .Read(read => read.Action("GetSearchData", "Customer", new { searchContent = ViewBag.searchContent, inactiveDays = ViewBag.inactiveDays, birthdayMonth = ViewBag.birthdayMonth }))
         .Destroy(update => update.Action("Destroy", "Customer"))
         )
         .Resizable(resize => resize.Columns(true))

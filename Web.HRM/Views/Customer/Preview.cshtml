@@ -126,6 +126,14 @@
                 </tr>
                 <tr>
                     <td>
+                        @Html.LabelFor(model => model.BirthDate, new { @style = "width : 150px" })
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => model.BirthDate, new { @style = "width : 350px" })
+                    </td>
+                </tr>
+                <tr>
+                    <td>
                         @Html.LabelFor(model => model.Remarks, new { @style = "width : 150px" })
                     </td>
                     <td>

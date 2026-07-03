@@ -14,7 +14,7 @@
         }
 
         input.k-textbox {
-            width: 100%;
+            /*width: 100%;*/
             height: 2.45em;
             text-indent: .33em;
             line-height: 1.6em;
@@ -22,7 +22,35 @@
 
         .k-textbox {
             max-width: 100%;
-            width: 200px;
+            width: 220px;
+        }
+
+        .customer-list-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .customer-list-filters {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .customer-list-filters .form-control {
+            width: 160px;
+        }
+
+        .customer-list-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .customer-list-actions .btn {
+            width: 90px;
         }
     </style>
 
@@ -31,15 +59,18 @@
         $('#search').click(function () {
             var searchContent = $('#SearchContent').val();
             var inactiveDays = $("#InactiveDays").data("kendoDropDownList").value();
+            var birthdayMonth = $("#BirthdayMonth").data("kendoDropDownList").value();
             var url = "@Html.Raw(Url.Action("_SearchCustomer", "Customer", new { searchContent = "searchcontent" }))";
             url = url.replace("searchcontent", searchContent.replace(" ", ""));
             if (inactiveDays) url += "&inactiveDays=" + inactiveDays;
+            if (birthdayMonth) url += "&birthdayMonth=" + birthdayMonth;
             $('#saveDiv').load(url);
         });
 
         $('#clear').click(function () {
             $("#SearchContent").val('').trigger("change");
             $("#InactiveDays").data("kendoDropDownList").value("");
+            $("#BirthdayMonth").data("kendoDropDownList").value("");
             var url = "@Html.Raw(Url.Action("_SearchCustomer", "Customer", new { searchContent = "" }))";
             $('#saveDiv').load(url);
         });
@@ -54,10 +85,23 @@
 
     function onInactiveDaysChange() {
         var inactiveDays = this.value();
+        var birthdayMonth = $("#BirthdayMonth").data("kendoDropDownList").value();
         var searchContent = $('#SearchContent').val();
         var url = "@Html.Raw(Url.Action("_SearchCustomer", "Customer", new { searchContent = "searchcontent" }))";
         url = url.replace("searchcontent", searchContent.replace(" ", ""));
         if (inactiveDays) url += "&inactiveDays=" + inactiveDays;
+        if (birthdayMonth) url += "&birthdayMonth=" + birthdayMonth;
+        $('#saveDiv').load(url);
+    }
+
+    function onBirthdayMonthChange() {
+        var birthdayMonth = this.value();
+        var inactiveDays = $("#InactiveDays").data("kendoDropDownList").value();
+        var searchContent = $('#SearchContent').val();
+        var url = "@Html.Raw(Url.Action("_SearchCustomer", "Customer", new { searchContent = "searchcontent" }))";
+        url = url.replace("searchcontent", searchContent.replace(" ", ""));
+        if (inactiveDays) url += "&inactiveDays=" + inactiveDays;
+        if (birthdayMonth) url += "&birthdayMonth=" + birthdayMonth;
         $('#saveDiv').load(url);
     }
 
@@ -81,36 +125,53 @@
 </script>
 </head>
 <div class="page-content">
-        <table style="width:100%">
-            <tr>
-                <td>
-                    <h2 class="pagetitle">Customer List</h2>
-                </td>
-                <td align="right">
-                    @Html.TextBox("SearchContent", "", new { @class = "k-textbox fa fa-search", @style = "width: 350px", @placeholder = HttpUtility.HtmlDecode("&#xf002;") + " Search By Customer info" })
-                </td>
-                <td align="right">
-                    @(Html.Kendo().DropDownList()
-                        .Name("InactiveDays")
-                        .BindTo(new List<SelectListItem> {
-                            new SelectListItem { Text = "All Customers", Value = "" },
-                            new SelectListItem { Text = "No activity 30 - 59 days", Value = "30:59" },
-                            new SelectListItem { Text = "No activity 60 - 89 days", Value = "60:89" },
-                            new SelectListItem { Text = "No activity 90 - 179 days", Value = "90:179" },
-                            new SelectListItem { Text = "No activity 180+ days", Value = "180:" },
-                        })
-                        .DataTextField("Text")
-                        .DataValueField("Value")
-                        .Events(e => e.Change("onInactiveDaysChange"))
-                        .HtmlAttributes(new { @class = "form-control", @style = "width: 200px" }))
-                </td>
-                <td align="right" style="width:350px">
-                    <input type="button" value="SEARCH" class="btn btn-primary" id="search" style="width:100px" />
-                    <input type="button" value="CLEAR" class="btn btn-primary" id="clear" style="width:100px" />
-                    <input type="button" value="BACK" class="btn btn-default" id="close" style="width:100px" />
-                </td>
-            </tr>
-        </table>
+        <div class="customer-list-toolbar">
+            <h2 class="pagetitle">Customer List</h2>
+            <div class="customer-list-filters">
+                @(Html.Kendo().DropDownList()
+                    .Name("InactiveDays")
+                    .BindTo(new List<SelectListItem> {
+                        new SelectListItem { Text = "All Customers", Value = "" },
+                        new SelectListItem { Text = "No activity 30 - 59 days", Value = "30:59" },
+                        new SelectListItem { Text = "No activity 60 - 89 days", Value = "60:89" },
+                        new SelectListItem { Text = "No activity 90 - 179 days", Value = "90:179" },
+                        new SelectListItem { Text = "No activity 180+ days", Value = "180:" },
+                    })
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .Events(e => e.Change("onInactiveDaysChange"))
+                    .HtmlAttributes(new { @class = "form-control" }))
+                @(Html.Kendo().DropDownList()
+                    .Name("BirthdayMonth")
+                    .BindTo(new List<SelectListItem> {
+                        new SelectListItem { Text = "All Months", Value = "" },
+                        new SelectListItem { Text = "January", Value = "1" },
+                        new SelectListItem { Text = "February", Value = "2" },
+                        new SelectListItem { Text = "March", Value = "3" },
+                        new SelectListItem { Text = "April", Value = "4" },
+                        new SelectListItem { Text = "May", Value = "5" },
+                        new SelectListItem { Text = "June", Value = "6" },
+                        new SelectListItem { Text = "July", Value = "7" },
+                        new SelectListItem { Text = "August", Value = "8" },
+                        new SelectListItem { Text = "September", Value = "9" },
+                        new SelectListItem { Text = "October", Value = "10" },
+                        new SelectListItem { Text = "November", Value = "11" },
+                        new SelectListItem { Text = "December", Value = "12" },
+                    })
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .Events(e => e.Change("onBirthdayMonthChange"))
+                    .HtmlAttributes(new { @class = "form-control" }))
+
+                @Html.TextBox("SearchContent", "", new { @class = "k-textbox fa fa-search", @placeholder = HttpUtility.HtmlDecode("&#xf002;") + " Search By Customer info" })
+
+                <div class="customer-list-actions">
+                    <input type="button" value="SEARCH" class="btn btn-primary" id="search" />
+                    <input type="button" value="CLEAR" class="btn btn-primary" id="clear" />
+                    <input type="button" value="BACK" class="btn btn-default" id="close" />
+                </div>
+            </div>
+        </div>
 
     <hr />
     <div id="saveDiv">

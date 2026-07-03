@@ -68,6 +68,9 @@ namespace Meo.Web.ViewModels
         [DataType(DataType.Date)]
         public DateTime? ModDate { get; set; }
 
+        [Display(Name = "Birth Date")]
+        [DataType(DataType.Date)]
+        public DateTime? BirthDate { get; set; }
 
         [Display(Name = "Credit")]
         public decimal CreditBal { get; set; }
@@ -135,6 +138,9 @@ namespace Meo.Web.ViewModels
         [DataType(DataType.Date)]
         public DateTime? ModDate { get; set; }
 
+        [Display(Name = "Birth Date")]
+        [DataType(DataType.Date)]
+        public DateTime? BirthDate { get; set; }
 
         [Display(Name = "Credit")]
         public decimal CreditBal { get; set; }

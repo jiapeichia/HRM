@@ -39,13 +39,14 @@ namespace Web.HRM.Controllers
                 throw new Exception(ex.ToString());
             }
         }
-        public ActionResult _SearchCustomer(string searchContent, string inactiveDays)
+        public ActionResult _SearchCustomer(string searchContent, string inactiveDays, string birthdayMonth)
         {
             ViewBag.searchContent = searchContent;
             ViewBag.inactiveDays = inactiveDays;
+            ViewBag.birthdayMonth = birthdayMonth;
             return PartialView();
         }
-        public ActionResult GetSearchData(string searchContent, string inactiveDays, [DataSourceRequest] DataSourceRequest request)
+        public ActionResult GetSearchData(string searchContent, string inactiveDays, string birthdayMonth, [DataSourceRequest] DataSourceRequest request)
         {
             List<CustomerDetailsViewModel> employee = new List<CustomerDetailsViewModel>();
             if (!searchContent.IsNullOrWhiteSpace())
@@ -73,6 +74,7 @@ namespace Web.HRM.Controllers
                                 ModBy = cus.ModBy,
                                 AddDate = cus.AddDate,
                                 ModDate = cus.ModDate,
+                                BirthDate = cus.BirthDate,
                                 LastPurchaseDate = (from sa in db.Saless
                                                     where sa.CusId == cus.CusId && sa.Active == false && sa.Status == false
                                                     orderby sa.PaymentDate descending
@@ -104,6 +106,7 @@ namespace Web.HRM.Controllers
                                 ModBy = cus.ModBy,
                                 AddDate = cus.AddDate,
                                 ModDate = cus.ModDate,
+                                BirthDate = cus.BirthDate,
                                 LastPurchaseDate = (from sa in db.Saless
                                                     where sa.CusId == cus.CusId && sa.Active == false && sa.Status == false
                                                     orderby sa.PaymentDate descending
@@ -136,6 +139,12 @@ namespace Web.HRM.Controllers
                     return (!minDays.HasValue || days >= minDays.Value)
                         && (!maxDays.HasValue || days < maxDays.Value);
                 }).ToList();
+            }
+
+            if (!string.IsNullOrEmpty(birthdayMonth))
+            {
+                int month = int.Parse(birthdayMonth);
+                employee = employee.Where(e => e.BirthDate.HasValue && e.BirthDate.Value.Month == month).ToList();
             }
 
             return Json(employee.ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
@@ -218,6 +227,7 @@ namespace Web.HRM.Controllers
                             ContactNo = cus.ContactNo,
                             Gender = cus.Gender,
                             Remarks = cus.Remarks,
+                            BirthDate = cus.BirthDate,
                             CreditBal = 0,
                             TPDueAmt = 0,
                             SVDueAmt = 0,
@@ -289,7 +299,8 @@ namespace Web.HRM.Controllers
                                       AddBy = cus.AddBy,
                                       ModBy = cus.ModBy,
                                       AddDate = cus.AddDate,
-                                      ModDate = cus.ModDate
+                                      ModDate = cus.ModDate,
+                                      BirthDate = cus.BirthDate
                                   }).FirstOrDefault();
 
                     return View(detail);
@@ -343,6 +354,7 @@ namespace Web.HRM.Controllers
                         target.ContactNo = cus.ContactNo;
                         target.Gender = cus.Gender;
                         target.Remarks = cus.Remarks;
+                        target.BirthDate = cus.BirthDate;
                         target.Active = cus.Active;
                         target.Status = cus.Status;
                         target.ModBy = Session["EmpNo"].ToString() + "|" + Session["EmpName"].ToString();

@@ -143,6 +143,19 @@
                     </tr>
                     <tr>
                         <td>
+                            @Html.LabelFor(model => model.BirthDate, new { @style = "width : 150px" })
+                        </td>
+                        <td>
+                            @(Html.Kendo().DatePickerFor(model => model.BirthDate)
+                            .Culture("en-IE")
+                            .Format("dd/MM/yyyy")
+                            .ParseFormats(new List<string>() { "dd-MMM-yyyy" })
+                            .HtmlAttributes(new { @class = "form-control", @style = "width : 250px" }))
+                            @Html.ValidationMessageFor(model => model.BirthDate, "", new { @class = "text-danger" })
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
                             @Html.LabelFor(model => model.Remarks, new { @style = "width : 150px" })
                         </td>
                         <td>
