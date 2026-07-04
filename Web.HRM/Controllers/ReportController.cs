@@ -486,6 +486,38 @@ namespace Web.HRM.Controllers
                 .GroupBy(x => x.SalesId)
                 .ToDictionary(g => g.Key, g => g.OrderBy(x => x.SalesItemId).First().BeauticianName);
 
+            // Pre-compute: package ProductIds whose contents include at least one Service item.
+            // Used for both GIRO and regular row classification.
+            var serviceTypeId = db.Types
+                .Where(x => x.TypeName == "Service")
+                .Select(x => x.TypeId)
+                .FirstOrDefault();
+            var pkgWithServiceProductIds = (
+                from pkg in db.Packages
+                join det in db.PackageDetails on pkg.Id equals det.PackageId
+                where det.ItemType == serviceTypeId
+                select pkg.ProductId
+            ).Distinct().ToList();
+
+            // For each root invoice, determine Facial vs Product by inspecting its SalesItems.
+            // Root invoices may be outside the current date range (old original package sale),
+            // so we query by SalesId directly rather than by date.
+            var rootInvoiceTypeMap = (from si in db.SalesItems
+                                      join pro in db.Products on si.ProductId equals pro.ProductId into proGroup
+                                      from product in proGroup.DefaultIfEmpty()
+                                      join typ in db.Types on (product != null ? product.TypeId : -1) equals typ.TypeId into typGroup
+                                      from productType in typGroup.DefaultIfEmpty()
+                                      where rootInvoiceIds.Contains(si.SalesId)
+                                      && si.Active == false && si.Status == false
+                                      select new
+                                      {
+                                          si.SalesId,
+                                          IsService = (productType != null && productType.TypeName == "Service")
+                                                      || pkgWithServiceProductIds.Contains(si.ProductId)
+                                      }).ToList()
+                .GroupBy(x => x.SalesId)
+                .ToDictionary(g => g.Key, g => g.Any(x => x.IsService) ? "Facial" : "Product");
+
             // GIRO invoices (original package or installment): one row per invoice using PaidAmt
             var giroRows = invoices
                 .Where(x => x.IsGiro == true)
@@ -499,7 +531,7 @@ namespace Web.HRM.Controllers
                         SalesId       = x.SalesId,
                         CardNo        = x.CardNo,
                         CustomerName  = x.CustomerName,
-                        FacialProduct = "GIRO",
+                        FacialProduct = rootInvoiceTypeMap.ContainsKey(rootInvoiceId) ? rootInvoiceTypeMap[rootInvoiceId] : "GIRO",
                         BankAmt = payType.Contains("bank") ? amt : 0,
                         TNGAmt  = (payType.Contains("tng") || payType.Contains("touch") || payType.Contains("ewallet") || payType.Contains("e-wallet")) ? amt : 0,
                         CashAmt = payType.Contains("cash") ? amt : 0,
@@ -535,7 +567,9 @@ namespace Web.HRM.Controllers
                                PaymentTypeName = pay.TypeName,
                                LineTotal       = si.LineTotal,
                                InvoiceTotalAmt = sa.TotalAmt ?? 0,
-                               ProductTypeName = (productType != null && productType.TypeName == "Service") ? "Service" : "Product",
+                               ProductTypeName = (productType != null && productType.TypeName == "Service")
+                                                 ? "Service"
+                                                 : (pkgWithServiceProductIds.Contains(si.ProductId) ? "Service" : "Product"),
                                BeauticianName  = (si.EmpName != null && si.EmpName != "") ? si.EmpName : (employee != null ? employee.DisplayName : ""),
                                Remarks         = sa.Remarks,
                                PaymentDate     = sa.PaymentDate
