@@ -448,6 +448,10 @@
             return alert("Qty or UnitPrice element not found.");
         }
 
+        if (!salesPersonItems || salesPersonItems.length === 0) {
+            return alert("Sales Person is required.");
+        }
+
         // Get the selected value
         var selectedValue = parseInt(productDropdown.value());
         var products = @Html.Raw(Json.Encode(ViewData["Products"]));

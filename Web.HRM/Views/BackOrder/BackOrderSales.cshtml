@@ -409,6 +409,10 @@
             return alert("Nothing to add.");
         }
 
+        if (!salesPerson.value) {
+            return alert("Sales Person is required.");
+        }
+
         // Get the selected value
         var products = @Html.Raw(Json.Encode(ViewData["Products"]));
         var selectedProduct = products.find(function (product) {

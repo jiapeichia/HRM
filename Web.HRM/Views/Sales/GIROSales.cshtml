@@ -446,6 +446,10 @@
             return alert("Qty or UnitPrice element not found.");
         }
 
+        if (!salesPersonItems || salesPersonItems.length === 0) {
+            return alert("Sales Person is required.");
+        }
+
         //var payamt = parseFloat(row.find(".linepayamt").text());
         if (payamtInput.value == "") {
             return alert("Please enter pay amount.");
