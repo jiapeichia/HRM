@@ -271,8 +271,8 @@ namespace Web.HRM.Controllers
                 // Update service DueFlag to false
                 if (sales.BalAmt == 0 && !payment.IsTopUp)
                 {
-                    var service = db.Services.FirstOrDefault(x => x.SalesId == payment.OldSalesId);
-                    if (service != null)
+                    var services = db.Services.Where(x => x.SalesId == payment.OldSalesId).ToList();
+                    foreach (var service in services)
                         service.DueFlag = false;
                 }
                 else if (payment.IsTopUp && sales.BalAmt >= 0)
@@ -298,8 +298,8 @@ namespace Web.HRM.Controllers
                     }
 
                     // unlock free gift if any
-                    var service = db.Services.FirstOrDefault(x => x.SalesId == payment.OldSalesId);
-                    if (service != null)
+                    var services = db.Services.Where(x => x.SalesId == payment.OldSalesId).ToList();
+                    foreach (var service in services)
                     {
                         service.DueFlag = false;
                         service.Remarks = "";
@@ -361,11 +361,12 @@ namespace Web.HRM.Controllers
 
                 db.Saless.Add(sales);
 
-                // Update service DueFlag to false 
+                // Update service DueFlag to false
                 if (sales.BalAmt == 0)
                 {
-                    var service = db.Services.FirstOrDefault(x => x.SalesId == payment.OldSalesId);
-                    service.DueFlag = false;
+                    var services = db.Services.Where(x => x.SalesId == payment.OldSalesId).ToList();
+                    foreach (var service in services)
+                        service.DueFlag = false;
                 }
                 //else if (sales.BalAmt > 0)
                 //{
