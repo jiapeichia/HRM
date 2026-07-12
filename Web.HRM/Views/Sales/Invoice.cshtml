@@ -316,7 +316,16 @@
                         <tr>
                             <td style="text-align: left;">Discount</td>
                             <td>
-                                <input type="number" id="Discount" value = 0.00 placeholder="0.00" style="width: 100%" />
+                                <div style="display:flex; gap:5px;">
+                                    <input type="number" id="Discount" value = 0.00 placeholder="0.00" style="width: 100%" />
+                                    <select id="DiscountPercent" style="width: 110px;" onchange="applyDiscountPercent()">
+                                        <option value="">-- % --</option>
+                                        <option value="5">5%</option>
+                                        <option value="10">10%</option>
+                                        <option value="15">15%</option>
+                                        <option value="20">20%</option>
+                                    </select>
+                                </div>
                             </td>
                         </tr>
                         <tr>
@@ -383,6 +392,10 @@
                     else {
                         unitPriceInput.value = "";
                     }
+
+                    // Reset discount when the product changes
+                    document.getElementById("DiscountPercent").value = "";
+                    document.getElementById("Discount").value = "0.00";
                 }
                 else {
                     console.error("QtyInput or UnitPriceInput element not found.");
@@ -427,6 +440,15 @@
             "status=no,height=" + height + ",width=" + width + ",resizable=yes,left="
             + leftPosition + ",top=" + topPosition + ",screenX=" + leftPosition + ",screenY="
             + topPosition + ",toolbar=no,menubar=no,scrollbars=no,location=no,directories=no");
+    }
+
+    // Recalculate the Discount amount from the selected Discount % and current Qty/Unit Price
+    function applyDiscountPercent() {
+        var qty = parseFloat(document.getElementById("Qty").value) || 0;
+        var unitPrice = parseFloat(document.getElementById("UnitPrice").value) || 0;
+        var percent = parseFloat(document.getElementById("DiscountPercent").value) || 0;
+        var discAmt = qty * unitPrice * percent / 100;
+        document.getElementById("Discount").value = discAmt.toFixed(2);
     }
 
     //Add event handler.
