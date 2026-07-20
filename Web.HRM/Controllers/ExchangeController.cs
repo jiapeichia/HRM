@@ -281,18 +281,12 @@ namespace Web.HRM.Controllers
 
                 if (!salesid.IsNullOrWhiteSpace())
                 {
-                    var sales = db.Saless.FirstOrDefault(x => x.SalesId == salesid && x.Status == false && x.Active == false);
-                    if (sales != null)
-                    {
-                        payment.TotalAmt = sales.TotalAmt;
-                        payment.PaidAmt = sales.TotalAmt;
-                        payment.DiscAmt = sales.DiscAmt;
-                    }
-                    else
-                    {
-                        payment.TotalAmt = total;
-                        payment.PaidAmt = total;
-                    }
+                    // "total" is the net exchange amount (out items - in items) computed on the
+                    // Exchange screen. It must drive the prefilled Total/Paid here — the "salesid"
+                    // passed in is the ORIGINAL invoice being exchanged against, and its TotalAmt/DiscAmt
+                    // belong to that unrelated invoice, not to this exchange transaction.
+                    payment.TotalAmt = total;
+                    payment.PaidAmt = total;
                 }
                 else
                 {

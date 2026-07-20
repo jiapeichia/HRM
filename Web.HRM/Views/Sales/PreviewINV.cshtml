@@ -200,7 +200,7 @@
                 <input type="button" value="GO SERVICE" class="btn btn-default" id="cusservice" style="width:100px" />
                 <input type="button" value="GO HISTORY" class="btn btn-default" id="gohistory" style="width:100px" />
                 <input type="button" value="PRINT" class="btn btn-default" id="PrintReceipt" style="width:100px" />
-                @if (_isAdminOrPic)
+                @if (_isAdminOrPic && Model.Exchange != true)
                 {
                     <input type="button" value="EDIT" class="btn btn-success" id="editInvoice" style="width:80px" />
                     <input type="button" value="CANCEL INV" class="btn btn-danger" id="cancelInvoice" style="width:100px" />
