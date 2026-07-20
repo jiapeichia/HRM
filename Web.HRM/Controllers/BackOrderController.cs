@@ -658,6 +658,19 @@ namespace Web.HRM.Controllers
 
                 db.Stock.Attach(stock);
                 db.Entry(stock).State = EntityState.Modified;
+
+                // log collection so Product Settlement can report it on collect date
+                db.SalesItemCollections.Add(new SalesItemCollectionViewModels
+                {
+                    SalesItemId = salesitem.SalesItemId,
+                    Qty = 1,
+                    CollectDate = DateTime.Now,
+                    AddBy = Session["EmpNo"].ToString() + "|" + Session["EmpName"].ToString(),
+                    ModBy = Session["EmpNo"].ToString() + "|" + Session["EmpName"].ToString(),
+                    AddDate = DateTime.Now,
+                    ModDate = DateTime.Now
+                });
+
                 db.SaveChanges();
 
                 var currentUrl = Request.Url.AbsoluteUri;

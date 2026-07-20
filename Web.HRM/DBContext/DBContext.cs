@@ -22,6 +22,7 @@ namespace Meo.Web.DBContext
         // PIC Settings
         public DbSet<SalesViewModels> Saless { get; set; }
         public DbSet<SalesItemViewModels> SalesItems { get; set; }
+        public DbSet<SalesItemCollectionViewModels> SalesItemCollections { get; set; }
         public DbSet<CustomerViewModels> Customers { get; set; }
         public DbSet<Service> Services { get; set; }
         public DbSet<ServiceHistory> ServiceHistories { get; set; }

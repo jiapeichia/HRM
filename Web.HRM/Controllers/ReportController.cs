@@ -736,6 +736,7 @@ namespace Web.HRM.Controllers
             var productTypeId = db.Types.FirstOrDefault(e => e.Active.Equals(false) && e.Status.Equals(false)
                                     && e.Module == "Product" && e.TypeName == "Product")?.TypeId;
 
+            // normal (non-backordered) items settle on invoice payment date
             var query = from sa in db.Saless
                         join si in db.SalesItems on sa.SalesId equals si.SalesId
                         join cus in db.Customers on sa.CusId equals cus.CusId
@@ -744,6 +745,7 @@ namespace Web.HRM.Controllers
                               && si.Active.Equals(false) && si.Status.Equals(false)
                               && sa.Active.Equals(false) && sa.Status.Equals(false)
                               && si.TypeId == productTypeId
+                              && !si.IsBackordered
                         select new ProductSettlementReport
                         {
                             SalesId = sa.SalesId,
@@ -756,7 +758,31 @@ namespace Web.HRM.Controllers
                             PaymentDate = sa.PaymentDate,
                         };
 
-            return Json(query.ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
+            // backordered items settle per collection, on the collect date,
+            // with quantity/discount/total prorated per collected unit
+            var collected = from col in db.SalesItemCollections
+                            join si in db.SalesItems on col.SalesItemId equals si.SalesItemId
+                            join sa in db.Saless on si.SalesId equals sa.SalesId
+                            join cus in db.Customers on sa.CusId equals cus.CusId
+                            join p in db.Products on si.ProductId equals p.ProductId
+                            where col.CollectDate > start_date && col.CollectDate < end_date
+                                  && si.Active.Equals(false) && si.Status.Equals(false)
+                                  && sa.Active.Equals(false) && sa.Status.Equals(false)
+                                  && si.TypeId == productTypeId
+                                  && si.IsBackordered
+                            select new ProductSettlementReport
+                            {
+                                SalesId = sa.SalesId,
+                                CustomerName = cus.FullName,
+                                ProductName = p.ProductName,
+                                Quantity = col.Qty,
+                                UnitPrice = si.UnitPrice,
+                                LineDiscAmt = si.LineDiscAmt * col.Qty / si.Quantity,
+                                LineTotal = si.LineTotal * col.Qty / si.Quantity,
+                                PaymentDate = col.CollectDate,
+                            };
+
+            return Json(query.Concat(collected).ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
         }
         #endregion
 

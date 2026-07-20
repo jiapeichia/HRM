@@ -172,6 +172,35 @@ namespace Meo.Web.ViewModels
         public bool IsBackordered { get; set; } = false;
     }
 
+    [Table("dbo.s_SalesItemCollection")]
+    public class SalesItemCollectionViewModels
+    {
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Display(Name = "ID")]
+        public int Id { get; set; }
+
+        [Display(Name = "Sales Item")]
+        public int SalesItemId { get; set; }
+
+        [Display(Name = "Quantity")]
+        public int Qty { get; set; }
+
+        [Display(Name = "Collect Date")]
+        public DateTime CollectDate { get; set; }
+
+        [Display(Name = "Add By")]
+        public string AddBy { get; set; }
+
+        [Display(Name = "Add Date")]
+        public DateTime? AddDate { get; set; }
+
+        [Display(Name = "Mod By")]
+        public string ModBy { get; set; }
+
+        [Display(Name = "Last Update")]
+        public DateTime? ModDate { get; set; }
+    }
+
     public class SalesInvoiceViewModels
     {
         [Display(Name = "Invoice No")]
