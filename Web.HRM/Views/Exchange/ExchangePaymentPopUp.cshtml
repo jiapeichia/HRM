@@ -42,6 +42,10 @@
                 var discamt = parseFloat($("#DiscAmt").val()) || 0;
                 var balamt = ttlamt - discamt - payamt;
 
+                if (balamt > 0) {
+                    return alert("Please ensure you pay the full amount of RM" + (ttlamt - discamt).toFixed(2) + ".");
+                }
+
                 $.ajax({
                     url: '@Url.Action("Update_Payment", "Exchange")',
                     type: "POST",

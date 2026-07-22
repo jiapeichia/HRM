@@ -1678,6 +1678,15 @@ namespace Web.HRM.Controllers
             {
                 if (ModelState.IsValid && payment != null)
                 {
+                    if (!payment.IsGIRO)
+                    {
+                        var netTotal = payment.SubTotal - payment.DiscAmt - payment.DiscPercentageAmt;
+                        if (payment.PaidAmt < netTotal)
+                        {
+                            return Json(new { message = "Please ensure the full outstanding amount is paid before processing this invoice." });
+                        }
+                    }
+
                     //string currentYear = DateTime.Now.Year.ToString();
                     //var current_year = int.Parse(currentYear.Substring(2, 2));
                     //var paymentTypeFormat = db.Types.FirstOrDefault(x => x.TypeId == payment.PaymentMethod)?.InvFormat;

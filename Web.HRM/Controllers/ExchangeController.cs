@@ -511,6 +511,11 @@ namespace Web.HRM.Controllers
             {
                 if (ModelState.IsValid && payment != null)
                 {
+                    if (payment.PaidAmt < payment.TotalAmt - payment.DiscAmt)
+                    {
+                        return Json(new { error = "Please ensure the full outstanding amount is paid before processing the exchange." });
+                    }
+
                     //string currentYear = DateTime.Now.Year.ToString();
                     //var current_year = int.Parse(currentYear.Substring(2, 2));
                     //var paymentTypeFormat = db.Types.FirstOrDefault(x => x.TypeId == payment.PaymentMethod)?.InvFormat;
