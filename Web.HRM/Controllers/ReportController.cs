@@ -499,6 +499,19 @@ namespace Web.HRM.Controllers
                 select pkg.ProductId
             ).Distinct().ToList();
 
+            // Pre-compute: package ProductIds whose contents include at least one TopUp item,
+            // plus the TopUp TypeId itself for direct (non-package) TopUp lines.
+            var topupTypeId = db.Types
+                .Where(x => x.TypeName == "TopUp")
+                .Select(x => x.TypeId)
+                .FirstOrDefault();
+            var pkgWithTopUpProductIds = (
+                from pkg in db.Packages
+                join det in db.PackageDetails on pkg.Id equals det.PackageId
+                where det.ItemType == topupTypeId
+                select pkg.ProductId
+            ).Distinct().ToList();
+
             // For each root invoice, determine Facial vs Product by inspecting its SalesItems.
             // Root invoices may be outside the current date range (old original package sale),
             // so we query by SalesId directly rather than by date.
@@ -512,11 +525,13 @@ namespace Web.HRM.Controllers
                                       select new
                                       {
                                           si.SalesId,
+                                          IsTopUp = (si.TypeId == topupTypeId)
+                                                    || pkgWithTopUpProductIds.Contains(si.ProductId),
                                           IsService = (productType != null && productType.TypeName == "Service")
                                                       || pkgWithServiceProductIds.Contains(si.ProductId)
                                       }).ToList()
                 .GroupBy(x => x.SalesId)
-                .ToDictionary(g => g.Key, g => g.Any(x => x.IsService) ? "Facial" : "Product");
+                .ToDictionary(g => g.Key, g => g.Any(x => x.IsTopUp) ? "TopUp" : (g.Any(x => x.IsService) ? "Facial" : "Product"));
 
             // GIRO invoices (original package or installment): one row per invoice using PaidAmt
             var giroRows = invoices
@@ -567,9 +582,11 @@ namespace Web.HRM.Controllers
                                PaymentTypeName = pay.TypeName,
                                LineTotal       = si.LineTotal,
                                InvoiceTotalAmt = sa.TotalAmt ?? 0,
-                               ProductTypeName = (productType != null && productType.TypeName == "Service")
-                                                 ? "Service"
-                                                 : (pkgWithServiceProductIds.Contains(si.ProductId) ? "Service" : "Product"),
+                               ProductTypeName = ((si.TypeId == topupTypeId) || pkgWithTopUpProductIds.Contains(si.ProductId))
+                                                 ? "TopUp"
+                                                 : (productType != null && productType.TypeName == "Service")
+                                                   ? "Service"
+                                                   : (pkgWithServiceProductIds.Contains(si.ProductId) ? "Service" : "Product"),
                                BeauticianName  = (si.EmpName != null && si.EmpName != "") ? si.EmpName : (employee != null ? employee.DisplayName : ""),
                                Remarks         = sa.Remarks,
                                PaymentDate     = sa.PaymentDate
@@ -595,7 +612,7 @@ namespace Web.HRM.Controllers
                     decimal ratio = invoiceLineTotal > 0 ? first.InvoiceTotalAmt / invoiceLineTotal : 1;
                     decimal amt = Math.Round(groupLineTotal * ratio, 2);
 
-                    string label = first.ProductTypeName == "Service" ? "Facial" : "Product";
+                    string label = first.ProductTypeName == "TopUp" ? "TopUp" : (first.ProductTypeName == "Service" ? "Facial" : "Product");
 
                     return new DailyTransactionReport
                     {
