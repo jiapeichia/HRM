@@ -13,11 +13,7 @@
             columns.Bound(c => c.LineDiscAmt).Title("Discount").Width(110);
             columns.Bound(c => c.LineTotal).Title("Total").Width(110);
         })
-        .ToolBar(t => t.Excel().HtmlAttributes(new { style = "float: right" }))
-        .Excel(excel => excel
-            .AllPages(true)
-            .FileName("ProductSettlement.xlsx")
-        )
+        .ToolBar(t => t.Custom().Name("exportAll").Text("Export to Excel").HtmlAttributes(new { onclick = "exportCombinedReport(); return false;", style = "float: right" }))
         .Sortable()
         .Filterable()
         .Pageable(pageable => pageable
@@ -32,3 +28,81 @@
         .NoRecords("No Records Found")
     )
 </div>
+
+<script>
+    function exportCombinedReport() {
+        var startDate = '@ViewBag.StartDate';
+        var endDate = '@ViewBag.EndDate';
+
+        $.when(
+            $.ajax({ url: '@Url.Content("~/Setting/GetAllProductBalances")', type: 'GET' }),
+            $.ajax({ url: '@Url.Content("~/Stock/GetReceivedByDateRange")', type: 'GET', data: { startDate: startDate, endDate: endDate } }),
+            $.ajax({ url: '@Url.Content("~/Report/GetProductSettlementRaw")', type: 'GET', data: { startDate: startDate, endDate: endDate } })
+        ).done(function (balanceResp, receiveResp, settlementResp) {
+            var balances = balanceResp[0];
+            var received = receiveResp[0];
+            var settlements = settlementResp[0];
+
+            function headerRow(titles) {
+                return { cells: titles.map(function (t) { return { value: t, bold: true }; }) };
+            }
+
+            var balanceSheet = {
+                columns: [{ width: 120 }, { width: 220 }, { width: 100 }],
+                title: "Balance",
+                rows: [headerRow(["Product Code", "Product Name", "Current Balance"])]
+                    .concat(balances.map(function (r) {
+                        return { cells: [{ value: r.ProductCode }, { value: r.ProductName }, { value: r.Balance }] };
+                    }))
+            };
+
+            var receiveSheet = {
+                columns: [{ width: 100 }, { width: 110 }, { width: 120 }, { width: 220 }, { width: 100 }],
+                title: "Receive",
+                rows: [headerRow(["Date", "PO No", "Product Code", "Product Name", "Qty Received"])]
+                    .concat(received.map(function (r) {
+                        return {
+                            cells: [
+                                { value: r.PODate ? kendo.toString(kendo.parseDate(r.PODate), 'dd/MM/yyyy') : '' },
+                                { value: r.PONo },
+                                { value: r.ProductCode },
+                                { value: r.ProductName },
+                                { value: r.Qty },
+                            ]
+                        };
+                    }))
+            };
+
+            var settlementSheet = {
+                columns: [{ width: 100 }, { width: 110 }, { width: 160 }, { width: 220 }, { width: 70 }, { width: 100 }, { width: 100 }, { width: 100 }],
+                title: "Settlement",
+                rows: [headerRow(["Date", "Invoice No", "Customer", "Product", "Qty", "Unit Price", "Discount", "Total"])]
+                    .concat(settlements.map(function (r) {
+                        return {
+                            cells: [
+                                { value: r.PaymentDate ? kendo.toString(kendo.parseDate(r.PaymentDate), 'dd/MM/yyyy') : '' },
+                                { value: r.SalesId },
+                                { value: r.CustomerName },
+                                { value: r.ProductName },
+                                { value: r.Quantity },
+                                { value: r.UnitPrice },
+                                { value: r.LineDiscAmt },
+                                { value: r.LineTotal },
+                            ]
+                        };
+                    }))
+            };
+
+            var workbook = new kendo.ooxml.Workbook({
+                sheets: [balanceSheet, receiveSheet, settlementSheet]
+            });
+
+            kendo.saveAs({
+                dataURI: workbook.toDataURL(),
+                fileName: "ProductReport.xlsx"
+            });
+        }).fail(function () {
+            alert("Failed to export report. Please try again.");
+        });
+    }
+</script>

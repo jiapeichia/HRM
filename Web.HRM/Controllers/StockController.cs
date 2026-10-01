@@ -251,6 +251,29 @@ namespace Web.HRM.Controllers
             }), JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult GetReceivedByDateRange(string startDate, string endDate)
+        {
+            var start_date = DateTime.Parse(startDate);
+            var end_date = DateTime.Parse(endDate).AddDays(1).AddMilliseconds(-1);
+
+            var result = from ir in db.ItemReceives
+                         join sr in db.StockReceives on ir.POId equals sr.Id
+                         join p in db.Products on ir.ProductId equals p.ProductId
+                         where sr.PODate > start_date && sr.PODate < end_date
+                               && sr.Status.Equals(false)
+                         orderby sr.PODate descending
+                         select new
+                         {
+                             sr.PODate,
+                             sr.PONo,
+                             p.ProductCode,
+                             p.ProductName,
+                             Qty = ir.Qty,
+                         };
+
+            return Json(result.ToList(), JsonRequestBehavior.AllowGet);
+        }
+
         [HttpPost]
         public ActionResult Create_StockReceive(int? supid, string pono, string remarks, int? totalqty, decimal totalDisc, decimal subtotal)
         {

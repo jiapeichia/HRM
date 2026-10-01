@@ -119,6 +119,27 @@ namespace Web.HRM.Controllers
             return Json(result.ToDataSourceResult(request), JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult GetAllProductBalances()
+        {
+            var type = db.Types.FirstOrDefault(e => e.Active == false && e.Status == false && e.Module == "Product" && e.TypeName == "Product");
+            var typeid = type.TypeId;
+
+            var result =
+                (from pro in db.Products
+                 join s in db.Stock on pro.ProductId equals s.ProductId into stockGroup
+                 from stock in stockGroup.DefaultIfEmpty()
+                 where pro.Status == false && (stock == null || stock.Status == false) && pro.Active == false && pro.TypeId == typeid
+                 select new
+                 {
+                     pro.ProductId,
+                     pro.ProductCode,
+                     pro.ProductName,
+                     Balance = stock.QtyAvailable ?? 0,
+                 }).ToList();
+
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
+
         [AcceptVerbs(HttpVerbs.Post)]
         public virtual ActionResult Create_Product([DataSourceRequest] DataSourceRequest request, ProductViewModels product)
         {
