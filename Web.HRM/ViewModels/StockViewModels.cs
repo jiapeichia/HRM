@@ -53,6 +53,10 @@ namespace Meo.Web.ViewModels
         [DataType(DataType.Date)]
         public DateTime PODate { get; set; }
 
+        [NotMapped]
+        [Display(Name = "Product Code")]
+        public string ProductCodes { get; set; }
+
         [Display(Name = "Supplier")]
         public int? SupplierId { get; set; }
 
@@ -148,6 +152,9 @@ namespace Meo.Web.ViewModels
         [Display(Name = "PO No")]
         public string PONo { get; set; }
 
+        [Display(Name = "Product Code")]
+        public string ProductCode { get; set; }
+
         [Display(Name = "Product")]
         public string ProductName { get; set; }
 
@@ -239,6 +246,10 @@ namespace Meo.Web.ViewModels
 
         [Display(Name = "CN No")]
         public string CNNo { get; set; }
+
+        [NotMapped]
+        [Display(Name = "Product Code")]
+        public string ProductCodes { get; set; }
 
         [Display(Name = "CN Date")]
         [DataType(DataType.Date)]

@@ -8,6 +8,7 @@
         {
             columns.Bound(c => c.CNDate).ClientTemplate("#= kendo.toString(CNDate, 'd') #");
             columns.Bound(c => c.CNNo);
+            columns.Bound(c => c.ProductCodes).Title("Product Code");
             //columns.ForeignKey(c => c.SupplierId, (System.Collections.IEnumerable)ViewData["Product"], "ProductId", "ProductName");
             //columns.ForeignKey(c => c.ProductId, (System.Collections.IEnumerable)ViewData["Product"], "ProductId", "ProductName");
             columns.Bound(c => c.Qty);

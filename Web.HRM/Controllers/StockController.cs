@@ -24,6 +24,8 @@ namespace Web.HRM.Controllers
                 if (!string.IsNullOrEmpty(Session["EmpNo"] as string))
                 {
                     ViewData["Supplier"] = db.Suppliers.Where(e => e.Status.Equals(false)).ToList();
+                    ViewBag.StartDate = DateTime.Now.Date;
+                    ViewBag.EndDate = DateTime.Now.Date;
                     return View();
                 }
                 return RedirectToAction("Login", "Account");
@@ -34,9 +36,16 @@ namespace Web.HRM.Controllers
             }
         }
 
-        public ActionResult _SearchStock()
+        public ActionResult _SearchStock(string startDate, string endDate)
         {
+            if (!ControllerContext.IsChildAction && !Request.IsAjaxRequest())
+            {
+                return RedirectToAction("Receive");
+            }
+
             ViewData["Supplier"] = db.Suppliers.Where(e => e.Status.Equals(false)).ToList();
+            ViewBag.StartDate = startDate;
+            ViewBag.EndDate = endDate;
             return PartialView();
         }
 
@@ -206,6 +215,7 @@ namespace Web.HRM.Controllers
                                {
                                    POId = sr.Id,
                                    PONo = sr.PONo,
+                                   ProductCode = pr.ProductCode,
                                    ProductName = pr.ProductName,
                                    Qty = i.Qty,
                                    UnitPrice = i.UnitPrice,
@@ -232,13 +242,30 @@ namespace Web.HRM.Controllers
             }
         }
 
-        public virtual ActionResult Read_StockReceive([DataSourceRequest] DataSourceRequest request)
+        public virtual ActionResult Read_StockReceive(string startDate, string endDate, [DataSourceRequest] DataSourceRequest request)
         {
-            return Json(db.StockReceives.Where(o => o.Status.Equals(false)).ToDataSourceResult(request, o => new StockReceives()
+            var query = db.StockReceives.Where(o => o.Status.Equals(false));
+
+            if (!string.IsNullOrEmpty(startDate) && !string.IsNullOrEmpty(endDate))
+            {
+                var start_date = DateTime.Parse(startDate);
+                var end_date = DateTime.Parse(endDate).AddDays(1).AddMilliseconds(-1);
+                query = query.Where(o => o.PODate > start_date && o.PODate < end_date);
+            }
+
+            var productCodesByPO = (from ir in db.ItemReceives
+                                     join p in db.Products on ir.ProductId equals p.ProductId
+                                     select new { ir.POId, p.ProductCode, p.ProductName })
+                                    .ToList()
+                                    .GroupBy(x => x.POId)
+                                    .ToDictionary(g => g.Key, g => string.Join(", ", g.Select(x => x.ProductCode + " - " + x.ProductName).Distinct()));
+
+            return Json(query.ToDataSourceResult(request, o => new StockReceives()
             {
                 Id = o.Id,
                 PONo = o.PONo,
                 PODate = o.PODate,
+                ProductCodes = productCodesByPO.ContainsKey(o.Id) ? productCodesByPO[o.Id] : string.Empty,
                 SupplierId = o.SupplierId,
                 Qty = o.Qty,
                 TotalAmount = o.TotalAmount,
@@ -636,11 +663,19 @@ namespace Web.HRM.Controllers
 
         public virtual ActionResult Read_StockReturn([DataSourceRequest] DataSourceRequest request)
         {
+            var productCodesByCN = (from ir in db.ItemReturns
+                                     join p in db.Products on ir.ProductId equals p.ProductId
+                                     select new { ir.CNId, p.ProductCode, p.ProductName })
+                                    .ToList()
+                                    .GroupBy(x => x.CNId)
+                                    .ToDictionary(g => g.Key, g => string.Join(", ", g.Select(x => x.ProductCode + " - " + x.ProductName).Distinct()));
+
             return Json(db.StockReturns.Where(o => o.Status.Equals(false)).ToDataSourceResult(request, o => new StockReturns()
             {
                 Id = o.Id,
                 CNNo = o.CNNo,
                 CNDate = o.CNDate,
+                ProductCodes = productCodesByCN.ContainsKey(o.Id) ? productCodesByCN[o.Id] : string.Empty,
                 SupplierId = o.SupplierId,
                 Qty = o.Qty,
                 //TotalDisc = o.TotalDisc,

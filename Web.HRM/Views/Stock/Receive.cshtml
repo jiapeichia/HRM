@@ -32,15 +32,22 @@
         <script>
     $(function () {
         $('#search').click(function () {
-            var cusId = $('#SupplierId').val();
-            var url = "@Html.Raw(Url.Action("_SeachStock", "Stock"))";
-            url = url.replace("cusid", cusId.replace(" ", ""));
+            var startDate = $('#StartDate').val();
+            var endDate = $('#EndDate').val();
+
+            var url = "@Html.Raw(Url.Action("_SearchStock", "Stock", new { startDate = "startdate", endDate = "enddate" }))";
+            url = url.replace("startdate", startDate);
+            url = url.replace("enddate", endDate);
             $('#saveDiv').load(url);
         });
 
         $('#clear').click(function () {
-            $("#SupplierId").val('').trigger("change");
-            var url = "@Html.Raw(Url.Action("_SeachStock", "Stock"))";
+            var today = new Date().toLocaleDateString('en-GB');
+            $("#StartDate, #EndDate").val(today).trigger("change");
+
+            var url = "@Html.Raw(Url.Action("_SearchStock", "Stock", new { startDate = "startdate", endDate = "enddate" }))";
+            url = url.replace("startdate", today);
+            url = url.replace("enddate", today);
             $('#saveDiv').load(url);
         });
 
@@ -48,6 +55,26 @@
             window.open('@Url.Action("Index", "Home")', "_self");
         });
     });
+
+            function startChange() {
+                var endPicker = $("#EndDate").data("kendoDatePicker"),
+                    startDate = this.value();
+                if (startDate) {
+                    startDate = new Date(startDate);
+                    startDate.setDate(startDate.getDate() + 1);
+                    endPicker.min(startDate);
+                }
+            }
+
+            function endChange() {
+                var startPicker = $("#StartDate").data("kendoDatePicker"),
+                    endDate = this.value();
+                if (endDate) {
+                    endDate = new Date(endDate);
+                    endDate.setDate(endDate.getDate() - 1);
+                    startPicker.max(endDate);
+                }
+            }
 
             function error_handler(e) {
                 if (e.errors) {
@@ -76,23 +103,33 @@
                 <h2 class="pagetitle">Stock Receive</h2>
             </td>
             <td align="right">
-                @*@(Html.Kendo().DropDownListFor(model => model.SupplierId)
-                        .Name("supId")
-                        .BindTo((System.Collections.IEnumerable)ViewData["Supplier"])
-                        .DataTextField("Name").DataValueField("Id")
-                        .OptionLabel(" ------- Select ------- ")
-                        .Filter(FilterType.Contains))
-
-                @Html.TextBox("SearchContent", "", new { @class = "k-textbox fa fa-search", @style = "width: 350px", @placeholder = HttpUtility.HtmlDecode("&#xf002;") + " Search By Customer info" })*@
+                Date From :
+                @(Html.Kendo().DatePicker()
+                    .Name("StartDate")
+                    .Value((DateTime)ViewBag.StartDate)
+                    .Culture("en-IE")
+                    .ParseFormats(new string[] { "dd/MM/yyyy" })
+                    .Events(e => e.Change("startChange"))
+                    .HtmlAttributes(new { @class = "form-control", @style = "width: 150px; display:inline-block;" }))
+                &nbsp;
+                To :
+                @(Html.Kendo().DatePicker()
+                    .Name("EndDate")
+                    .Value((DateTime)ViewBag.EndDate)
+                    .Culture("en-IE")
+                    .ParseFormats(new string[] { "dd/MM/yyyy" })
+                    .Events(e => e.Change("endChange"))
+                    .HtmlAttributes(new { @class = "form-control", @style = "width: 150px; display:inline-block;" }))
             </td>
-            <td align="right" style="width: 230px">
-                @*<input type="button" value="SEARCH" class="btn btn-primary" id="search" style="width:100px" />*@
+            <td align="right" style="width: 340px">
+                <input type="button" value="SEARCH" class="btn btn-primary" id="search" style="width:100px" />
+                <input type="button" value="CLEAR" class="btn btn-primary" id="clear" style="width:100px" />
                 <input type="button" value="BACK" class="btn btn-default" id="close" style="width:100px" />
             </td>
         </tr>
     </table>
     <br />
     <div class="col-md-12" id="saveDiv">
-        @{ Html.RenderAction("_SearchStock", new { id = "" }); }
+        @{ Html.RenderAction("_SearchStock", new { startDate = ((DateTime)ViewBag.StartDate).ToString("dd/MM/yyyy"), endDate = ((DateTime)ViewBag.EndDate).ToString("dd/MM/yyyy") }); }
     </div>
 </div>

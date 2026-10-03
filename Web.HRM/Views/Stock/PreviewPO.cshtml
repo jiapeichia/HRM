@@ -100,7 +100,7 @@
                                 <td class="pono" style="display:none"><span>@item.PONo</span></td>
                                 <td style="width:5%">@index</td>
                                 <td style="width:20%; text-align:left">
-                                    @Html.DisplayFor(modelItem => item.ProductName)
+                                    @item.ProductCode - @Html.DisplayFor(modelItem => item.ProductName)
                                 </td>
                                 <td class="qty" style="width:5%">
                                     <span>@item.Qty</span>

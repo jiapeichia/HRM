@@ -7,6 +7,7 @@
         .Columns(columns =>
         {
             columns.Bound(c => c.PODate).ClientTemplate("#= kendo.toString(PODate, 'd') #");
+            columns.Bound(c => c.ProductCodes).Title("Product Code");
             columns.Bound(c => c.PONo);
             columns.ForeignKey(c => c.SupplierId, (System.Collections.IEnumerable)ViewData["Supplier"], "SupplierId", "Name");
             columns.Bound(c => c.Qty);
@@ -47,7 +48,7 @@
             .PageSize(10)
             .Events(events => events.Error("error_handler").Sync("sync_handler").RequestEnd("onRequestEnd"))
             .Sort(sort => sort.Add("PODate").Descending())
-            .Read(read => read.Action("Read_StockReceive", "Stock", new { action = "preview", pono = ViewBag.poNo/*, period = ViewBag.period*/ }))
+            .Read(read => read.Action("Read_StockReceive", "Stock", new { action = "preview", pono = ViewBag.poNo, startDate = ViewBag.StartDate, endDate = ViewBag.EndDate }))
             .Destroy(update => update.Action("Destroy_StockReceive", "Stock"))//, new { pono = ViewBag.poNo/*, period = ViewBag.period*/ }))
             .Model(model =>
             {
